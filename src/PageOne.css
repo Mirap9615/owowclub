@@ -26,7 +26,6 @@
 
 @media (max-width: 767px) {
   .page-container::before {
-    background-size: contain;
     background-attachment: scroll; /* Scroll with the content */
   }
 }

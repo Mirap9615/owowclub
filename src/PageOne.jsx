@@ -39,7 +39,7 @@ const PageOne = () => {
                 <li>Identify personal hobby</li>
                 <li>Celebrate off-work success</li>
                 <li>Support each other</li>
-                <li> <br/> <br/> </li>
+                <li> <br/> &zwnj; <br/> &zwnj; </li>
                 </ul>
             </section>
         </div>

@@ -14,7 +14,7 @@ const PageOne = () => {
                 <li>Women business leaders need time for themselves</li>
                 <li>Resources to nurture their off-work talents</li>
                 <li>Like-minded community to support each other</li>
-                <li>Platform to showcase their creations</li>
+                <li>Platform to showcase their creations <br/> <br/> </li>
                 </ul>
             </section>
             
@@ -26,7 +26,7 @@ const PageOne = () => {
                 <li>Find joy through creation</li>
                 <li>Identify personal hobby</li>
                 <li>Celebrate off-work success</li>
-                <li>Support each other</li>
+                <li>Support each other <br/> <br/> </li>
                 </ul>
             </section>
 
@@ -39,6 +39,7 @@ const PageOne = () => {
                 <li>Identify personal hobby</li>
                 <li>Celebrate off-work success</li>
                 <li>Support each other</li>
+                <li> <br/> <br/> </li>
                 </ul>
             </section>
         </div>

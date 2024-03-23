@@ -1,26 +1,36 @@
 .page-container {
-    display: flex;
-    flex-direction: column;
-    font-family: inherit;
-    color: black;
-    width: 100vw;
-    min-height:100vw;
-  }
+  position: relative; /* Needed for absolute positioning of the pseudo-element */
+  display: flex;
+  flex-direction: column;
+  font-family: inherit;
+  color: black;
+  width: 100vw;
+  max-height: 100vh;
+  overflow: hidden; /* Ensure nothing goes outside the bounds */
+}
 
-  @media (max-width: 1200px) {
-    body {
-      background-size: contain; 
-      background-attachment: scroll;
-    }
-  }
+.page-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url('./assets/pg1bg.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-attachment: fixed;
+  z-index: -1; /* Ensures the image is behind the content */
+}
 
-  body {
-    background-image: url('./assets/pg1bg.png'); 
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center;
-    background-attachment: fixed; 
+@media (max-width: 767px) {
+  .page-container::before {
+    background-size: contain;
+    background-attachment: scroll; /* Scroll with the content */
   }
+}
+
   
   .club-name {
     font-size: 54px;

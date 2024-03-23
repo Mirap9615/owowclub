@@ -34,9 +34,9 @@ const PageOne = () => {
                 <h2 className="section-title">WHAT NOT</h2>
                 <ul className="list">
                 <li>Not a place to discuss work issues</li>
-                <li>Search for jobs</li>
-                <li>Mentor business professionals</li>
-                <li>Share parenting experiences</li>
+                <li>Or a place to search for jobs</li>
+                <li>Or a place to mentor business professionals</li>
+                <li>Or a place to share parenting experiences</li>
                 <li> <br/> &zwnj; <br/> &zwnj; </li>
                 </ul>
             </section>

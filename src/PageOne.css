@@ -7,6 +7,13 @@
     min-height:100vw;
   }
 
+  @media (max-width: 767px) {
+    body {
+      background-size: contain; 
+      background-attachment: scroll;
+    }
+  }
+
   body {
     background-image: url('./assets/pg1bg.png'); 
     background-size: cover;

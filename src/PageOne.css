@@ -27,7 +27,10 @@
 @media (max-width: 767px) {
   .page-container {
     background-attachment: scroll;
+    background-image: url('./assets/pg1bg.png');
     background-size: auto;
+    background-position: bottom center;
+    background-repeat: no-repeat;
     max-height:unset;
   }
 }

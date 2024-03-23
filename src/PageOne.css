@@ -79,3 +79,8 @@
   .text-container {
     padding-left: clamp(1px, 20vw, 300px);
   }
+
+  .highlighted-letter {
+    color: #800020; 
+    font-weight: bold;
+  }

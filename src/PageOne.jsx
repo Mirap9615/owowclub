@@ -2,11 +2,17 @@ import React from 'react';
 import './PageOne.css';
 
 const PageOne = () => {
+  const tagline = "Outstanding Women Outside Work";
+  const highlightedTagline = tagline.split(' ').map((word) => (
+    <><span className="highlighted-letter">{word[0]}</span>{word.substring(1)} </>
+  ));
+
+
   return (
     <div className="page-container">
         <div className = "text-container">
             <h1 className="club-name">O'WOW<br/>CLUB</h1>
-            <p className="tagline">Outstanding Women Outside Work</p>
+            <p className="tagline">{highlightedTagline}</p>
             
             <section className="why-section">
                 <h2 className="section-title">WHY</h2>

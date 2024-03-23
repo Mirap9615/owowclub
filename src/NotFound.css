@@ -1,5 +1,14 @@
 .big-warning {
     font-size: 3.2em;
     line-height: 1.1;
-    color: white;
+    margin-left: 50px;
+    color: black;
+}
+
+.gentle-warning {
+    text-align: center;
+    font-size: 3.2em;
+    line-height: 1.1;
+    margin-left: 100px;
+    color: rgba(100, 50, 50, 100);
 }

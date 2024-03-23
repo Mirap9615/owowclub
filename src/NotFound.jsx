@@ -7,7 +7,7 @@ function NotFound() {
     <>
       <Menu />
       <div className="big-warning">
-        Oops! You're not supposed to be here!
+        404 Error <br></br><br></br><br></br> Oops! You're not supposed to be here!
       </div>
     </>
   );

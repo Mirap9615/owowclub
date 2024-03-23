@@ -10,7 +10,7 @@ function AppRouter() {
       <Routes>
         <Route path="/" element={<MainManager />} />
         <Route path="/home" element={<MainManager />} />
-        <Route path="/about" element={<NotFound />} />
+        <Route path="/about" element={<Activities />} />
         <Route path="/activities" element={<Activities />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

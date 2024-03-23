@@ -1,12 +1,12 @@
 .page-container {
-  position: relative; /* Needed for absolute positioning of the pseudo-element */
+  position: relative;
   display: flex;
   flex-direction: column;
   font-family: inherit;
   color: black;
   width: 100vw;
   max-height: 100vh;
-  overflow: hidden; /* Ensure nothing goes outside the bounds */
+  overflow: hidden; 
 }
 
 .page-container::before {
@@ -21,12 +21,14 @@
   background-repeat: no-repeat;
   background-position: center center;
   background-attachment: fixed;
-  z-index: -1; /* Ensures the image is behind the content */
+  z-index: -1;
 }
 
 @media (max-width: 767px) {
-  .page-container::before {
-    background-attachment: scroll; /* Scroll with the content */
+  .page-container {
+    background-attachment: scroll;
+    background-size: auto;
+    max-height:unset;
   }
 }
 

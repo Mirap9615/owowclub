@@ -33,12 +33,10 @@ const PageOne = () => {
             <section className="what-not-section">
                 <h2 className="section-title">WHAT NOT</h2>
                 <ul className="list">
-                <li>Dedicated time for established women executives to</li>
-                <li>Relax and recharge</li>
-                <li>Find joy through creation</li>
-                <li>Identify personal hobby</li>
-                <li>Celebrate off-work success</li>
-                <li>Support each other</li>
+                <li>Not a place to discuss work issues</li>
+                <li>Search for jobs</li>
+                <li>Mentor business professionals</li>
+                <li>Share parenting experiences</li>
                 <li> <br/> &zwnj; <br/> &zwnj; </li>
                 </ul>
             </section>

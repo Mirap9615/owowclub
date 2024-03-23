@@ -1,0 +1,68 @@
+.page-three-container {
+    text-align: center;
+    background-color: #FFF; 
+  }
+  
+  .main-title {
+    font-size: 50px; 
+    margin-bottom: 30px;
+  }
+  
+  .membership-image {
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 30px; 
+  }
+  
+  .memberships-container {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 20px; 
+  }
+  
+  .membership-column {
+    width: 30%;
+  }
+  
+  .membership-title {
+    font-size: 25px;
+    margin-bottom: 15px;
+  }
+  
+  .membership-list {
+    list-style: none;
+    text-align: center;
+    padding: 0;
+  }
+
+  .membership-additional-list {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .membership-list li {
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 5px;
+  }
+
+  .membership-additional-list li {
+    font-weight: bold; 
+    line-height: 1.6;
+    margin-bottom: 5px;
+  }
+
+  
+  @media (max-width: 768px) {
+    .memberships-container {
+      flex-direction: column;
+      align-items: center;
+    }
+  
+    .membership-column {
+      width: 100%; 
+      margin-bottom: 20px; 
+    }
+  }
+
+  

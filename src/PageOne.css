@@ -1,0 +1,49 @@
+.page-container {
+    display: flex;
+    flex-direction: column;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    color: #333;
+    width: 100vw;
+    min-height:100vw;
+  }
+
+  body {
+    background-image: url('./assets/pg1bg.png'); 
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-attachment: fixed; /* Fixed background on scroll */
+  }
+  
+  .club-name {
+    font-size: 54px;
+    font-weight: bold;
+    color: #800020; /* Maroon-like color */
+  }
+  
+  .tagline {
+    font-size: 25px;
+    font-style: italic;
+    margin-bottom: 30px;
+  }
+  
+  .section-title {
+    font-size: 35px;
+    font-weight: bold;
+    margin: 20px 0 10px;
+  }
+  
+  .list {
+    list-style: none;
+    padding-left: 0;
+  }
+  
+  .list li {
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 5px;
+  }
+
+  .text-container {
+    padding-left: 150px;
+  }

@@ -1,0 +1,99 @@
+.hamburger-menu-container {
+    position: fixed;
+    display: flex;
+    align-items: center;
+    background-color: transparent;
+    z-index: 1050;
+    width: 100%;
+    font-size: 36px;
+    transform: translateX(0);
+    transition: transform 0.3s ease; 
+}
+    
+.hamburger-button {
+    background-color: transparent;
+    background: transparent;
+    z-index: 1060;
+    font-size: inherit;
+}
+
+.hamburger-menu-container.menu-active {
+    transform: translateX(250px);
+    transition: transform 0.3s ease;
+}
+
+.hamburger-button.active {
+    color: #fff; 
+    background-color: transparent; 
+    border-color: none;
+    outline: none;
+}
+
+.hamburger-button:hover, .hamburger-button:focus {
+    background: transparent; 
+    outline: none;  
+    color: none;
+    border-color: none;
+}
+
+.menu {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    width: 250px;
+    background-color: white;  /* Changed to solid color for better visibility */
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 1020;
+    overflow: hidden;  /* This will prevent any content from spilling out */
+}
+
+.menu a {
+    display: block;  /* Ensures links are stacked vertically */
+    padding: 10px;
+    text-decoration: none;
+    color: black;
+    border-bottom: 1px solid #ccc;
+    white-space: nowrap;  /* Prevents the text from wrapping */
+}
+
+.menu-active {
+    transform: translateX(0);  /* Slide in the menu */
+}
+
+.backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1010;
+    display: none;
+}
+
+.backdrop-active {
+    display: block;
+}
+
+
+@media (min-width: 768px) {
+    .menu-text {
+        display: block; /* Show menu text on larger screens */
+    }
+}
+
+@media (max-width: 768px) {
+    .menu-text {
+        display: block; /* Consider showing menu text on smaller screens too */
+    }
+}
+
+.menu-text {
+    font-size: 16px;
+}
+
+.burger {
+    font-size: 36px;
+}

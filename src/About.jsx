@@ -8,8 +8,6 @@ const About = () => {
     <React.Fragment key={index}><span className="highlighted-letter">{word[0]}</span>{word.substring(1)} </React.Fragment>
 ));
 
-
-
   return (
     <>
       <Steamed />

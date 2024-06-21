@@ -88,6 +88,10 @@
     .menu-text {
         display: block; /* Consider showing menu text on smaller screens too */
     }
+    .hamburger-menu-container {
+        position: relative;
+        background-color: gainsboro;
+    }
 }
 
 .menu-text {

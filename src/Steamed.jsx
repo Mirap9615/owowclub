@@ -18,6 +18,7 @@ const Steamed = () => {
                 <a href="/about">About</a>
                 <a href="/membership">Membership</a>
                 <a href="/calendar">Calendar</a>
+                <a href="/activities">Activities</a>
                 
                 <a href="/gallery">Gallery</a>
                 <a href="/settings">Settings</a>

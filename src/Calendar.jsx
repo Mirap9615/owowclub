@@ -193,7 +193,7 @@ const EventDetailsPanel = ({ event, onClose, onTriggerEdit, onColorChange, setEv
             </div>
 
             {isEditMode && (
-                <>
+                <div className="color-picker-container">
                     <button className="card-ccol" onClick={toggleColorPicker}>
                         Change Color
                     </button>
@@ -204,7 +204,7 @@ const EventDetailsPanel = ({ event, onClose, onTriggerEdit, onColorChange, setEv
                             onChange={(color) => onColorChange(color, eventData.id)}
                         />
                     )}
-                </>
+                </div>
             )}
 
             <div className="edit-n-close">

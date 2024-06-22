@@ -63,7 +63,7 @@
     flex-direction: column;
     right: 0;
     top: 0;
-    height: 120vh;
+    height: 100vh;
     background-color: white;
     box-shadow: -2px 0 8px rgba(0,0,0,0.1);
     padding: 20px;
@@ -135,6 +135,7 @@
     width: 100%;
     margin-top: 2vh;
     left: 0px;
+    margin-bottom:5vh;
   }
   
   .card-close {

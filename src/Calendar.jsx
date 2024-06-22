@@ -4,40 +4,301 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import './Cal.css';
 import { HexColorPicker } from 'react-colorful';
+import { format } from 'date-fns';
+import { v4 as uuidv4 } from 'uuid';
 
-// Misc 
-function findEventsForDate(date, events) {
-    return events.filter(event => {
-      let eventDate = new Date(event.date + 'T12:00:00');
-      eventDate = new Date(eventDate.getTime() - (eventDate.getTimezoneOffset() * 60000));
-      return date.toDateString() === eventDate.toDateString();
-    });
+const EventDetailsPanel = ({ event, onClose, onTriggerEdit, onColorChange, setEvents, fetchEvents}) => {
+    if (event == null) { return };
+    const [eventData, setEventData] = useState(() => event || {});
+
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [originalColor, setOriginalColor] = useState(null);
+    const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
+    const toggleColorPicker = () => {
+        if (isEditMode) {  
+            setIsColorPickerVisible(prev => !prev);
+        }
+    };
+    const startTimeRef = useRef(event.startDateTime);
+    const endTimeRef = useRef(event.endDateTime);
+    const titleRef = useRef(event.title);
+    const descRef = useRef(event.description);
+    const noteRef = useRef(event.note);
+
+    useEffect(() => {
+        if (onTriggerEdit) {
+            onTriggerEdit(setIsEditMode);
+        }
+    }, [onTriggerEdit]);
+    
+    const toggleEditMode = () => {
+        setIsEditMode(!isEditMode);
+        if (!isEditMode) {
+            setOriginalColor(event.color);
+        } else {
+            handleColorRevert(); 
+        }
+    };
+
+    useEffect(() => {
+        if (event && event.id !== eventData.id) {
+            setEventData(event);
+        }
+    }, [event]);
+
+    const handleChange = (key, value) => {
+        setEventData(prev => ({ ...prev, [key]: value }));
+    };
+
+    const handleDeleteInitiate = () => {
+        setShowConfirmModal(true);
+    };
+
+    const handleDeleteConfirm = () => {
+        handleDelete(event.id);
+        setShowConfirmModal(false);
+        onClose();
+    };
+
+    const handleCloseModal = () => {
+        setShowConfirmModal(false);
+    };
+
+    const handleDelete = async (eventId) => {
+        try {
+            const response = await fetch(`/api/events/${eventId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+    
+            if (!response.ok) {
+                throw new Error('Failed to delete event');
+            }
+    
+            console.log('Event deleted successfully');
+            setEvents(currentEvents => currentEvents.filter(event => event.id !== eventId));
+            setEventData(null);
+        } catch (error) {
+            console.error('Error deleting event:', error);
+        }
+    };
+
+    const handleSave = async () => {
+        const eventToSave = {
+            start_time: new Date(startTimeRef.current.textContent).toISOString(),
+            end_time: new Date(endTimeRef.current.textContent).toISOString(),
+            title: titleRef.current.textContent,
+            description: descRef.current.textContent,
+            note: noteRef.current.textContent,
+            color: event.color
+        };
+
+        const isNew = typeof eventData.id === 'string' && eventData.id.includes('-');
+        const url = `/api/events${isNew ? '' : '/' + eventData.id}`;
+        const method = isNew ? 'POST' : 'PUT';
+        console.log("Data: ", JSON.stringify(eventToSave));
+    
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(eventToSave)
+            });
+    
+            if (!response.ok) {
+                throw new Error('Failed to save event');
+            }
+    
+            const data = await response.json();
+
+            setEvents(currentEvents => currentEvents.map(event => 
+                event.id === eventData.id ? {...eventData, id: data.id} : event
+            ));
+
+            await fetchEvents();
+        } catch (error) {
+            console.error('Error saving event:', error);
+        }
+        setIsEditMode(false);
+        document.body.classList.remove('body-no-scroll');
+    };
+
+    const handleJoinEvent = () => {
+
+    };
+
+    if (!event) return null;
+
+    return (
+        <div className="side-panel" style={{ width: '350px' }}> 
+            
+            <div
+                className="card-title"
+                contentEditable={isEditMode}
+                ref={titleRef}
+                suppressContentEditableWarning={true} 
+                style={{minWidth: 'fit-content'}}
+            >
+                {eventData.title}
+            </div>
+
+            <div className="card-datg">
+                <div
+                    className="card-date"
+                    contentEditable={isEditMode}
+                    ref={startTimeRef}
+                    suppressContentEditableWarning={true}
+                >
+                    {format(new Date(eventData.startDateTime), 'MM/dd/yyyy HH:mm')}
+                </div>
+                <span className="card-date-span">to</span>
+                <div
+                    className="card-date"
+                    contentEditable={isEditMode}
+                    ref={endTimeRef}
+                    suppressContentEditableWarning={true}
+                >
+                    {format(new Date(eventData.endDateTime), 'MM/dd/yyyy HH:mm')}
+                </div>
+            </div>
+
+            <div className="desc-lead">Description</div>
+                <div
+                    className="card-desc"
+                    contentEditable={isEditMode}
+                    ref={descRef}
+                    suppressContentEditableWarning={true}
+                >
+                    {eventData.description}
+            </div>
+
+            <div className="card-part">Participating Members</div>
+            {/* Placeholder for member list, currently just showing a static message */}
+            <div>
+                {eventData.members ? eventData.members.join(', ') : "None Yet"}
+            </div>
+            <button className="card-join" onClick={handleJoinEvent}>Join</button>
+
+            <div className="note-lead">Notes</div>
+                <div
+                    className="card-note"
+                    contentEditable={isEditMode}
+                    ref={noteRef}
+                    suppressContentEditableWarning={true}
+                >
+                    {eventData.note}
+            </div>
+
+            {isEditMode && (
+                <>
+                    <button className="card-ccol" onClick={toggleColorPicker}>
+                        Change Color
+                    </button>
+
+                    {isColorPickerVisible && (
+                        <HexColorPicker
+                            color={eventData.color}
+                            onChange={(color) => onColorChange(color, eventData.id)}
+                        />
+                    )}
+                </>
+            )}
+
+            <div className="edit-n-close">
+                <button className="card-edit" onClick={isEditMode ? handleSave : toggleEditMode}>
+                    {isEditMode ? "Save" : "Edit"}
+                </button>
+                <button className="card-delete" onClick={handleDeleteInitiate} style={{ visibility: isEditMode ? 'visible' : 'hidden' }}>Delete</button>
+                <button className="card-close" onClick={onClose}>Close</button>
+            </div>
+
+            {showConfirmModal && (
+                <ConfirmModal 
+                    isOpen={showConfirmModal} 
+                    onClose={handleCloseModal} 
+                    onConfirm={handleDeleteConfirm}
+                />
+            )}
+
+            <div className="resize-handle"></div>
+        </div>
+    );
+};
+
+function ConfirmModal({ isOpen, onClose, onConfirm }) {
+    if (!isOpen) return null;
+
+    return (
+        <div className="modal-overlay">
+            <div className="modal">
+                <h2>Confirm Delete</h2>
+                <p>Are you sure you want to delete this event?</p>
+                <button onClick={onConfirm}>Confirm</button>
+                <button onClick={onClose}>Cancel</button>
+            </div>
+        </div>
+    );
 }
 
-// Coloring 
-function getColor(index) {
-    const colors = ['#FF6633', '#FFB399', '#FF33FF', '#FFFF99', '#00B3E6', 
-            '#E6B333', '#3366E6', '#999966', '#99FF99', '#B34D4D',
-            '#80B300', '#809900', '#E6B3B3', '#6680B3', '#66991A', 
-            '#FF99E6', '#CCFF1A', '#FF1A66', '#E6331A', '#33FFCC',
-            '#66994D', '#B366CC', '#4D8000', '#B33300', '#CC80CC', 
-            '#66664D', '#991AFF', '#E666FF', '#4DB3FF', '#1AB399',
-            '#E666B3', '#33991A', '#CC9999', '#B3B31A', '#00E680', 
-            '#4D8066', '#809980', '#E6FF80', '#1AFF33', '#999933',
-            '#FF3380', '#CCCC00', '#66E64D', '#4D80CC', '#9900B3', 
-            '#E64D66', '#4DB380', '#FF4D4D', '#99E6E6', '#6666FF'];
-    return colors[index % colors.length];
-}  
+const findEventsForDate = (selectedDate, allEvents) => {
+    return allEvents.filter(event => {
+      const startDate = new Date(event.startDateTime);
+      const endDate = new Date(event.endDateTime);
+      
+      startDate.setHours(0, 0, 0, 0); 
+      endDate.setHours(23, 59, 59, 999); 
+  
+      const checkDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+  
+      return checkDate >= startDate && checkDate <= endDate;
+    });
+  };
 
 function Cal() {
   const [value, onChange] = useState(new Date());
-  const [events, setEvents] = useState([
-    { id: 1, date: '2024-06-20', title: 'Meeting', description: 'Quarterly planning meeting, a Jib and a Jab', color: getColor(1), members: ["Joanna"] },
-    { id: 2, date: '2024-06-21', title: 'Workshop', description: 'Artistic development workshop', color: getColor(4), members: ["Jessica"] },
-  ]);
+  const [events, setEvents] = useState([]);
+
+  const fetchEvents = async () => {
+    console.log("WHA");
+    const Url = '/api/events';
+
+    try {
+        let response = await fetch(Url);
+        if (response.ok) {
+            const data = await response.json();
+            const parsedEvents = data.map(event => ({
+            id: event.id,
+            startDateTime: new Date(event.start_time),
+            endDateTime: new Date(event.end_time),
+            title: event.title,
+            description: event.description,
+            note: event.note,
+            color: event.color,
+            temp: event.temp !== undefined ? event.temp : false 
+        }));
+        setEvents(parsedEvents);
+        console.log("Updated:", JSON.stringify(parsedEvents, null, 2));
+        } else {
+            throw new Error('Failed to fetch events');
+        }
+    } catch (error) {
+        console.error('Error fetching events:', error);
+    }
+};
+
+  useEffect(() => {
+        fetchEvents();
+    }, []);
 
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
+
+  const triggerEditMode = (setEditMode) => {
+    setEditMode(true);
+  };
 
   const handleEventSelect = (event) => {
     document.body.classList.add('body-no-scroll');
@@ -47,8 +308,11 @@ function Cal() {
 
   const handleClosePanel = () => {
     setIsPanelOpen(false);
-    setIsEditMode(false); 
-    setIsColorPickerVisible(false); 
+
+    if (selectedEvent && selectedEvent.temp) {
+        setEvents(prevEvents => prevEvents.filter(event => event.id !== selectedEvent.id));
+    }
+
     setSelectedEvent(null); 
     document.body.classList.remove('body-no-scroll');
     };
@@ -60,85 +324,69 @@ function Cal() {
       setSelectedEvent(currentEvent);
     }
   }, [events]);
-  
-  const [originalColor, setOriginalColor] = useState(null);
-  const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
-  const toggleColorPicker = () => setIsColorPickerVisible(!isColorPickerVisible);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const toggleEditMode = () => {
-    if (!isEditMode) {
-        setIsEditMode(true);
-        setOriginalColor(event.color);
-    } else {
-        setIsEditMode(false);
-        setIsColorPickerVisible(false); 
-        handleColorRevert();
+
+  const handleCreateEvent = async () => {
+    const tempId = uuidv4();
+    const newEvent = {
+        id: tempId,
+        startDateTime: new Date(),
+        endDateTime: new Date(),
+        title: 'Untitled Event',
+        description: '',
+        note: '',
+        color: '#ff9999',
+        temp: true
+    };
+    setSelectedEvent(newEvent);
+    setIsPanelOpen(true);
+    setEvents(prevEvents => [...prevEvents, newEvent]);
+};
+
+  const [sidebarWidth, setSidebarWidth] = useState(300);
+
+  useEffect(() => {
+    const sidePanel = document.querySelector('.side-panel');
+    const handle = document.querySelector('.resize-handle');
+
+    if (!handle || !sidePanel) {
+        return;
     }
-  };
 
-  const titleRef = useRef(null);
-  const dateRef = useRef(null);
-  const descRef = useRef(null);
+    let frameId = null;
 
-  const handleSave = () => {
-    const updatedTitle = titleRef.current.textContent;
-    const updatedDate = dateRef.current.textContent;
-    const updatedDesc = descRef.current.textContent;
-    const updatedEvents = events.map(event => 
-      event.id === selectedEvent.id ? 
-      { ...event, title: updatedTitle, date: updatedDate, description: updatedDesc } :
-      event
-    );
+    const resize = (e) => {
+        cancelAnimationFrame(frameId);
+        frameId = requestAnimationFrame(() => {
+            const newWidth = window.innerWidth - e.clientX;
+            setSidebarWidth(newWidth);
+        });
+    };
 
-    setEvents(updatedEvents); 
-    setIsEditMode(false); 
-    setIsColorPickerVisible(false);
-    setOriginalColor(null);
-  };
+    const stopResize = () => {
+        console.log('Stopped resizing');
+        window.removeEventListener('mousemove', resize);
+        window.removeEventListener('mouseup', stopResize);
+        cancelAnimationFrame(frameId);
+    };
 
-  const handleColorRevert = () => {
-    if (selectedEvent) {
-      onColorChange({ hex: originalColor }, selectedEvent.id);
-    }
-  };
-  
-  const EventDetailsPanel = ({ event, onClose, onColorChange }) => (
+    const startResize = (e) => {
+        console.log('MouseDown registered');
+        // Remove listeners to prevent duplication
+        window.removeEventListener('mousemove', resize);
+        window.removeEventListener('mouseup', stopResize);
+        // Reattach listeners
+        window.addEventListener('mousemove', resize);
+        window.addEventListener('mouseup', stopResize);
+    };
 
-    isPanelOpen && event ? (
-      <div className="side-panel">
-        <div className="card-title" contentEditable={isEditMode} ref={titleRef}>{event.title}</div>
-        <div className="card-date" contentEditable={isEditMode} ref={dateRef}>{event.date}</div>
-        <div className="card-desc" contentEditable={isEditMode} ref={descRef}>{event.description}</div>
-        <div className="card-part">{"Participating Members"}</div>
-        <div className="card-memb">{event.members.join(', ')}</div>
-        <button className="card-join" onClick={null /** joinEvent **/}>Join</button>
-        <br></br>
-        {isEditMode && (
-            <button className="card-ccol" onClick={toggleColorPicker}>Change Color</button>
-        )}
-        <button className="card-edit" onClick={isEditMode ? handleSave : toggleEditMode}>
-            {isEditMode ? "Save" : "Edit"}
-        </button>
+    handle.addEventListener('mousedown', startResize);
 
-        {isColorPickerVisible && isEditMode && (
-            <HexColorPicker
-            color={event.color}
-            onChange={(color) => onColorChange({ hex: color }, event.id)}
-            />
-        )}
-
-        <button className="card-close" onClick={onClose}>Close</button>
-      </div>
-    ) : null
-  );
-
-  
-  const handleColorChange = (color, eventId) => {
-    const updatedEvents = events.map(event =>
-      event.id === eventId ? { ...event, color: color.hex } : event
-    );
-    setEvents(updatedEvents);
-  };  
+    return () => {
+        handle.removeEventListener('mousedown', startResize);
+        window.removeEventListener('mousemove', resize);
+        window.removeEventListener('mouseup', stopResize);
+    };
+}, [isPanelOpen, setSidebarWidth]); 
 
   // Sorting and Searching
   const [filter, setFilter] = useState('');
@@ -147,13 +395,12 @@ function Cal() {
 
   useEffect(() => {
     const sortedEvents = [...events].sort((a, b) => (
-      sortDirection === 'asc' ? new Date(a.date) - new Date(b.date) : new Date(b.date) - new Date(a.date)
+      sortDirection === 'asc' ? new Date(a.startDateTime) - new Date(b.startDateTime) : new Date(b.startDateTime) - new Date(a.startDateTime)
     ));
     const filteredEvents = sortedEvents.filter(event => event.title.toLowerCase().includes(filter.toLowerCase()));
     setDisplayedEvents(filteredEvents);
   }, [sortDirection, filter, events]);
-
-
+  
   const toggleSortDirection = () => {
     setSortDirection(prevDirection => prevDirection === 'asc' ? 'desc' : 'asc');
   };
@@ -161,6 +408,14 @@ function Cal() {
   const handleSearchChange = (e) => {
     setFilter(e.target.value);
   };
+
+  const handleColorChange = (given_color, eventId) => {
+    console.log("Changing color to:", given_color); 
+    setEvents(prevEvents => prevEvents.map(event =>
+        event.id === eventId ? { ...event, color: given_color } : event
+    ));
+};
+
 
   useEffect(() => {
     const originalDisplay = document.body.style.display;
@@ -173,18 +428,25 @@ function Cal() {
   const tileClassName = ({ date, view }) => {
     if (view === 'month') {
       const dayEvents = events.filter(event => {
-        let eventDate = new Date(event.date + 'T12:00:00');
-        eventDate = new Date(eventDate.getTime() - (eventDate.getTimezoneOffset() * 60000));
-        return eventDate.toDateString() === date.toDateString();
+        const startDate = new Date(event.startDateTime);
+        const endDate = new Date(event.endDateTime);
+        endDate.setHours(23, 59, 59, 999);  
+  
+        const checkDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  
+        startDate.setHours(0, 0, 0, 0);
+  
+        return checkDate >= startDate && checkDate <= endDate;
       });
-
+  
       if (dayEvents.length > 0) {
-        console.log("Applying color:", dayEvents[0].color, "to date:", date.toDateString());
+        dayEvents.sort((a, b) => new Date(a.startDateTime) - new Date(b.startDateTime));
         return `highlight-${dayEvents[0].id}`;
       }
     }
+    return null;
   };
-
+  
   const updateTileStyles = () => {
     const styleElement = document.getElementById('dynamic-styles');
     const styleRules = events.map(event =>
@@ -204,23 +466,34 @@ function Cal() {
   useEffect(() => {
     updateTileStyles();
   }, [events]);
-  
-
-  useEffect(() => {
-    console.log("Events:", events);
-  }, [events]);
 
   const handleDayClick = (value) => {
     const eventsForDay = findEventsForDate(value, events);
     if (eventsForDay.length > 0) {
-      handleEventSelect(eventsForDay[0]);
+      const selectedEvent = eventsForDay.sort((a, b) => new Date(a.startDateTime) - new Date(b.startDateTime))[0];
+      handleEventSelect(selectedEvent);
+    }
+    else {
+        handleClosePanel();
     }
   };
-  
+
   return (
     <>
       <Steamed />
+      <br></br>
       <div className="container">
+      <button onClick={handleCreateEvent}>Create Event</button>
+            {isPanelOpen && selectedEvent && (
+                <EventDetailsPanel 
+                    event={selectedEvent} 
+                    onClose={handleClosePanel} 
+                    onTriggerEdit={triggerEditMode}
+                    onColorChange={handleColorChange}
+                    setEvents={setEvents}
+                    fetchEvents={fetchEvents}
+                />
+            )}
         <div className="title">Schedule</div>
         <Calendar
           onChange={onChange}
@@ -244,16 +517,22 @@ function Cal() {
             </tr>
           </thead>
           <tbody>
-            {displayedEvents.map(event => (
-                <tr key={event.id} style={{ backgroundColor: event.color, color: '#ffffff' }}>
-                    <td>{event.date}</td>
-                    <td>{event.title}</td>
-                    <td className="details-cell" onClick={() => handleEventSelect(event)}>Click to View</td>
-                </tr>
-            ))}
-          </tbody>
+          {displayedEvents.map(event => {
+            const formattedStart = format(new Date(event.startDateTime), 'MM/dd/yyyy');
+            const formattedEnd = format(new Date(event.endDateTime), 'MM/dd/yyyy');
+            const dateDisplay = formattedStart === formattedEnd ? formattedStart : `${formattedStart} to ${formattedEnd}`;
+
+            return (
+              <tr key={event.id} style={{ backgroundColor: event.color, color: '#ffffff' }}>
+                <td>{dateDisplay}</td>
+                <td>{event.title}</td>
+                <td className="details-cell" onClick={() => handleEventSelect(event)}>Click to View</td>
+              </tr>
+            );
+          })}
+        </tbody>
         </table>
-        <EventDetailsPanel event={selectedEvent} onClose={handleClosePanel} onColorChange={handleColorChange} />
+        <EventDetailsPanel event={selectedEvent} onClose={handleClosePanel} onColorChange={handleColorChange} setEvents={setEvents} fetchEvents={fetchEvents} />
       </div>
     </>
   );

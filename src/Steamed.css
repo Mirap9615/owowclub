@@ -18,7 +18,7 @@
 }
 
 .hamburger-menu-container.menu-active {
-    transform: translateX(clamp(20vw, 200px, 30vw));
+    transform: translateX(clamp(195px, 250px, 35vw));
     transition: transform 0.3s ease;
 }
 
@@ -40,7 +40,7 @@
     left: 0;
     top: 0;
     height: 100vh;
-    width: clamp(20vw, 200px, 30vw);
+    width: clamp(195px, 250px, 35vw);
     background-color: white;  
     transform: translateX(-100%);
     transition: transform 0.3s ease;
@@ -57,7 +57,7 @@
     color: black;
     white-space: nowrap; 
     border: none;
-    
+
 }
 
 .menu-active {

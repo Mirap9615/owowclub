@@ -123,7 +123,6 @@ const EventDetailsPanel = ({ event, onClose, onTriggerEdit, onColorChange, setEv
             console.error('Error saving event:', error);
         }
         setIsEditMode(false);
-        document.body.classList.remove('body-no-scroll');
     };
 
     const handleJoinEvent = () => {
@@ -289,6 +288,16 @@ function Cal() {
     }
 };
 
+
+    function toggleScrollability(desiredState) {
+        const body = document.body;
+        if ( desiredState ) {
+            body.classList.remove('body-no-scroll');
+        } else  {
+            body.classList.add('body-no-scroll');
+        }
+    }
+
   useEffect(() => {
         fetchEvents();
     }, []);
@@ -301,7 +310,7 @@ function Cal() {
   };
 
   const handleEventSelect = (event) => {
-    document.body.classList.add('body-no-scroll');
+    toggleScrollability(true);
     setSelectedEvent(event);
     setIsPanelOpen(true);
   };
@@ -314,7 +323,7 @@ function Cal() {
     }
 
     setSelectedEvent(null); 
-    document.body.classList.remove('body-no-scroll');
+    toggleScrollability(true);
     };
 
 
@@ -420,8 +429,10 @@ function Cal() {
   useEffect(() => {
     const originalDisplay = document.body.style.display;
     document.body.style.display = 'block';
+    toggleScrollability(true);
     return () => {
       document.body.style.display = originalDisplay;
+      toggleScrollability(true);
     };
   }, []);
 

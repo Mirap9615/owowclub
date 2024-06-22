@@ -7,7 +7,7 @@ import { HexColorPicker } from 'react-colorful';
 import { format } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
 
-const EventDetailsPanel = ({ event, onClose, onTriggerEdit, onColorChange, setEvents, fetchEvents}) => {
+const EventDetailsPanel = ({ event, onClose, onTriggerEdit, onColorChange, setEvents, fetchEvents, toggleScrollability}) => {
     if (event == null) { return };
     const [eventData, setEventData] = useState(() => event || {});
 
@@ -123,6 +123,7 @@ const EventDetailsPanel = ({ event, onClose, onTriggerEdit, onColorChange, setEv
             console.error('Error saving event:', error);
         }
         setIsEditMode(false);
+        toggleScrollability(true);
     };
 
     const handleJoinEvent = () => {
@@ -279,7 +280,6 @@ function Cal() {
             temp: event.temp !== undefined ? event.temp : false 
         }));
         setEvents(parsedEvents);
-        console.log("Updated:", JSON.stringify(parsedEvents, null, 2));
         } else {
             throw new Error('Failed to fetch events');
         }
@@ -292,8 +292,10 @@ function Cal() {
     function toggleScrollability(desiredState) {
         const body = document.body;
         if ( desiredState ) {
+            console.log("Scrolling Resumed")
             body.classList.remove('body-no-scroll');
         } else  {
+            console.log("Scrolling Paused")
             body.classList.add('body-no-scroll');
         }
     }
@@ -310,7 +312,7 @@ function Cal() {
   };
 
   const handleEventSelect = (event) => {
-    toggleScrollability(true);
+    toggleScrollability(false);
     setSelectedEvent(event);
     setIsPanelOpen(true);
   };
@@ -503,6 +505,7 @@ function Cal() {
                     onColorChange={handleColorChange}
                     setEvents={setEvents}
                     fetchEvents={fetchEvents}
+                    toggleScrollability={toggleScrollability}
                 />
             )}
         <div className="title">Schedule</div>
@@ -543,7 +546,7 @@ function Cal() {
           })}
         </tbody>
         </table>
-        <EventDetailsPanel event={selectedEvent} onClose={handleClosePanel} onColorChange={handleColorChange} setEvents={setEvents} fetchEvents={fetchEvents} />
+        <EventDetailsPanel event={selectedEvent} onClose={handleClosePanel} onColorChange={handleColorChange} setEvents={setEvents} fetchEvents={fetchEvents} toggleScrollability={toggleScrollability}/>
       </div>
     </>
   );

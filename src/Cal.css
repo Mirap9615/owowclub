@@ -135,7 +135,6 @@
     width: 100%;
     margin-top: 2vh;
     left: 0px;
-    margin-bottom:5vh;
   }
   
   .card-close {
@@ -234,5 +233,8 @@
     .card-datg {
         flex-direction: column; 
         align-items: flex-start; 
+    }
+    .edit-n-close {
+        margin-bottom:14vh;
     }
 }

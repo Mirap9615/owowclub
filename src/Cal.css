@@ -22,7 +22,7 @@
   }
   
   .table {
-    width: 80%; 
+    width: 60%; 
     border-collapse: collapse;
     margin: 0 auto;
   }
@@ -50,3 +50,76 @@
     opacity: 0.8; 
     background-color: var(--event-color, #fff); 
   }
+  
+  .details-cell {
+    cursor: pointer;
+    text-decoration: underline;
+  }
+
+  .side-panel {
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 300px;
+    height: 100vh;
+    background-color: white;
+    box-shadow: -2px 0 8px rgba(0,0,0,0.1);
+    padding: 20px;
+    box-sizing: border-box;
+    z-index: 1051;
+    overflow-y: auto;
+  }
+
+  .card-title {
+    margin-top: 8vh;
+    font-size: 36px;
+    text-align: left; 
+    font-weight: bold;
+  }
+
+  .card-date {
+    margin-bottom: 2vh;
+    font-size: 18px;
+    text-align: left;
+    font-weight:lighter;
+  }
+  
+  .card-edit {
+    bottom: 20px; 
+  }
+  
+  .card-part {
+    margin-top: 2vh;
+    font-weight: bold;
+  }
+
+  .card-join {
+    margin-top: 2vh;
+  }
+
+  .card-ccol {
+    margin-top: 2vh;
+  }
+  
+  .card-edit, .card-close { 
+    position: absolute;
+    bottom: 20px; 
+    left: 20px; 
+  }
+  
+  .card-close {
+    left: auto; 
+    right: 20px; 
+  }
+
+  .body-no-scroll {
+    overflow: hidden; 
+  }
+  
+  [contentEditable="true"] {
+    border: 1px solid #ccc;
+    background-color: #f9f9f9;
+    padding: 5px;
+    border-radius: 4px;
+  }
+  

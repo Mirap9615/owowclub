@@ -1,14 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Steamed from './Steamed.jsx';
+import { useNavigate } from 'react-router-dom';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import './Cal.css';
+import checkAuth from './CheckAuth.jsx';
 import { HexColorPicker } from 'react-colorful';
 import { format } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
 
-const EventDetailsPanel = ({ event, onClose, onTriggerEdit, onColorChange, setEvents, fetchEvents, toggleScrollability}) => {
+const EventDetailsPanel = ({ event, onClose, onTriggerEdit, onColorChange, setEvents, fetchEvents, toggleScrollability, userDetails}) => {
     if (event == null) { return };
+    const navigate = useNavigate();
     const [eventData, setEventData] = useState(() => event || {});
 
     const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -31,6 +34,16 @@ const EventDetailsPanel = ({ event, onClose, onTriggerEdit, onColorChange, setEv
             onTriggerEdit(setIsEditMode);
         }
     }, [onTriggerEdit]);
+
+    useEffect(() => {
+      const checkLoginStatus = async () => {
+        const isAuthenticated = await checkAuth();
+        if (!isAuthenticated) {
+          navigate('/no-permission');
+        }
+      };
+      checkLoginStatus();
+    }, [navigate]);
     
     const toggleEditMode = () => {
         setIsEditMode(!isEditMode);
@@ -208,10 +221,14 @@ const EventDetailsPanel = ({ event, onClose, onTriggerEdit, onColorChange, setEv
             )}
 
             <div className="edit-n-close">
+            {userDetails.type !== 'Standard' && (
+              <>
                 <button className="card-edit" onClick={isEditMode ? handleSave : toggleEditMode}>
                     {isEditMode ? "Save" : "Edit"}
                 </button>
                 <button className="card-delete" onClick={handleDeleteInitiate} style={{ visibility: isEditMode ? 'visible' : 'hidden' }}>Delete</button>
+              </>
+              )}
                 <button className="card-close" onClick={onClose}>Close</button>
             </div>
 
@@ -438,6 +455,28 @@ function Cal() {
     };
   }, []);
 
+  const [userDetails, setUserDetails] = useState({
+    name: '',
+    type: '',
+  });
+
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      try {
+        const response = await fetch('/user-details', {
+          method: 'GET',
+          credentials: 'include',
+        });
+        const data = await response.json();
+        setUserDetails(data);
+      } catch (error) {
+        console.error('Error fetching user details:', error);
+      }
+    };
+
+    fetchUserDetails();
+  }, []);
+
   const tileClassName = ({ date, view }) => {
     if (view === 'month') {
       const dayEvents = events.filter(event => {
@@ -496,7 +535,9 @@ function Cal() {
       <Steamed />
       <br></br>
       <div className="container">
-      <button onClick={handleCreateEvent}>Create Event</button>
+      {userDetails.type !== 'Standard' && (
+          <button onClick={handleCreateEvent}>Create Event</button>
+      )}
             {isPanelOpen && selectedEvent && (
                 <EventDetailsPanel 
                     event={selectedEvent} 
@@ -506,6 +547,7 @@ function Cal() {
                     setEvents={setEvents}
                     fetchEvents={fetchEvents}
                     toggleScrollability={toggleScrollability}
+                    userDetails={userDetails}
                 />
             )}
         <div className="title">Schedule</div>
@@ -546,7 +588,7 @@ function Cal() {
           })}
         </tbody>
         </table>
-        <EventDetailsPanel event={selectedEvent} onClose={handleClosePanel} onColorChange={handleColorChange} setEvents={setEvents} fetchEvents={fetchEvents} toggleScrollability={toggleScrollability}/>
+        <EventDetailsPanel event={selectedEvent} onClose={handleClosePanel} onColorChange={handleColorChange} setEvents={setEvents} fetchEvents={fetchEvents} toggleScrollability={toggleScrollability} userDetails={userDetails}/>
       </div>
     </>
   );

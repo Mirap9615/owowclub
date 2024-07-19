@@ -103,3 +103,11 @@
 .burger {
     font-size: 36px;
 }
+
+.logged-in-info {
+    font-size: 0.8em;
+    color: gray;
+    margin-top: 10px;
+    text-align: center;
+  }
+  

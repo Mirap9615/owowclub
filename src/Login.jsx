@@ -9,16 +9,6 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const checkLoginStatus = async () => {
-      const isAuthenticated = await checkAuth();
-      if (isAuthenticated) {
-        navigate('/home');
-      }
-    };
-    checkLoginStatus();
-  }, [navigate]);
-
   const handleLogin = async (e) => {
     e.preventDefault();
     try {

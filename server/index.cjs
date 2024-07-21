@@ -11,6 +11,11 @@ const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
 const { Pool } = require('pg');
+const { awsAccess } = require('./aws.cjs');
+const { S3Client, ListObjectsV2Command, PutObjectCommand, DeleteObjectCommand} = require("@aws-sdk/client-s3");
+const uuid = require('uuid');
+const multer = require('multer');
+const upload = multer({ storage: multer.memoryStorage() });
 
 const generateToken = () => {
   return crypto.randomBytes(20).toString('hex');
@@ -43,6 +48,94 @@ const isAuthenticated = (req, res, next) => {
     res.status(401).send('Unauthorized');
   }
 };
+
+awsAccess();
+
+const s3Client = new S3Client({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+  }
+});
+
+const bucketName = process.env.AWS_BUCKET_NAME;
+
+app.get('/api/images', async (req, res) => {
+  const command = new ListObjectsV2Command({
+    Bucket: bucketName,
+    Prefix: 'images/'
+  });
+
+  try {
+    const { Contents } = await s3Client.send(command);
+    if (!Contents || Contents.length === 0) { return res.status(200).json([])}
+
+    const imageUrls = Contents.map(file => `https://${bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${file.Key}`);
+    return res.json(imageUrls);
+  } catch (err) {
+    console.error("Failed to retrieve images:", err);
+    return res.status(500).send("Failed to retrieve images");
+  }
+});
+
+app.post('/upload-image', upload.single('image'), async (req, res) => {
+  if (!req.session.user) {
+    return res.status(403).send('Not authenticated');
+  }
+
+
+  const userId = req.session.user.id; 
+  const imageId = uuid.v4();
+  const key = `images/${imageId}.jpg`;
+  const { name, tags, eventId } = req.body;
+  const imageFile = req.file.buffer;
+
+  try {
+    const command = new PutObjectCommand({
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: key,
+      Body: imageFile,
+      ContentType: req.file.mimetype
+    });
+
+    await s3Client.send(command);
+
+    const imageUrl = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
+    const insertQuery = 'INSERT INTO images (image_id, user_id, event_id, name, tags, url) VALUES ($1, $2, $3, $4, $5, $6)';
+    await pool.query(insertQuery, [imageId, userId, eventId, name, tags, imageUrl]);
+
+    console.log("File uploaded; Session User Data:", req.session.user);
+    res.send({ imageUrl });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server error');
+  }
+});
+
+app.post('/api/delete-images', async (req, res) => {
+  const { images } = req.body;
+  console.log("Requested images to delete:", images);
+  try {
+    await Promise.all(images.map(imageUrl => {
+      const key = new URL(imageUrl).pathname.substring(1);
+
+      const command = new DeleteObjectCommand({
+        Bucket: process.env.AWS_BUCKET_NAME,
+        Key: key
+      });
+
+      return s3Client.send(command);
+    }));
+
+    res.send({ status: 'success' });
+    console.log("deletion successful")
+  } catch (error) {
+    console.error("Error deleting images:", error);
+    res.status(500).send({ status: 'error', message: error.message });
+  }
+});
+
 
 // redirect
 app.get('/member-home', isAuthenticated, (req, res) => {
@@ -106,7 +199,6 @@ app.delete('/api/events/:id', async (req, res) => {
 // events loader
 app.post('/api/events', async (req, res) => {
   const { start_time, end_time, title, description, note, color } = req.body;
-  console.log(req.body);
   try {
       const result = await pool.query(
           'SELECT create_event($1, $2, $3, $4, $5, $6)',
@@ -137,7 +229,7 @@ app.post('/register', async (req, res) => {
   const values = [name, email, type, hashedPassword];
   
   try {
-    await pool.query(query, values);
+    await pool.query(query, values);  
     res.status(201).send('User registered');
   } catch (err) {
     console.error(err);
@@ -164,7 +256,7 @@ app.post('/login', async (req, res) => {
     }
 
     req.session.user = {
-      id: user.id,
+      id: user.user_id,
       name: user.name,
       email: user.email,
       type: user.type,

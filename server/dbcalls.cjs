@@ -1,6 +1,5 @@
 module.exports = function(app) {
     app.get("/api/events", async (req, res) => {
-        console.log("Petition received");
         try {
           const { rows } = await pool.query('SELECT * FROM event');
           res.json(rows);

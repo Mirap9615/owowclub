@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Register.css';
 import checkAuth from './CheckAuth.jsx';
+import { useNavigate } from 'react-router-dom';
 import Steamed from './Steamed.jsx'
 
 const Register = () => {
@@ -10,7 +11,9 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [type, setType] = useState('');
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
+  /*
   useEffect(() => {
     const checkLoginStatus = async () => {
       const isAuthenticated = await checkAuth();
@@ -20,9 +23,9 @@ const Register = () => {
     };
     checkLoginStatus();
   }, [navigate]);
+  */
 
   const handleRegister = async (e) => {
-    console.log("Pressed")
     e.preventDefault();
 
     if (!username || !email || !password || !confirmPassword || !type) {

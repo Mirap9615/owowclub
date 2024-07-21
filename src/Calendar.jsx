@@ -91,7 +91,6 @@ const EventDetailsPanel = ({ event, onClose, onTriggerEdit, onColorChange, setEv
                 throw new Error('Failed to delete event');
             }
     
-            console.log('Event deleted successfully');
             setEvents(currentEvents => currentEvents.filter(event => event.id !== eventId));
             setEventData(null);
         } catch (error) {
@@ -112,7 +111,6 @@ const EventDetailsPanel = ({ event, onClose, onTriggerEdit, onColorChange, setEv
         const isNew = typeof eventData.id === 'string' && eventData.id.includes('-');
         const url = `/api/events${isNew ? '' : '/' + eventData.id}`;
         const method = isNew ? 'POST' : 'PUT';
-        console.log("Data: ", JSON.stringify(eventToSave));
     
         try {
             const response = await fetch(url, {
@@ -279,7 +277,6 @@ function Cal() {
   const [events, setEvents] = useState([]);
 
   const fetchEvents = async () => {
-    console.log("WHA");
     const Url = '/api/events';
 
     try {
@@ -309,10 +306,8 @@ function Cal() {
     function toggleScrollability(desiredState) {
         const body = document.body;
         if ( desiredState ) {
-            console.log("Scrolling Resumed")
             body.classList.remove('body-no-scroll');
         } else  {
-            console.log("Scrolling Paused")
             body.classList.add('body-no-scroll');
         }
     }
@@ -391,14 +386,12 @@ function Cal() {
     };
 
     const stopResize = () => {
-        console.log('Stopped resizing');
         window.removeEventListener('mousemove', resize);
         window.removeEventListener('mouseup', stopResize);
         cancelAnimationFrame(frameId);
     };
 
     const startResize = (e) => {
-        console.log('MouseDown registered');
         // Remove listeners to prevent duplication
         window.removeEventListener('mousemove', resize);
         window.removeEventListener('mouseup', stopResize);
@@ -438,7 +431,6 @@ function Cal() {
   };
 
   const handleColorChange = (given_color, eventId) => {
-    console.log("Changing color to:", given_color); 
     setEvents(prevEvents => prevEvents.map(event =>
         event.id === eventId ? { ...event, color: given_color } : event
     ));

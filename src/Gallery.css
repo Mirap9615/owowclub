@@ -1,0 +1,126 @@
+.main {
+    margin-left: 50px; 
+    padding: 20px;
+}
+
+.top-bar {
+    align-items: center;
+    justify-content: space-between; 
+    margin-left: 50px;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+}
+
+.gallery-title {
+    flex-grow: 1; 
+    text-align: center; 
+    z-index: 1060;
+    grid-column: 2 / 3;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px; 
+    z-index: 1070;
+    grid-column: 3 / 4;
+    margin-left: 40px;
+}
+
+.gallery {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start; /* Start items from the left */
+    gap: 10px;
+    padding: 0 0 0 60px; 
+}
+
+.gallery.empty {
+    display: unset;
+}
+
+.image img {
+    max-height: 400px; 
+    width: auto;
+    height: auto;
+}
+
+.gallery-no-images {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 200px;
+    font-size: 20px;
+    color: #666;
+}
+
+.image img {
+    cursor: pointer; 
+    transition: transform 0.2s; 
+}
+
+.image img:hover {
+    transform: scale(1.05); 
+}
+
+.edit-mode img:hover {
+    transform: none; 
+}
+
+.image {
+    position: relative;
+}
+
+.select-overlay {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 30px; 
+    height: 30px;
+    background-color: rgba(255, 255, 255, 0.7); 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    cursor: pointer;
+    color: green;
+  }
+  
+
+@media (max-width: 800px) {
+    .gallery-title {
+      margin-bottom: 10px; 
+      text-align: center;
+    }
+
+    .main {
+        margin-left: 10px;
+        padding: 0;
+    }
+
+    .gallery {
+        padding: 0; 
+        display:unset;
+    }
+
+    .image img {
+        width: 95%;
+        height: auto;
+        max-height: 100%;
+    }
+
+    .top-bar {
+        flex-direction: column; 
+        align-items: center; 
+        margin-left: 0;
+        display: flex;
+        justify-content: center;
+        grid-template-columns: none;
+    }
+
+    .button-group {
+        width: 100%; 
+        display: flex; 
+        justify-content: center; 
+        gap: 10px;
+    }
+  }

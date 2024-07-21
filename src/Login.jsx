@@ -21,7 +21,7 @@ const Login = () => {
       });
   
       if (response.ok) {
-        navigate('/member-home');
+        navigate('/home');
       } else {
         alert('Login failed');
       }

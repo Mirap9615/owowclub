@@ -15,6 +15,8 @@ import ResetPassword from './ResetPassword.jsx';
 import MemberHome from './MemberHome.jsx';
 import ProtectedRoute from './ProtectedRoute.jsx'
 import NoPermission from './NoPermission.jsx'
+import Gallery from './Gallery.jsx'
+import Logout from './Logout.jsx'
 
 function AppRouter() {
   return (
@@ -27,7 +29,7 @@ function AppRouter() {
         <Route path="/activities" element={<Activities />} />
 
         <Route path="/calendar" element={<ProtectedRoute element={Cal} />} />
-        <Route path="/gallery" element={<ProtectedRoute element={Soon} />} />
+        <Route path="/gallery" element={<ProtectedRoute element={Gallery} />} />
         <Route path="/settings" element={<ProtectedRoute element={Settings} />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} /> 
@@ -37,6 +39,8 @@ function AppRouter() {
 
         <Route path="/member-home" element={<ProtectedRoute element={MemberHome} />} />
         <Route path="/no-permission" element={<NoPermission />} />
+
+        <Route path="/logout" element={<Logout />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>

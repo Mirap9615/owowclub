@@ -1,6 +1,5 @@
 .main {
     margin-left: 50px; 
-    padding: 20px;
 }
 
 .top-bar {
@@ -9,6 +8,7 @@
     margin-left: 50px;
     display: grid;
     grid-template-columns: 1fr auto 1fr;
+    margin-bottom: 20px;
 }
 
 .gallery-title {
@@ -31,7 +31,7 @@
     flex-wrap: wrap;
     justify-content: flex-start; /* Start items from the left */
     gap: 10px;
-    padding: 0 0 0 60px; 
+    padding: 0 0 0 80px; 
 }
 
 .gallery.empty {
@@ -90,16 +90,21 @@
     .gallery-title {
       margin-bottom: 10px; 
       text-align: center;
+      font-size: 40px;
     }
 
     .main {
-        margin-left: 10px;
         padding: 0;
+        margin-left: 5px;
+        margin-right: 5px;
     }
 
     .gallery {
         padding: 0; 
-        display:unset;
+        margin-left: 10px;
+        align-items: center;    
+        flex-direction: column;
+        display: flex;
     }
 
     .image img {
@@ -122,5 +127,20 @@
         display: flex; 
         justify-content: center; 
         gap: 10px;
+        margin-left: 0;
     }
   }
+
+  @media (prefers-color-scheme: dark) {
+    .button-group button {
+        background-color: #313132; /* Specify a darker shade if needed */
+        color: #f0f0f0; /* Light gray color for text */
+        border: none; /* Optional: Removes the border */
+    }
+
+    .button-group button:hover {
+        background-color: #313132; /* Darker gray for hover effect */
+        color: white; /* Brighter white for hover text */
+    }
+
+}

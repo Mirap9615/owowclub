@@ -111,3 +111,28 @@
     text-align: center;
   }
   
+
+  @media (prefers-color-scheme: dark) {
+    .menu-text {
+        color: white;
+    }
+
+    .hamburger-menu-container {
+        background-color: #383c3c;
+        color: white;
+    }
+
+    .menu {
+        background-color: #383c3c;
+        color: white;
+    }
+
+    .logged-in-info {
+        color: white;
+    }
+
+    .menu a {
+        color: whitesmoke;
+        text-decoration: none;
+    }
+  }

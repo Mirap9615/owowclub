@@ -67,4 +67,23 @@
     text-decoration: underline;
   }
   
-  
+  .centerer {
+    margin-top: 30px;
+  }
+
+  @media (min-width: 769px) {
+    .centerer {
+        min-height: 100vh; 
+        display: flex;
+        justify-content: center; 
+        align-items: center; 
+        margin: 0;
+        padding: 0;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+    .forgot-password a{
+        color: #e0e0e0; 
+    }
+}

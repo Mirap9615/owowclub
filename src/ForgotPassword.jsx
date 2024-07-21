@@ -28,21 +28,23 @@ const ForgotPassword = () => {
   return (
     <>
         <Steamed />
-        <div className="standard-container">
-            <h2>Forgot Password</h2>
-            {message && <div className="message">{message}</div>}
-            <form onSubmit={handleForgotPassword}>
-                <div className="input-group">
-                    <label>Email</label>
-                    <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    />
-                </div>
-                <button type="submit" className="submit-button">Send Reset Link</button>
-            </form>
+        <div className="centerer">
+            <div className="standard-container">
+                <h2>Forgot Password</h2>
+                {message && <div className="message">{message}</div>}
+                <form onSubmit={handleForgotPassword}>
+                    <div className="input-group">
+                        <label>Email</label>
+                        <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        />
+                    </div>
+                    <button type="submit" className="submit-button">Send Reset Link</button>
+                </form>
+            </div>
         </div>
     </>
     

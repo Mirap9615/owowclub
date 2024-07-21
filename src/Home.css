@@ -12,7 +12,6 @@
     position: relative; 
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
     min-height: 100vh;
     width: 100%;
@@ -45,10 +44,17 @@
   @media (max-width: 768px) {
     .home-container {
       min-height: 100vh;
+
     }
     .content-container {
       padding: 20px 10px;
       max-width: 80%
+    }
+  }
+
+  @media (min-width: 769px) {
+    .home-container {
+      justify-content: center;
     }
   }
   

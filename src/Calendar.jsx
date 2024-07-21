@@ -436,7 +436,6 @@ function Cal() {
     ));
 };
 
-
   useEffect(() => {
     const originalDisplay = document.body.style.display;
     document.body.style.display = 'block';

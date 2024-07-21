@@ -4,23 +4,41 @@ import FsLightbox from "fslightbox-react";
 import './Gallery.css';  
 
 function Gallery() {
-  const [imageUrls, setImageUrls] = useState([]);
-
+  const [images, setImages] = useState([]);
   const [toggler, setToggler] = useState(false);
-  const [currentUrl, setCurrentUrl] = useState('');
+  const [currentImage, setCurrentImage] = useState('');
   const fileInputRef = useRef(null);
 
-    const handleImageClick = (url) => {
-        setCurrentUrl(url);
-        setToggler(prev => !prev); 
+  const handleImageClick = async (image) => {
+
+    const response = await fetch(`/users/${image.author}`);
+    const userData = await response.json();
+
+    if (response.ok) {
+        const formattedDate = new Date(image.upload_date).toLocaleDateString("en-US", {
+          year: 'numeric', month: 'long', day: 'numeric'
+        });
+        setCurrentImage({
+            ...image,
+            author: userData.name,  
+            uploadDate: formattedDate
+          });
+        
+          setToggler(prev => {
+            return !prev;
+        }); 
+    }   else {
+        console.error('Failed to fetch user data:', userData.error);
+    }
+    
     };
 
   useEffect(() => {
     const fetchImages = async () => {
       try {
         const response = await fetch('/api/images');
-        const urls = await response.json();
-        setImageUrls(urls);
+        const imageData = await response.json();
+        setImages(imageData);
       } catch (error) {
         console.error('Error fetching images:', error);
       }
@@ -43,8 +61,11 @@ function Gallery() {
       });
 
       if (response.ok) {
-        const newImageUrl = await response.json();
-        setImageUrls(prev => [...prev, newImageUrl.imageUrl]);
+        const newImage = await response.json();
+        setImages(prev => {
+          const updatedImages = [...prev, newImage];
+          return updatedImages;
+        });
         event.target.value = '';
       } else {
         throw new Error('Upload failed');
@@ -67,7 +88,6 @@ function Gallery() {
   };
 
   const handleSelectImage = (imageId) => {
-    console.log("Selected image:" + imageId)
     setSelectedImages(prev => ({
       ...prev,
       [imageId]: !prev[imageId]
@@ -76,7 +96,7 @@ function Gallery() {
 
   const handleDeleteImages = async () => {
     const imagesToDelete = Object.keys(selectedImages).filter(key => selectedImages[key]);
-    await fetch('/api/delete-images', {
+    const response = await fetch('/api/delete-images', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -84,8 +104,13 @@ function Gallery() {
       body: JSON.stringify({ images: imagesToDelete })
     });
 
-    toggleEditMode();
-    setImageUrls(current => current.filter(url => !imagesToDelete.includes(url)));
+    if (response.ok) {
+        setImages(current => current.filter(image => !imagesToDelete.includes(image.url)));
+        toggleEditMode();
+    } else {
+        console.error('Failed to delete image(s)')
+    }
+    
   };  
 
   return (
@@ -95,11 +120,9 @@ function Gallery() {
                 <div className="top-bar">
                     <h1 className="gallery-title">Image Gallery</h1>
                     <div className="button-group">
-                        
-
                         {editMode ? (
                             <>
-                                <button onClick={handleDeleteImages}>Delete Image</button>
+                                <button onClick={handleDeleteImages}>Confirm Deletion</button>
                                 <button onClick={toggleEditMode}>Cancel</button>
                             </>
                         ) : (
@@ -107,52 +130,57 @@ function Gallery() {
                                 <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" style={{ display: 'none' }} />
                                 <button onClick={handleClickUpload}>Upload Image</button>
 
-                                <button onClick={toggleEditMode}>Edit</button>
+                                <button onClick={toggleEditMode}>Delete Images</button>
                             </>
                         )}
                     </div>
                 </div>
 
-                <div className={`gallery ${imageUrls.length ===0 ? 'empty' : ''}`}>
-                    {imageUrls.length !== 0 ? (
+                <div className={`gallery ${images.length ===0 ? 'empty' : ''}`}>
+                    {images.length !== 0 ? (
                         <>
-                        {imageUrls.map((url, index) => (
+                        {images.map((image, index) => (
                             <div 
-                                key={url} 
+                                key={image.url} 
                                 className={`image ${editMode ? 'edit-mode' : ''}`}
                                 onClick={(e) => {
                                 if (editMode) {
                                     e.stopPropagation();
-                                    handleSelectImage(url);
+                                    handleSelectImage(image.url);
                                 } else {
-                                    handleImageClick(url);
+                                    handleImageClick(image);
                                 }
                                 }}
                             >
                                 {editMode && (
                                 <div className="select-overlay" onClick={(e) => {
                                     e.stopPropagation();
-                                    handleSelectImage(url);
+                                    handleSelectImage(image.url);
                                 }}>
-                                    {selectedImages[url] ? '✓' : 'O'}
+                                    {selectedImages[image.url] ? '✓' : 'O'}
                                 </div>
                                 )}
-                                <img src={url} alt="" />
+                                <img src={image.url} alt={image.name || ''} />
                             </div>
-                        
-                    ))}
+                        ))}
                     </>
                     ) : (
                         <div className="gallery-no-images">No images to display</div>
                     )}
                 </div>
 
+                
                 <FsLightbox
                     toggler={toggler}
-                    sources={[currentUrl]}
-                    types={['image']}
-                    captions={[<><h2>An example title.</h2><h3>An example description.</h3></>]}
+                    sources={[currentImage.url]} 
+                    captions={[<>
+                        <h2>{currentImage.title}</h2>
+                        <p>{currentImage.uploadDate} by {currentImage.author}</p>
+                        <p>{currentImage.description}</p>
+                    </>]}
+                    types={['image']} 
                 />
+
             </div>
         </>
   );

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Link,  useNavigate } from 'react-router-dom';
-import checkAuth from './CheckAuth.jsx';
 import './Login.css';
 import Steamed from './Steamed.jsx'
 
@@ -38,34 +37,36 @@ const Login = () => {
   return (
     <>
         <Steamed />
-        <div className="login-container">
-            <h2>Login</h2>
-            <form onSubmit={handleLogin}>
-                <div className="input-group">
-                <label>Email</label>
-                <input
-                    type="text"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                />
+        <div className="centerer">
+            <div className="login-container">
+                <h2>Login</h2>
+                <form onSubmit={handleLogin}>
+                    <div className="input-group">
+                    <label>Email</label>
+                    <input
+                        type="text"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                    />
+                    </div>
+                    <div className="input-group">
+                    <label>Password</label>
+                    <input
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+                    </div>
+                    <button type="submit" className="login-button">Login</button>
+                </form>
+                <button className="register-button" onClick={handleRegister}>Register</button>
+                <div className="forgot-password">
+                        <Link to="/forgot-password">Forgot Password?</Link>
                 </div>
-                <div className="input-group">
-                <label>Password</label>
-                <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                />
+                <div className="google-login">
+                    {/* Placeholder for Google login button */}
+                    <button className="google-login-button">Login with Google</button>
                 </div>
-                <button type="submit" className="login-button">Login</button>
-            </form>
-            <button className="register-button" onClick={handleRegister}>Register</button>
-            <div className="forgot-password">
-                    <Link to="/forgot-password">Forgot Password?</Link>
-            </div>
-            <div className="google-login">
-                {/* Placeholder for Google login button */}
-                <button className="google-login-button">Login with Google</button>
             </div>
         </div>
     </>

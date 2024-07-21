@@ -88,66 +88,68 @@ const Settings = () => {
   return (
     <>
         <Steamed />
+        <div className="centerer">
         <div className="settings-container">
-      <h2>Settings</h2>
-      <form onSubmit={handleUpdateUserDetails}>
-        <div className="input-group">
-          <label>Username</label>
-          <input
-            type="text"
-            name="name"
-            value={userDetails.name}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="input-group">
-          <label>Type</label>
-          <select
-            name="type"
-            value={userDetails.type}
-            onChange={handleChange}
-            required
-          >
-            <option value="Founding">Founding</option>
-            <option value="Standard">Standard</option>
-            <option value="Travel Host">Travel Host</option>
-          </select>
-        </div>
-        <button type="submit" className="update-button">Update Details</button>
-      </form>
+            <h2>Settings</h2>
+            <form onSubmit={handleUpdateUserDetails}>
+                <div className="input-group">
+                <label>Username</label>
+                <input
+                    type="text"
+                    name="name"
+                    value={userDetails.name}
+                    onChange={handleChange}
+                    required
+                />
+                </div>
+                <div className="input-group">
+                <label>Type</label>
+                <select
+                    name="type"
+                    value={userDetails.type}
+                    onChange={handleChange}
+                    required
+                >
+                    <option value="Founding">Founding</option>
+                    <option value="Standard">Standard</option>
+                    <option value="Travel Host">Travel Host</option>
+                </select>
+                </div>
+                <button type="submit" className="update-button">Update Details</button>
+            </form>
 
-      <form onSubmit={handleUpdatePassword}>
-        <div className="input-group">
-          <label>Old Password</label>
-          <input
-            type="password"
-            value={oldPassword}
-            onChange={(e) => setOldPassword(e.target.value)}
-            required
-          />
+            <form onSubmit={handleUpdatePassword}>
+                <div className="input-group">
+                <label>Old Password</label>
+                <input
+                    type="password"
+                    value={oldPassword}
+                    onChange={(e) => setOldPassword(e.target.value)}
+                    required
+                />
+                </div>
+                <div className="input-group">
+                <label>New Password</label>
+                <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                />
+                </div>
+                <div className="input-group">
+                <label>Confirm New Password</label>
+                <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                />
+                </div>
+                <button type="submit" className="update-button">Update Password</button>
+            </form>
+            </div>
         </div>
-        <div className="input-group">
-          <label>New Password</label>
-          <input
-            type="password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            required
-          />
-        </div>
-        <div className="input-group">
-          <label>Confirm New Password</label>
-          <input
-            type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit" className="update-button">Update Password</button>
-      </form>
-    </div>
     </>
   );
 };

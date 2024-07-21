@@ -72,7 +72,21 @@ app.get('/api/images', async (req, res) => {
     if (!Contents || Contents.length === 0) { return res.status(200).json([])}
 
     const imageUrls = Contents.map(file => `https://${bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${file.Key}`);
-    return res.json(imageUrls);
+
+    const imagesData = await pool.query(`SELECT * FROM images WHERE url = ANY($1)`, [imageUrls]);
+
+    // Combined
+    const images = imagesData.rows.map(img => ({
+      url: img.url,
+      title: img.title,
+      description: img.description,
+      name: img.name,
+      tags: img.tags,
+      author: img.user_id,
+      upload_date: img.upload_date,
+  }));
+
+    return res.json(images);
   } catch (err) {
     console.error("Failed to retrieve images:", err);
     return res.status(500).send("Failed to retrieve images");
@@ -84,11 +98,14 @@ app.post('/upload-image', upload.single('image'), async (req, res) => {
     return res.status(403).send('Not authenticated');
   }
 
-
   const userId = req.session.user.id; 
   const imageId = uuid.v4();
   const key = `images/${imageId}.jpg`;
-  const { name, tags, eventId } = req.body;
+  const name = "no name"
+  const tags = ["unspecified event"]
+  const eventId = null
+  const title = "new image"
+  const description = "default description"
   const imageFile = req.file.buffer;
 
   try {
@@ -102,11 +119,23 @@ app.post('/upload-image', upload.single('image'), async (req, res) => {
     await s3Client.send(command);
 
     const imageUrl = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
-    const insertQuery = 'INSERT INTO images (image_id, user_id, event_id, name, tags, url) VALUES ($1, $2, $3, $4, $5, $6)';
-    await pool.query(insertQuery, [imageId, userId, eventId, name, tags, imageUrl]);
+    const insertQuery = `INSERT INTO images (image_id, user_id, event_id, name, tags, title, description, url)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    RETURNING *;`;
+
+    const result = await pool.query(insertQuery, [imageId, userId, eventId, name, tags, title, description, imageUrl]);
+    const newImage = result.rows[0];
 
     console.log("File uploaded; Session User Data:", req.session.user);
-    res.send({ imageUrl });
+    return res.json({
+      url: newImage.url,
+      title: newImage.title,
+      description: newImage.description,
+      name: newImage.name,
+      tags: newImage.tags,
+      author: newImage.user_id,
+      upload_date: newImage.upload_date,
+    }); 
   } catch (err) {
     console.error(err);
     res.status(500).send('Server error');
@@ -266,6 +295,14 @@ app.post('/login', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).send('Error logging in');
+  }
+});
+
+app.get('/users/:userId', (req, res) => {
+  if (req.session.user && req.params.userId === req.session.user.id.toString()) {
+    res.json({ name: req.session.user.name });
+  } else {
+    res.status(404).json({ error: "User not found or session mismatch" });
   }
 });
 

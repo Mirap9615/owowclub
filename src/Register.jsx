@@ -1,7 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './Register.css';
-import checkAuth from './CheckAuth.jsx';
-import { useNavigate } from 'react-router-dom';
 import Steamed from './Steamed.jsx'
 
 const Register = () => {
@@ -11,20 +9,7 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [type, setType] = useState('');
   const [error, setError] = useState('');
-  const navigate = useNavigate();
-
-  /*
-  useEffect(() => {
-    const checkLoginStatus = async () => {
-      const isAuthenticated = await checkAuth();
-      if (isAuthenticated) {
-        navigate('/member-home');
-      }
-    };
-    checkLoginStatus();
-  }, [navigate]);
-  */
-
+  
   const handleRegister = async (e) => {
     e.preventDefault();
 
@@ -74,56 +59,58 @@ const Register = () => {
   return (
     <>
         <Steamed />
-        <div className="standard-container">
-            <h2>Register</h2>
-            <form onSubmit={handleRegister}>
-            <div className="input-group">
-                <label>Username</label>
-                <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                />
-            </div>
-            <div className="input-group">
-                <label>Email</label>
-                <input
-                type="text"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                />
-            </div>
-            <div className="input-group">
-                <label>Password</label>
-                <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                />
-            </div>
+        <div className="centerer">
+            <div className="standard-container">
+                <h2>Register</h2>
+                <form onSubmit={handleRegister}>
+                <div className="input-group">
+                    <label>Username</label>
+                    <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    />
+                </div>
+                <div className="input-group">
+                    <label>Email</label>
+                    <input
+                    type="text"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    />
+                </div>
+                <div className="input-group">
+                    <label>Password</label>
+                    <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    />
+                </div>
 
-            <div className="input-group">
-                <label>Confirm Password</label>
-                <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                />
-            </div>
+                <div className="input-group">
+                    <label>Confirm Password</label>
+                    <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
+                </div>
 
-            <div className="input-group">
-                <label>Type</label>
-                <select value={type} onChange={(e) => setType(e.target.value)}>
-                <option value="">Select Type</option>
-                <option value="Founding">Founding</option>
-                <option value="Standard">Standard</option>
-                <option value="Travel Host">Travel Host</option>
-                </select>
+                <div className="input-group">
+                    <label>Type</label>
+                    <select value={type} onChange={(e) => setType(e.target.value)}>
+                    <option value="">Select Type</option>
+                    <option value="Founding">Founding</option>
+                    <option value="Standard">Standard</option>
+                    <option value="Travel Host">Travel Host</option>
+                    </select>
+                </div>
+                {error && <div className="error">{error}</div>}
+                <button type="submit" className="register-button">Register</button>
+                </form>
+                <button className="login-button" onClick={() => window.location.href = '/login'}>Back to Login</button>
             </div>
-            {error && <div className="error">{error}</div>}
-            <button type="submit" className="register-button">Register</button>
-            </form>
-            <button className="login-button" onClick={() => window.location.href = '/login'}>Back to Login</button>
         </div>
     </>
     

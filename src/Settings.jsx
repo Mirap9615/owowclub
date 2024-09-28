@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import Steamed from './Steamed.jsx'
+import Steamed from './Steamed.jsx';
 import './Settings.css';
 
 const Settings = () => {
   const [userDetails, setUserDetails] = useState({
     name: '',
     type: '',
+    admin: false,  // Changed to boolean since admin is either true or false
   });
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -19,7 +20,7 @@ const Settings = () => {
           credentials: 'include',
         });
         const data = await response.json();
-        setUserDetails(data);
+        setUserDetails(data);  // Update with the full user details (name, type, admin)
       } catch (error) {
         console.error('Error fetching user details:', error);
       }
@@ -87,69 +88,73 @@ const Settings = () => {
 
   return (
     <>
-        <Steamed />
-        <div className="centerer">
+      <Steamed />
+      <div className="centerer">
         <div className="settings-container">
-            <h2>Settings</h2>
-            <form onSubmit={handleUpdateUserDetails}>
-                <div className="input-group">
-                <label>Username</label>
-                <input
-                    type="text"
-                    name="name"
-                    value={userDetails.name}
-                    onChange={handleChange}
-                    required
-                />
-                </div>
-                <div className="input-group">
+          <h2>Settings</h2>
+          <form onSubmit={handleUpdateUserDetails}>
+            <div className="input-group">
+              <label>Username</label>
+              <input
+                type="text"
+                name="name"
+                value={userDetails.name}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            {userDetails.admin && (
+              <div className="input-group">
                 <label>Type</label>
                 <select
-                    name="type"
-                    value={userDetails.type}
-                    onChange={handleChange}
-                    required
+                  name="type"
+                  value={userDetails.type}
+                  onChange={handleChange}
+                  required
                 >
-                    <option value="Founding">Founding</option>
-                    <option value="Standard">Standard</option>
-                    <option value="Travel Host">Travel Host</option>
+                  <option value="Founding">Founding</option>
+                  <option value="Standard">Standard</option>
+                  <option value="Travel Host">Travel Host</option>
                 </select>
-                </div>
-                <button type="submit" className="update-button">Update Details</button>
-            </form>
+              </div>
+            )}
 
-            <form onSubmit={handleUpdatePassword}>
-                <div className="input-group">
-                <label>Old Password</label>
-                <input
-                    type="password"
-                    value={oldPassword}
-                    onChange={(e) => setOldPassword(e.target.value)}
-                    required
-                />
-                </div>
-                <div className="input-group">
-                <label>New Password</label>
-                <input
-                    type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    required
-                />
-                </div>
-                <div className="input-group">
-                <label>Confirm New Password</label>
-                <input
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                />
-                </div>
-                <button type="submit" className="update-button">Update Password</button>
-            </form>
+            <button type="submit" className="update-button">Update Details</button>
+          </form>
+
+          <form onSubmit={handleUpdatePassword}>
+            <div className="input-group">
+              <label>Old Password</label>
+              <input
+                type="password"
+                value={oldPassword}
+                onChange={(e) => setOldPassword(e.target.value)}
+                required
+              />
             </div>
+            <div className="input-group">
+              <label>New Password</label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                required
+              />
+            </div>
+            <div className="input-group">
+              <label>Confirm New Password</label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+              />
+            </div>
+            <button type="submit" className="update-button">Update Password</button>
+          </form>
         </div>
+      </div>
     </>
   );
 };

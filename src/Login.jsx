@@ -34,6 +34,10 @@ const Login = () => {
     window.location.href = '/register';
   };
 
+  const handleApplication = () => {
+    window.location.href = '/request';
+  }
+
   return (
     <>
         <Steamed />
@@ -59,7 +63,7 @@ const Login = () => {
                     </div>
                     <button type="submit" className="login-button">Login</button>
                 </form>
-                <button className="register-button" onClick={handleRegister}>Register</button>
+                <button className="register-button" onClick={handleApplication}>Apply with Invitation Code</button>
                 <div className="forgot-password">
                         <Link to="/forgot-password">Forgot Password?</Link>
                 </div>

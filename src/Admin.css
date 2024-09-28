@@ -1,0 +1,48 @@
+/* admin.css */
+.admin-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh; 
+    background-color: #f5f5f5; 
+    padding: 20px;
+    text-align: center;
+  }
+  
+  .admin-container h1 {
+    margin-bottom: 30px;
+    color: #333;
+    font-family: Arial, sans-serif;
+  }
+  
+  .admin-links {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .admin-link {
+    display: block;
+    width: 200px; 
+    padding: 15px;
+    margin: 10px 0;
+    text-decoration: none;
+    text-align: center;
+    background-color: #007bff;
+    color: white;
+    border-radius: 5px;
+    font-weight: bold;
+    transition: background-color 0.3s;
+  }
+  
+  .admin-link:hover {
+    background-color: #0056b3;
+  }
+  
+
+  @media (max-width: 768px) {
+    .admin-container {
+      justify-content:unset;
+    }
+  }

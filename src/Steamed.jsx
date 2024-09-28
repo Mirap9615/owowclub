@@ -6,6 +6,7 @@ import './Steamed.css';
 const Steamed = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [isAdmin, setAdmin] = useState(false);
     const [username, setUsername] = useState('');
     const navigate = useNavigate();
 
@@ -14,8 +15,9 @@ const Steamed = () => {
           const authStatus = await checkAuth();
           setIsLoggedIn(authStatus.authenticated);
           if (authStatus.authenticated) {
-            console.log(authStatus);
             setUsername(authStatus.user.name);
+            setAdmin(authStatus.user.admin);
+            console.log(authStatus.user);
           }
         };
         checkLoginStatus();
@@ -43,31 +45,42 @@ const Steamed = () => {
       };
 
     return (
-        <div>
-            <div className={`hamburger-menu-container ${isOpen ? 'menu-active' : ''}`}>
-                <button className={`hamburger-button ${isOpen ? 'active' : ''}`} onClick={toggleMenu}>
-                    <span className="burger">&#9776;</span> <span className="menu-text">Menu</span>
-                </button>
-            </div>
-            <div className={`menu ${isOpen ? 'menu-active' : ''}`}>
-                <a href="/home">Home</a>
-                <a href="/about">About</a>
-                <a href="/membership">Membership</a>
-                <a href="/activities">Activities</a>
-                {isLoggedIn && <a href="/calendar">Calendar</a>}
-                {isLoggedIn && <a href="/gallery">Gallery</a>}
-                {isLoggedIn && <a href="/settings">Settings</a>}
-                {isLoggedIn ? (
-                    <>
-                         <a href="#" onClick={handleLogout}>Logout</a>
-                        <div className="logged-in-info">Logged in as {username}</div>
-                    </>
-                ) : (
-                <a href="/login">Login</a>
-                )}
-            </div>
-            <div className={`backdrop ${isOpen ? 'backdrop-active' : ''}`} onClick={toggleMenu}></div>
+      <div>
+        <div className={`hamburger-menu-container ${isOpen ? 'menu-active' : ''}`}>
+            <button className={`hamburger-button ${isOpen ? 'active' : ''}`} onClick={toggleMenu}>
+                <span className="burger">&#9776;</span> <span className="menu-text">Menu</span>
+            </button>
         </div>
+        <div className={`menu ${isOpen ? 'menu-active' : ''}`}>
+            <a href="/home">Home</a>
+
+            {isLoggedIn ? (
+                <>
+                    <a href="/activities-member">Activities</a>
+                    <a href="/calendar">Calendar</a>
+                    <a href="/gallery">Gallery</a>
+                    <a href="/settings">Settings</a>
+                    {isAdmin && <a href="/admin">Admin Panel</a>}
+                    <a href="#" onClick={handleLogout}>Logout</a>
+                    <div className="logged-in-info">Logged in as {username}</div>
+
+                    <div className="infographics-section">
+                        <div className="infographics-label">Infographics</div>
+                        <a href="/about">About</a>
+                        <a href="/membership">Membership</a>
+                    </div>
+                </>
+            ) : (
+                <>
+                    <a href="/about">About</a>
+                    <a href="/membership">Membership</a>
+                    <a href="/activities">Activities</a> 
+                    <a href="/login">Login</a>
+                </>
+            )}
+        </div>
+        <div className={`backdrop ${isOpen ? 'backdrop-active' : ''}`} onClick={toggleMenu}></div>
+    </div>
     );
 };
 

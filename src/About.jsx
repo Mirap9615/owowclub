@@ -10,6 +10,7 @@ const About = () => {
 
   return (
     <>
+      <div className="home-about">
       <Steamed />
       <div className="page-container">
         <div className = "text-container">
@@ -49,6 +50,7 @@ const About = () => {
                 </ul>
             </section>
           </div>
+      </div>
       </div>
     </>
   );

@@ -79,6 +79,25 @@
     display: block;
 }
 
+.infographics-section {
+    margin-top: 50px;
+    text-align: center;
+}
+
+.infographics-label {
+    font-size: 0.8em;
+    color: gray;
+    margin-top: 10px;
+    text-align: center;
+}
+
+.logged-in-info {
+    font-size: 0.8em;
+    color: gray;
+    margin-top: 10px;
+    text-align: center;
+}
+
 
 @media (min-width: 768px) {
     .menu-text {

@@ -17,6 +17,10 @@ import ProtectedRoute from './ProtectedRoute.jsx'
 import NoPermission from './NoPermission.jsx'
 import Gallery from './Gallery.jsx'
 import Logout from './Logout.jsx'
+import Request from './Request.jsx'
+import Admin from './Admin.jsx'
+import Applications from './Applications.jsx'
+import ActivitiesMember from './ActivitiesMember.jsx'
 
 function AppRouter() {
   return (
@@ -33,12 +37,18 @@ function AppRouter() {
         <Route path="/settings" element={<ProtectedRoute element={Settings} />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} /> 
+        <Route path="/request" element={<Request />} />
 
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
 
         <Route path="/member-home" element={<ProtectedRoute element={MemberHome} />} />
         <Route path="/no-permission" element={<NoPermission />} />
+
+        <Route path="/activities-member" element={<ProtectedRoute element={ActivitiesMember} />} />
+
+        <Route path="/admin" element={<ProtectedRoute element={Admin} />} />
+        <Route path="/applications" element={<ProtectedRoute element={Applications} />} />
 
         <Route path="/logout" element={<Logout />} />
         <Route path="*" element={<NotFound />} />

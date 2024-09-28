@@ -1,60 +1,169 @@
+.top-bar-home {
+  background-color: white;
+  color: #800020; 
+  text-align: center;
+  padding: 10px 0;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  border-bottom: 2px solid #444;
+}
+
+.home-page .hamburger-menu-container {
+  background-color: transparent !important;
+}
+
+.top-bar-home h1 {
+  font-size: 36px;
+  color: #800020; 
+}
+
+.island {
+  position: absolute;
+  top: 50%; 
+  left: 10%; 
+  transform: translateY(-50%);
+  background-color: white; 
+  color: #800020;
+  padding: 0px 20px 20px;
+  border-radius: 15px;
+  text-align: left;
+  z-index: 1;
+  width: 25%;
+}
+
+.island-title {
+  font-size: 30px;
+  margin-bottom: 10px;
+  color: #800020;
+}
+
+.island-description {
+  font-size: 18px;
+  color: darkgreen;
+  max-width: 100%;
+  margin: 0;
+}
+
+.home-container { 
+  position: relative; 
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  width: 100%;
+}
+
 .background-image {
-    width: 100%;
-    height: 100vh; 
-    object-fit: cover; 
+  width: 100%;
+  height: 100vh; 
+  object-fit: cover; 
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -1;
+}
+
+.bottom-bar {
+  background-color: #444;
+  color: white;
+  padding: 50px;
+  text-align: center;
+}
+
+.bottom-bar-content h2 {
+  color: white;
+  font-size: 28px;
+  margin-bottom: 20px;
+}
+
+.bottom-bar-content button {
+  background-color: white;
+  color: #444;
+  padding: 15px 30px;
+  margin: 10px;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  border-radius: 5px;
+}
+
+.bottom-bar-content button:hover {
+  background-color: #666;
+  color: white;
+}
+
+.island-mobile {
+  display: none;
+}
+
+.background-image {
+  width: 100%;
+  height: 100vh; 
+  object-fit: cover; 
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -1;
+}
+
+@media (max-width: 768px) {
+  .island {
+    width: 90%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 20px;
+  }
+
+  .island-title {
+    font-size: 24px;
+  }
+
+  .island-description {
+    font-size: 16px;
+  }
+
+  .bottom-bar-content button {
+    font-size: 16px;
+    padding: 10px 20px;
+  }
+  
+  .top-bar-home {
+    display: none;
+  }
+
+  .island-mobile {
+    top: 70%;
+    display: block;
     position: absolute;
-    top: 0;
-    left: 0;
-    z-index: -1;
-  }
-  
-  .home-container { 
-    position: relative; 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-height: 100vh;
-    width: 100%;
-  }
-  
-  .content-container {
-    margin: 20px 0 20px; 
+    transform: translateY(-50%);
+    background-color: white; 
+    color: #800020;
+    padding: 0px 20px 20px;
+    border-radius: 15px;
+    text-align: left;
     z-index: 1;
-    color: orange; 
-    padding: 10px 20px; 
-    text-align: center;
-    background: rgba(0, 0, 0, 0.1);
-    border-radius: 10px; 
-  }
-  
-  .main-title {
-    font-size: 50px;
-  }
-  
-  .description {
-    font-size: 20px; 
-    max-width: 90%; 
-    margin: 20px auto;
-    text-align: center; 
-    line-height: 1.5; 
-    hyphens:none; 
-  }
-  
-  
-  @media (max-width: 768px) {
-    .home-container {
-      min-height: 100vh;
-
-    }
-    .content-container {
-      padding: 20px 10px;
-      max-width: 80%
-    }
+    width: 90%;
   }
 
-  @media (min-width: 769px) {
-    .home-container {
-      justify-content: center;
-    }
+  .island-title {
+    font-weight:bold;
   }
-  
+
+  .island {
+    display: none;
+  }
+
+  .background-image {
+    height: 50vh; 
+    background-size: cover;
+    background-position: center top; 
+  }
+
+  .home-page .hamburger-menu-container {
+    background-color: transparent !important;
+    position: absolute !important;
+  }
+}

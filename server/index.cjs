@@ -79,6 +79,7 @@ app.get('/api/images', async (req, res) => {
     const images = imagesData.rows.map(img => ({
       url: img.url,
       title: img.title,
+      id: img.image_id,
       description: img.description,
       name: img.name,
       tags: img.tags,
@@ -164,6 +165,62 @@ app.post('/api/delete-images', async (req, res) => {
     res.status(500).send({ status: 'error', message: error.message });
   }
 });
+
+app.put('/api/images/:id', async (req, res) => {
+  const { id } = req.params; 
+  const { name, description, tags } = req.body; 
+
+  try {
+    const query = `
+      UPDATE images 
+      SET name = $1, description = $2, tags = $3
+      WHERE image_id = $4
+      RETURNING *;
+    `;
+
+    const result = await pool.query(query, [name, description, tags, id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Image not found.' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error updating image:', err);
+    res.status(500).json({ error: 'Error updating image.' });
+  }
+})
+
+// update application status
+app.patch('/api/applications/:id/status', async (req, res) => {
+  const { id } = req.params;
+  const { accepted } = req.body; 
+
+  try {
+    if (typeof accepted !== 'boolean') {
+      return res.status(400).json({ error: 'Invalid status. "accepted" must be true or false.' });
+    }
+
+    const query = `
+      UPDATE membership_applications 
+      SET accepted = $1
+      WHERE id = $2
+      RETURNING *;
+    `;
+
+    const result = await pool.query(query, [accepted, id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Application not found.' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error updating application status:', err);
+    res.status(500).json({ error: 'Error updating application status.' });
+  }
+});
+
 
 
 // redirect
@@ -254,7 +311,7 @@ app.post('/register', async (req, res) => {
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
-  const query = 'INSERT INTO users (name, email, type, password) VALUES ($1, $2, $3, $4)';
+  const query = 'INSERT INTO users (name, email, type, password, admin) VALUES ($1, $2, $3, $4, FALSE)';
   const values = [name, email, type, hashedPassword];
   
   try {
@@ -263,6 +320,41 @@ app.post('/register', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).send('Error registering user');
+  }
+});
+
+// application endpoint
+app.post('/request', async (req, res) => {
+  const { full_name, email, phone, reason, interests, availability, referral, comments } = req.body;
+
+  // Check if email already exists
+  const emailCheckQuery = 'SELECT * FROM membership_applications WHERE email = $1';
+  const emailCheckResult = await pool.query(emailCheckQuery, [email]);
+
+  if (emailCheckResult.rows.length > 0) {
+    return res.status(400).json({ error: 'This email already has a pending application.'});
+  }
+
+  const query = 'INSERT INTO membership_applications (full_name, email, phone, reason, interests, availability, referral, comments) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)';
+  const values = [full_name, email, phone, reason, interests, availability, referral, comments];
+  
+  try {
+    await pool.query(query, values);  
+    res.status(201).send('Application stored');
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error storing application');
+  }
+});
+
+// get applications endpoint
+app.get('/api/applications', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM membership_applications ORDER BY created_at DESC');
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error fetching applications:', err);
+    res.status(500).json({ error: 'Error fetching applications' });
   }
 });
 
@@ -289,6 +381,7 @@ app.post('/login', async (req, res) => {
       name: user.name,
       email: user.email,
       type: user.type,
+      admin: user.admin,
     };
 
     res.status(200).send('Login successful');
@@ -383,6 +476,7 @@ app.post('/reset-password', async (req, res) => {
 // Endpoint to get current user details
 app.get('/user-details', (req, res) => {
   if (req.session.user) {
+    console.log(req.session.user);
     res.status(200).json(req.session.user);
   } else {
     res.status(401).send('Unauthorized');

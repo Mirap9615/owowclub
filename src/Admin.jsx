@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Steamed from './Steamed.jsx'
 import checkAuth from './CheckAuth.jsx';
-import './admin.css'; 
+import './Admin.css'; 
 
 const Admin = () => {
     const navigate = useNavigate();

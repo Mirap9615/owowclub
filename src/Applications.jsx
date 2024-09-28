@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import checkAuth from './CheckAuth.jsx';
 import Steamed from './Steamed.jsx';
-import './applications.css';
+import './Applications.css';
 
 const Applications = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);

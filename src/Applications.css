@@ -46,3 +46,36 @@
   .applications-table tr:hover {
     background-color: #f1f1f1;
   }
+
+  @media (prefers-color-scheme: dark) {
+    .applications-table {
+      background-color: unset;
+    }
+
+    .applications-table th {
+      background-color: #afafaf;
+      font-weight: bold;
+    }
+    
+    .applications-table tr:nth-child(even) {
+      background-color: #acacac;
+    }
+    
+    .applications-table tr:hover {
+      background-color: #848484;
+    }
+    
+    .application-row {
+      background-color: #484848;
+    }
+    
+    .application-detail-row td {
+      background-color: #5b5757;
+  }
+}
+
+@media (max-width: 768px) {
+  .applications-container {
+    padding: 0px;
+  }
+}

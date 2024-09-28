@@ -35,7 +35,7 @@ const Admin = () => {
     <>
         <Steamed />
         <div className="admin-container">
-            <h1>Welcome to the Admin Dashboard, {username}!</h1>
+            <h2>Welcome to the Admin Dashboard, {username}!</h2>
             <div className="admin-links">
             <a href="/applications" className="admin-link">View Applications</a>
             <a href="/users" className="admin-link">View Privileges</a>

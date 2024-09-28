@@ -25,7 +25,7 @@
   top: 50%; 
   left: 10%; 
   transform: translateY(-50%);
-  background-color: white; 
+  background-color: rgba(255, 255, 255, 0.4); 
   color: #800020;
   padding: 0px 20px 20px;
   border-radius: 15px;
@@ -41,10 +41,11 @@
 }
 
 .island-description {
-  font-size: 18px;
-  color: darkgreen;
+  font-size: 20px;
+  color: rgb(79, 86, 82);
   max-width: 100%;
   margin: 0;
+  font-weight: bold;
 }
 
 .home-container { 
@@ -165,5 +166,23 @@
   .home-page .hamburger-menu-container {
     background-color: transparent !important;
     position: absolute !important;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .island-mobile {
+    background-color:unset;
+  }
+  .island-title {
+    color: white;
+  }
+  .island-description {
+    color: rgb(247, 255, 234);
+  }
+  .island-subtitle {
+    color: rgb(249, 249, 249);
+  }
+  .island {
+    background-color:unset;
   }
 }

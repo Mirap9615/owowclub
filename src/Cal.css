@@ -23,7 +23,6 @@
   }
   
   .table {
-    width: 60%; 
     border-collapse: collapse;
     margin: 0 auto;
   }
@@ -229,6 +228,7 @@
     overflow: hidden;          
 }
 
+
 @media (max-width: 750px) { 
     .card-datg {
         flex-direction: column; 
@@ -260,4 +260,11 @@
     background-color: #333;  
     color: white; 
 }
+}
+
+
+@media (prefers-color-scheme: dark) {
+  .side-panel {
+    background-color: gray;
+  }
 }

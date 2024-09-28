@@ -30,7 +30,7 @@
 }
 
 .button-group button {
-    background-color: rgb(181, 206, 43); 
+    background-color: #d6d4d4;
     border: 1px solid #ccc;
     padding: 8px 12px;
     cursor: pointer;
@@ -38,7 +38,7 @@
 }
 
 .button-group button:hover {
-    background-color: rgb(218, 244, 66);
+    background-color: rgb(69, 122, 214);
 }
 
 
@@ -212,7 +212,7 @@
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    background-color: #dd7973;
+    background-color: rgb(69, 122, 214);
     color: white;
     transition: background-color 0.3s ease;
   }
@@ -242,7 +242,7 @@
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    background-color: rgb(197, 197, 197);
+    background-color: rgb(18, 91, 216);
     color: white;
     transition: background-color 0.3s ease;
   }
@@ -277,7 +277,6 @@
     font-weight: bold;
     margin-right: 5px;
 }
-
 
   .image-author {
     font-size: 12px;
@@ -321,5 +320,11 @@
 @media (max-width: 768px) {
   .modal-tags {
     margin-bottom: 15px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .image-modal {
+    background-color: black;
   }
 }

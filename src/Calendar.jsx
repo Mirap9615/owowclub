@@ -357,7 +357,7 @@ function Cal() {
         title: 'Untitled Event',
         description: '',
         note: '',
-        color: '#ff9999',
+        color: '#457ad6',
         temp: true
     };
     setSelectedEvent(newEvent);
@@ -548,6 +548,7 @@ function Cal() {
           tileClassName={tileClassName}
           onClickDay={handleDayClick}
         />
+
         <input
           type="text"
           className="search-bar"
@@ -555,6 +556,7 @@ function Cal() {
           onChange={handleSearchChange}
           placeholder="Search events"
         />
+        
         <table className="table upcoming-events">
           <thead>
             <tr>

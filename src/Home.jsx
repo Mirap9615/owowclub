@@ -1,6 +1,6 @@
 import React from 'react';
 import Steamed from './Steamed.jsx';
-import bg from './assets/home_bg.jpeg';
+import bg from './assets/bg_v2.jpg';
 import './Home.css';
 
 const Home = () => {
@@ -9,7 +9,7 @@ const Home = () => {
      <div className="home-page">
       <Steamed />
         <header className="top-bar-home">
-          <h1>Welcome to OWOW!</h1>
+          <h1>Welcome to OWL<sup>2</sup>!</h1>
         </header>
         <div className="home-container">
           <img src={bg} alt="background" className="background-image" />
@@ -21,7 +21,7 @@ const Home = () => {
           </div>
 
           <div className="island-mobile">
-            <h3 className="island-title">Welcome to OWOW!</h3>
+            <h3 className="island-title">Welcome to OWL<sup>2</sup>!</h3>
             <h4 className="island-subtitle">This is your sanctuary.</h4>
             <p className="island-description">
               Here, we celebrate the beauty of living fully without worry. A place to bond, laugh, and experience the fullness of life with no strings attached.

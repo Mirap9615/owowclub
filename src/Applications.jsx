@@ -78,7 +78,7 @@ const Applications = () => {
     <>
       <Steamed />
       <div className="applications-container">
-        <h1>Membership Applications</h1>
+        <h2>Membership Applications</h2>
 
         {/* Tabs */}
         <div className="tabs">

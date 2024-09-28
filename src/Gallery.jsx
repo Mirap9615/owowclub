@@ -364,7 +364,7 @@ const ImageModal = React.memo(({
         </>
       ) : (
         <>
-          <button onClick={handleViewInLightbox}>View in Gallery Mode</button>
+          <button onClick={handleViewInLightbox}>Gallery Mode</button>
           <button onClick={handleModalEditStart}>Edit</button>
           <button onClick={closeModal}>Close</button>
         </>

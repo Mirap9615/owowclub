@@ -1,9 +1,18 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import Steamed from './Steamed.jsx';
 import bg from './assets/bg_v2.jpg';
 import './Home.css';
 
+
+
 const Home = () => {
+  const navigate = useNavigate();
+
+  const handleNavigate = (path) => {
+    navigate(path);
+  };
+
   return (
     <>
      <div className="home-page">
@@ -31,8 +40,8 @@ const Home = () => {
         <footer className="bottom-bar">
           <div className="bottom-bar-content">
             <h2>Explore More</h2>
-            <button>Membership</button>
-            <button>Activities</button>
+            <button onClick={() => handleNavigate('/membership')}>Membership</button>
+            <button onClick={() => handleNavigate('/activities')}>Activities</button>
           </div>
         </footer>
      </div>

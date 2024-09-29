@@ -60,9 +60,8 @@
     position: fixed;
     display: flex;
     flex-direction: column;
-    right: 0;
-    top: 0;
-    height: 100vh;
+    top: 2vh;
+    border: solid black;
     background-color: white;
     box-shadow: -2px 0 8px rgba(0,0,0,0.1);
     padding: 20px;
@@ -178,23 +177,13 @@
     visibility: hidden;  
   }
 
-  .resize-handle {
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 5px;  
-    cursor: ew-resize;  
-    background-color: #ccc; 
-}
-
 .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0,0,0,0.5);
+    background-color: rgba(0,0,0,0.8);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -208,6 +197,8 @@
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     z-index: 1001;
 }
+
+
 
 @media (width >= 750px) {
     .container {
@@ -231,15 +222,17 @@
 
 @media (max-width: 750px) { 
     .card-datg {
-        flex-direction: column; 
-        align-items: flex-start; 
+      align-items: flex-start; 
     }
     .edit-n-close {
-        margin-bottom:14vh;
+      margin-bottom:14vh;
     }
 }
 
 @media (prefers-color-scheme: dark) {
+  .button {
+    background-color: #313132;
+  }
   .react-calendar {
       background-color: #333;  
       color: white;         
@@ -255,16 +248,37 @@
   .react-calendar__navigation button {
       color: white;           
   }
-
+  .side-panel {
+    background-color: #292727;
+  }
   .table.upcoming-events th {
     background-color: #333;  
     color: white; 
-}
-}
-
-
-@media (prefers-color-scheme: dark) {
-  .side-panel {
-    background-color: gray;
+  }
+  .card-title, .card-datg, .card-date-span, .card-date{
+    color: white
+  }
+  [contentEditable="true"] {
+    background-color: unset;
   }
 }
+
+.no-scroll {
+  overflow: hidden;
+}
+
+.backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5); 
+  z-index: 1000;
+  display: none;
+}
+
+.backdrop-active {
+  display: block; 
+}
+

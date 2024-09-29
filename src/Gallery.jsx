@@ -404,6 +404,7 @@ const CommentSection = React.memo(({ comments = [], onAddComment }) => {
         onChange={(e) => setNewComment(e.target.value)} 
         placeholder="Add a comment..."
       />
+      <br></br>
       <button onClick={handleSubmit}>Post</button>
     </div>
   );

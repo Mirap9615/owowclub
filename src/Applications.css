@@ -40,12 +40,17 @@
     padding: 10px;
     border-top: none;
     border-bottom: none;
-    white-space: pre-wrap; /* Preserves formatting in text fields */
+    white-space: pre-wrap; 
   }
   
   .applications-table tr:hover {
     background-color: #f1f1f1;
   }
+
+  .tabs button.active {
+    font-weight: bold; 
+  }
+  
 
   @media (prefers-color-scheme: dark) {
     .applications-table {

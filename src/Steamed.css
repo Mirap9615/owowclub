@@ -128,8 +128,7 @@
     color: gray;
     margin-top: 10px;
     text-align: center;
-  }
-  
+}
 
   @media (prefers-color-scheme: dark) {
     .menu-text {

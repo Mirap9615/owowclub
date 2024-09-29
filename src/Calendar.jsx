@@ -144,7 +144,7 @@ const EventDetailsPanel = ({ event, onClose, onTriggerEdit, onColorChange, setEv
     if (!event) return null;
 
     return (
-        <div className="side-panel" style={{ width: '350px' }}> 
+        <div className="side-panel"> 
             
             <div
                 className="card-title"
@@ -237,8 +237,6 @@ const EventDetailsPanel = ({ event, onClose, onTriggerEdit, onColorChange, setEv
                     onConfirm={handleDeleteConfirm}
                 />
             )}
-
-            <div className="resize-handle"></div>
         </div>
     );
 };
@@ -368,46 +366,12 @@ function Cal() {
   const [sidebarWidth, setSidebarWidth] = useState(300);
 
   useEffect(() => {
-    const sidePanel = document.querySelector('.side-panel');
-    const handle = document.querySelector('.resize-handle');
-
-    if (!handle || !sidePanel) {
-        return;
+    if (isPanelOpen) {
+      document.body.classList.add('no-scroll');
+    } else {
+      document.body.classList.remove('no-scroll');
     }
-
-    let frameId = null;
-
-    const resize = (e) => {
-        cancelAnimationFrame(frameId);
-        frameId = requestAnimationFrame(() => {
-            const newWidth = window.innerWidth - e.clientX;
-            setSidebarWidth(newWidth);
-        });
-    };
-
-    const stopResize = () => {
-        window.removeEventListener('mousemove', resize);
-        window.removeEventListener('mouseup', stopResize);
-        cancelAnimationFrame(frameId);
-    };
-
-    const startResize = (e) => {
-        // Remove listeners to prevent duplication
-        window.removeEventListener('mousemove', resize);
-        window.removeEventListener('mouseup', stopResize);
-        // Reattach listeners
-        window.addEventListener('mousemove', resize);
-        window.addEventListener('mouseup', stopResize);
-    };
-
-    handle.addEventListener('mousedown', startResize);
-
-    return () => {
-        handle.removeEventListener('mousedown', startResize);
-        window.removeEventListener('mousemove', resize);
-        window.removeEventListener('mouseup', stopResize);
-    };
-}, [isPanelOpen, setSidebarWidth]); 
+  }, [isPanelOpen]);
 
   // Sorting and Searching
   const [filter, setFilter] = useState('');
@@ -521,6 +485,10 @@ function Cal() {
     }
   };
 
+  const handleBackdropClick = () => {
+    handleClosePanel();
+  };
+
   return (
     <>
       <Steamed />
@@ -530,16 +498,18 @@ function Cal() {
           <button onClick={handleCreateEvent}>Create Event</button>
       )}
             {isPanelOpen && selectedEvent && (
+              <>
+                <div className="backdrop backdrop-active" onClick={handleBackdropClick}></div>
                 <EventDetailsPanel 
                     event={selectedEvent} 
                     onClose={handleClosePanel} 
-                    onTriggerEdit={triggerEditMode}
                     onColorChange={handleColorChange}
                     setEvents={setEvents}
                     fetchEvents={fetchEvents}
                     toggleScrollability={toggleScrollability}
                     userDetails={userDetails}
                 />
+              </>
             )}
         <div className="title">Schedule</div>
         <Calendar
@@ -581,7 +551,6 @@ function Cal() {
           })}
         </tbody>
         </table>
-        <EventDetailsPanel event={selectedEvent} onClose={handleClosePanel} onColorChange={handleColorChange} setEvents={setEvents} fetchEvents={fetchEvents} toggleScrollability={toggleScrollability} userDetails={userDetails}/>
       </div>
     </>
   );

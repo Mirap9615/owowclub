@@ -229,7 +229,7 @@
   }
   
   .comment-section input {
-    width: 100%;
+    width: 90%;
     padding: 8px;
     margin-top: 10px;
     margin-bottom: 10px;
@@ -325,6 +325,19 @@
 
 @media (prefers-color-scheme: dark) {
   .image-modal {
-    background-color: black;
+    background-color: #292727;
+  }
+
+  .search-bar {
+    background-color: rgb(78, 78, 78);
+    color: white;
+  }
+
+  .search-bar input::placeholder {
+    color: lightgray; 
+  }
+
+  .comment-section button, .button-group button {
+    background-color: rgb(83, 80, 80);
   }
 }

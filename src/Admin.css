@@ -47,4 +47,12 @@
     }
   }
 
+  @media (prefers-color-scheme: dark) {
+    .image-modal-admin {
+      background-color: black;
+    }
   
+    .admin-container {
+      background-color: transparent;
+    }
+  }

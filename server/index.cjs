@@ -575,6 +575,7 @@ app.put('/api/users/:id/reset-password-to-temp', async (req, res) => {
 
 // endpoint to allow a user to join an event
 app.post('/api/events/:eventId/join', async (req, res) => {
+  console.log('Session data:', req.session);
   const userId = req.session.user.user_id; 
   const { eventId } = req.params;
 
@@ -592,9 +593,10 @@ app.post('/api/events/:eventId/join', async (req, res) => {
 
 // endpoint to allow a user to leave an event
 app.delete('/api/events/:eventId/leave', async (req, res) => {
+  console.log('Session data:', req.session);
   const userId = req.session.user.user_id; 
   const { eventId } = req.params;
-  
+
   try {
     await pool.query(
       'DELETE FROM event_user WHERE event_id = $1 AND user_id = $2',

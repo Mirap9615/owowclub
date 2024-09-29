@@ -38,7 +38,7 @@ const Admin = () => {
             <h2>Welcome to the Admin Dashboard, {username}!</h2>
             <div className="admin-links">
             <a href="/applications" className="admin-link">View Applications</a>
-            <a href="/users" className="admin-link">View Privileges</a>
+            <a href="/users" className="admin-link">View Users</a>
             </div>
         </div>   
     </>

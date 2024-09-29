@@ -145,7 +145,6 @@ app.post('/upload-image', upload.single('image'), async (req, res) => {
 
 app.post('/api/delete-images', async (req, res) => {
   const { images } = req.body;
-  console.log("Requested images to delete:", images);
   try {
     await Promise.all(images.map(imageUrl => {
       const key = new URL(imageUrl).pathname.substring(1);
@@ -159,7 +158,6 @@ app.post('/api/delete-images', async (req, res) => {
     }));
 
     res.send({ status: 'success' });
-    console.log("deletion successful")
   } catch (error) {
     console.error("Error deleting images:", error);
     res.status(500).send({ status: 'error', message: error.message });
@@ -248,8 +246,17 @@ app.post('/logout', (req, res) => {
 
 app.get("/api/events", async (req, res) => {
   try {
-    const { rows } = await pool.query('SELECT * FROM event');
-    res.json(rows);
+    /*const { rows } = await pool.query('SELECT * FROM event'); */
+    const result = await pool.query(`
+      SELECT e.*, 
+             COALESCE(json_agg(json_build_object('user_id', u.user_id, 'name', u.name)) FILTER (WHERE u.user_id IS NOT NULL), '[]') AS participants
+      FROM event e
+      LEFT JOIN event_user eu ON e.id = eu.event_id
+      LEFT JOIN users u ON eu.user_id = u.user_id
+      GROUP BY e.id
+    `);
+    /* res.json(rows); */
+    res.json(result.rows);
   } catch (err) {
     console.error(err);
     res.status(500).send('Server Error');
@@ -476,7 +483,6 @@ app.post('/reset-password', async (req, res) => {
 // Endpoint to get current user details
 app.get('/user-details', (req, res) => {
   if (req.session.user) {
-    console.log(req.session.user);
     res.status(200).json(req.session.user);
   } else {
     res.status(401).send('Unauthorized');
@@ -490,7 +496,7 @@ app.post('/update-user', async (req, res) => {
     return res.status(401).send('Unauthorized');
   }
 
-  const query = 'UPDATE users SET name = $1, type = $2 WHERE id = $3 RETURNING *';
+  const query = 'UPDATE users SET name = $1, type = $2 WHERE user_id = $3 RETURNING *';
   const values = [name, type, req.session.user.id];
 
   try {
@@ -551,7 +557,7 @@ app.put('/api/users/:id/privilege', async (req, res) => {
   }
 });
 
-
+// forcably change a user's password to a temp password
 app.put('/api/users/:id/reset-password-to-temp', async (req, res) => {
   const { id } = req.params;
   const tempPassword = 'OWL^2';
@@ -567,8 +573,42 @@ app.put('/api/users/:id/reset-password-to-temp', async (req, res) => {
   }
 });
 
+// endpoint to allow a user to join an event
+app.post('/api/events/:eventId/join', async (req, res) => {
+  const userId = req.session.user.user_id; 
+  const { eventId } = req.params;
 
+  try {
+    await pool.query(
+      'INSERT INTO event_user (event_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+      [eventId, userId]
+    );
+    res.status(200).send('Successfully joined the event');
+  } catch (error) {
+    console.error('Error joining event:', error);
+    res.status(500).send('Server error');
+  }
+});
 
+// endpoint to allow a user to leave an event
+app.delete('/api/events/:eventId/leave', async (req, res) => {
+  console.log('Session data:', req.session);
+  const userId = req.session.user.user_id; 
+  const { eventId } = req.params;
+
+  console.log(`Attempting to delete: event_id = ${eventId}, user_id = ${userId}`);
+
+  try {
+    await pool.query(
+      'DELETE FROM event_user WHERE event_id = $1 AND user_id = $2',
+      [eventId, userId]
+    );
+    res.status(200).send('Successfully left the event');
+  } catch (error) {
+    console.error('Error leaving event:', error);
+    res.status(500).send('Server error');
+  }
+});
 
 app.listen(port, () => {
   console.log(`Server listening on ${port}`);

@@ -44,6 +44,12 @@ const EventDetailsPanel = ({ event, onClose, onTriggerEdit, onColorChange, setEv
       };
       checkLoginStatus();
     }, [navigate]);
+
+    useEffect(() => {
+      if (event && event.id !== eventData.id) {
+          setEventData(event);
+      }
+    }, [event]);
     
     const toggleEditMode = () => {
         setIsEditMode(!isEditMode);
@@ -53,12 +59,6 @@ const EventDetailsPanel = ({ event, onClose, onTriggerEdit, onColorChange, setEv
             handleColorRevert(); 
         }
     };
-
-    useEffect(() => {
-        if (event && event.id !== eventData.id) {
-            setEventData(event);
-        }
-    }, [event]);
 
     const handleChange = (key, value) => {
         setEventData(prev => ({ ...prev, [key]: value }));
@@ -137,8 +137,54 @@ const EventDetailsPanel = ({ event, onClose, onTriggerEdit, onColorChange, setEv
         toggleScrollability(true);
     };
 
-    const handleJoinEvent = () => {
+    const handleJoinEvent = async (eventId) => {
+      try {
+        const response = await fetch(`/api/events/${eventId}/join`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include', 
+        });
+    
+        if (response.ok) {
+          const updatedParticipants = [...eventData.participants, { user_id: userDetails.user_id, name: userDetails.name }];
+          setEventData((prevData) => ({
+          ...prevData,
+          participants: updatedParticipants,
+          }));
+          fetchEvents(); 
+        } else {
+          throw new Error('Failed to join event');
+        }
+      } catch (error) {
+        console.error('Error joining event:', error);
+      }
+    };
 
+    const handleLeaveEvent = async (eventId) => {
+      try {
+        const response = await fetch(`/api/events/${eventId}/leave`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include', 
+        });
+    
+        if (response.ok) {
+          const updatedParticipants = eventData.participants.filter((participant) => participant.user_id !== userDetails.user_id);
+          setEventData((prevData) => ({
+            ...prevData,
+            participants: updatedParticipants,
+          }));
+          fetchEvents(); 
+        } else {
+          throw new Error('Failed to leave event');
+        }
+      } catch (error) {
+        console.error('Error leave event:', error);
+      }
     };
 
     if (!event) return null;
@@ -187,11 +233,23 @@ const EventDetailsPanel = ({ event, onClose, onTriggerEdit, onColorChange, setEv
             </div>
 
             <div className="card-part">Participating Members</div>
-            {/* Placeholder for member list, currently just showing a static message */}
             <div>
-                {eventData.members ? eventData.members.join(', ') : "None Yet"}
+                {eventData.participants.length > 0 
+              ? eventData.participants.map((participant) => participant.name).join(', ') 
+              : 'No participants yet'}
             </div>
-            <button className="card-join" onClick={handleJoinEvent}>Join</button>
+            <button 
+              className="card-join"
+              onClick={() => {
+                if (eventData.participants.some(participant => participant.user_id === userDetails.user_id)) {
+                  handleLeaveEvent(eventData.id); 
+                } else {
+                  handleJoinEvent(eventData.id); 
+                }
+              }}
+            >
+              {eventData.participants.some(participant => participant.user_id === userDetails.user_id) ? 'Leave' : 'Join'}
+            </button>
 
             <div className="note-lead">Notes</div>
                 <div
@@ -289,16 +347,17 @@ function Cal() {
             description: event.description,
             note: event.note,
             color: event.color,
-            temp: event.temp !== undefined ? event.temp : false 
+            temp: event.temp !== undefined ? event.temp : false,
+            participants: event.participants || []
         }));
         setEvents(parsedEvents);
         } else {
             throw new Error('Failed to fetch events');
         }
-    } catch (error) {
-        console.error('Error fetching events:', error);
-    }
-};
+      } catch (error) {
+          console.error('Error fetching events:', error);
+      }
+    };
 
 
     function toggleScrollability(desiredState) {

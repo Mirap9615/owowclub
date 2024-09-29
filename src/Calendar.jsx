@@ -415,7 +415,8 @@ function Cal() {
         description: '',
         note: '',
         color: '#457ad6',
-        temp: true
+        temp: true,
+        participants: []
     };
     setSelectedEvent(newEvent);
     setIsPanelOpen(true);

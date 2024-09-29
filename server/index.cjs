@@ -99,7 +99,7 @@ app.post('/upload-image', upload.single('image'), async (req, res) => {
     return res.status(403).send('Not authenticated');
   }
 
-  const userId = req.session.user.user_id; 
+  const user_id = req.session.user.user_id; 
   const imageId = uuid.v4();
   const key = `images/${imageId}.jpg`;
   const name = "no name"
@@ -124,7 +124,7 @@ app.post('/upload-image', upload.single('image'), async (req, res) => {
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     RETURNING *;`;
 
-    const result = await pool.query(insertQuery, [imageId, userId, eventId, name, tags, title, description, imageUrl]);
+    const result = await pool.query(insertQuery, [imageId, user_id, eventId, name, tags, title, description, imageUrl]);
     const newImage = result.rows[0];
 
     console.log("File uploaded; Session User Data:", req.session.user);
@@ -390,6 +390,7 @@ app.post('/login', async (req, res) => {
       type: user.type,
       admin: user.admin,
     };
+    console.log('Session data SET:', req.session.user);
 
     res.status(200).send('Login successful');
   } catch (err) {

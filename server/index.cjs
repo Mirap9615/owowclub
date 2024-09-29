@@ -99,7 +99,7 @@ app.post('/upload-image', upload.single('image'), async (req, res) => {
     return res.status(403).send('Not authenticated');
   }
 
-  const userId = req.session.user.id; 
+  const userId = req.session.user.user_id; 
   const imageId = uuid.v4();
   const key = `images/${imageId}.jpg`;
   const name = "no name"
@@ -384,7 +384,7 @@ app.post('/login', async (req, res) => {
     }
 
     req.session.user = {
-      id: user.user_id,
+      user_id: user.user_id,
       name: user.name,
       email: user.email,
       type: user.type,
@@ -399,7 +399,7 @@ app.post('/login', async (req, res) => {
 });
 
 app.get('/users/:userId', (req, res) => {
-  if (req.session.user && req.params.userId === req.session.user.id.toString()) {
+  if (req.session.user && req.params.userId === req.session.user.user_id.toString()) {
     res.json({ name: req.session.user.name });
   } else {
     res.status(404).json({ error: "User not found or session mismatch" });
@@ -497,7 +497,7 @@ app.post('/update-user', async (req, res) => {
   }
 
   const query = 'UPDATE users SET name = $1, type = $2 WHERE user_id = $3 RETURNING *';
-  const values = [name, type, req.session.user.id];
+  const values = [name, type, req.session.user.user_id];
 
   try {
     const result = await pool.query(query, values);
@@ -517,7 +517,7 @@ app.post('/update-password', async (req, res) => {
   }
 
   const query = 'SELECT password FROM users WHERE id = $1';
-  const result = await pool.query(query, [req.session.user.id]);
+  const result = await pool.query(query, [req.session.user.user_id]);
 
   const user = result.rows[0];
   const isValidPassword = await bcrypt.compare(oldPassword, user.password);
@@ -528,7 +528,7 @@ app.post('/update-password', async (req, res) => {
 
   const hashedPassword = await bcrypt.hash(newPassword, 10);
   const updateQuery = 'UPDATE users SET password = $1 WHERE id = $2';
-  await pool.query(updateQuery, [hashedPassword, req.session.user.id]);
+  await pool.query(updateQuery, [hashedPassword, req.session.user.user_id]);
 
   res.status(200).send('Password updated successfully');
 });

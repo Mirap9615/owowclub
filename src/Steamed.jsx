@@ -56,8 +56,8 @@ const Steamed = () => {
 
             {isLoggedIn ? (
                 <>
-                    <a href="/activities-member">Activities</a>
-                    <a href="/calendar">Calendar</a>
+                    {/* <a href="/activities-member">Activities</a>  */} 
+                    <a href="/calendar">Events</a>
                     <a href="/gallery">Gallery</a>
                     <a href="/settings">Settings</a>
                     {isAdmin && <a href="/admin">Admin Panel</a>}

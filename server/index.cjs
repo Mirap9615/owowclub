@@ -527,6 +527,48 @@ app.post('/update-password', async (req, res) => {
   res.status(200).send('Password updated successfully');
 });
 
+// endpoint to get ALL users' email, name, and type 
+app.get('/api/users', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT user_id, email, name, type FROM users');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).send('Server error');
+  }
+});
+
+// update a user's privilege 'remotely'
+app.put('/api/users/:id/privilege', async (req, res) => {
+  const { id } = req.params;
+  const { type } = req.body;
+  try {
+    await pool.query('UPDATE users SET type = $1 WHERE user_id = $2', [type, id]);
+    res.send('User privilege updated');
+  } catch (error) {
+    console.error('Error updating privilege:', error);
+    res.status(500).send('Server error');
+  }
+});
+
+
+app.put('/api/users/:id/reset-password-to-temp', async (req, res) => {
+  const { id } = req.params;
+  const tempPassword = 'OWL^2';
+  
+  try {
+    const hashedPassword = await bcrypt.hash(tempPassword, 10);
+
+    await pool.query('UPDATE users SET password = $1 WHERE user_id = $2', [hashedPassword, id]);
+    res.send('Password reset successful');
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    res.status(500).send('Server error');
+  }
+});
+
+
+
 
 app.listen(port, () => {
   console.log(`Server listening on ${port}`);

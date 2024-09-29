@@ -2,7 +2,7 @@
   background-color: white;
   color: #800020; 
   text-align: center;
-  padding: 10px 0;
+  padding: 10px 0 0 0;
   width: 100%;
   position: fixed;
   top: 0;
@@ -170,6 +170,9 @@
 }
 
 @media (prefers-color-scheme: dark) {
+  .top-bar-home {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
   .island-mobile {
     background-color:unset;
   }
@@ -183,6 +186,6 @@
     color: rgb(249, 249, 249);
   }
   .island {
-    background-color:unset;
+    background-color:gray;
   }
 }

@@ -56,19 +56,26 @@ const Steamed = () => {
 
             {isLoggedIn ? (
                 <>
-                    {/* <a href="/activities-member">Activities</a>  */} 
                     <a href="/calendar">Events</a>
                     <a href="/gallery">Gallery</a>
                     <a href="/settings">Settings</a>
-                    {isAdmin && <a href="/admin">Admin Panel</a>}
                     <a href="#" onClick={handleLogout}>Logout</a>
                     <div className="logged-in-info">Logged in as {username}</div>
 
-                    <div className="infographics-section">
-                        <div className="infographics-label">Infographics</div>
+                    <div className="another-section">
+                        <div className="section-label">Infographics</div>
                         <a href="/about">About</a>
                         <a href="/membership">Membership</a>
                     </div>
+
+                    {isAdmin && 
+                    <div className="another-section">
+                      <div className="section-label">Admin</div>
+                      <a href="/admin">Admin Panel</a>
+                    </div> 
+                    }
+
+
                 </>
             ) : (
                 <>

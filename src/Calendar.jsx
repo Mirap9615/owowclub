@@ -491,6 +491,7 @@ function Cal() {
 
   return (
     <>
+      <div className="home">
       <Steamed />
       <br></br>
       <div className="container">
@@ -551,6 +552,7 @@ function Cal() {
           })}
         </tbody>
         </table>
+      </div>
       </div>
     </>
   );

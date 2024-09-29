@@ -21,6 +21,7 @@ import Request from './Request.jsx'
 import Admin from './Admin.jsx'
 import Applications from './Applications.jsx'
 import ActivitiesMember from './ActivitiesMember.jsx'
+import Users from './Users.jsx'
 
 function AppRouter() {
   return (
@@ -49,6 +50,7 @@ function AppRouter() {
 
         <Route path="/admin" element={<ProtectedRoute element={Admin} />} />
         <Route path="/applications" element={<ProtectedRoute element={Applications} />} />
+        <Route path="/users" element={<ProtectedRoute element={Users} />} />
 
         <Route path="/logout" element={<Logout />} />
         <Route path="*" element={<NotFound />} />

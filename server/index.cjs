@@ -289,21 +289,23 @@ app.delete('/api/events/:id', async (req, res) => {
   }
 });
 
-// events loader
+// events creator
 app.post('/api/events', async (req, res) => {
-  const { start_time, end_time, title, description, note, color } = req.body;
+  const { event_date, start_time, end_time, title, description, note, color, location, type, exclusivity } = req.body;
+  console.log("given metrics:" + req.body);
   try {
       const result = await pool.query(
-          'SELECT create_event($1, $2, $3, $4, $5, $6)',
-          [start_time, end_time, title, description, note, color]
-        );
-      const newId = result.rows[0].create_event; 
+        'INSERT INTO event (event_date, start_time, end_time, title, description, note, color, location, type, exclusivity) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id',
+        [event_date, start_time, end_time, title, description, note, color, location, type, exclusivity]
+      );    
+      const newId = result.rows[0].id; 
       res.status(201).json({ id: newId });
   } catch (err) {
       console.error(err.message);
       res.status(500).send('Error creating event');
   }
 });
+
 
 // registeration endpoint
 app.post('/register', async (req, res) => {
@@ -561,7 +563,7 @@ app.put('/api/users/:id/privilege', async (req, res) => {
 // forcably change a user's password to a temp password
 app.put('/api/users/:id/reset-password-to-temp', async (req, res) => {
   const { id } = req.params;
-  const tempPassword = 'OWL^2';
+  const tempPassword = 'owlsquared';
   
   try {
     const hashedPassword = await bcrypt.hash(tempPassword, 10);

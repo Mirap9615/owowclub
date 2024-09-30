@@ -54,11 +54,11 @@ const Users = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ password: 'OWL^2' }),
+        body: JSON.stringify({ password: 'owlsquared' }),
       });
 
       if (response.ok) {
-        alert('Password reset to OWL^2');
+        alert('Password reset to owlsquared');
       } else {
         console.error('Failed to reset password');
       }
@@ -98,7 +98,7 @@ const Users = () => {
                         </select>
                     </td>
                     <td>
-                        <button onClick={() => handlePasswordReset(user.user_id)}>Reset Password To 'OWL^2'</button>
+                        <button onClick={() => handlePasswordReset(user.user_id)}>Reset Password To 'owlsquared'</button>
                     </td>
                     </tr>
                 ))}

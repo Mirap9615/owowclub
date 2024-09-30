@@ -8,6 +8,9 @@ import checkAuth from './CheckAuth.jsx';
 import { HexColorPicker } from 'react-colorful';
 import { format } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
+import EventsThreeTabbedModal from './EventsThreeTabbedModal.jsx';
+import EventsFourTabbedModal from './EventsFourTabbedModal.jsx';
+
 
 const EventDetailsPanel = ({ event, onClose, onTriggerEdit, onColorChange, setEvents, fetchEvents, toggleScrollability, userDetails}) => {
     if (event == null) { return };
@@ -335,25 +338,35 @@ function Cal() {
   const fetchEvents = async () => {
     const Url = '/api/events';
 
-    try {
+      try {
         let response = await fetch(Url);
         if (response.ok) {
             const data = await response.json();
-            const parsedEvents = data.map(event => ({
-            id: event.id,
-            startDateTime: new Date(event.start_time),
-            endDateTime: new Date(event.end_time),
-            title: event.title,
-            description: event.description,
-            note: event.note,
-            color: event.color,
-            temp: event.temp !== undefined ? event.temp : false,
-            participants: event.participants || []
-        }));
-        setEvents(parsedEvents);
-        } else {
-            throw new Error('Failed to fetch events');
-        }
+            console.log(data);
+            const parsedEvents = data.map(event => {
+                // Combine event_date and start_time to form startDateTime
+                const eventDate = event.event_date.split('T')[0];
+                const startDateTime = new Date(`${eventDate}T${event.start_time}`);
+                const endDateTime = new Date(`${eventDate}T${event.end_time}`);
+
+                return {
+                    id: event.id,
+                    startDateTime: startDateTime,
+                    endDateTime: endDateTime,
+                    title: event.title,
+                    description: event.description,
+                    note: event.note,
+                    color: event.color,
+                    location: event.location,
+                    type: event.type,
+                    exclusivity: event.exclusivity,
+                    participants: event.participants || []
+                };
+            });
+            setEvents(parsedEvents);
+          } else {
+              throw new Error('Failed to fetch events');
+          }
       } catch (error) {
           console.error('Error fetching events:', error);
       }
@@ -405,25 +418,67 @@ function Cal() {
     }
   }, [events]);
 
-  const handleCreateEvent = async () => {
-    const tempId = uuidv4();
-    const newEvent = {
-        id: tempId,
-        startDateTime: new Date(),
-        endDateTime: new Date(),
-        title: 'Untitled Event',
-        description: '',
-        note: '',
-        color: '#457ad6',
-        temp: true,
-        participants: []
-    };
-    setSelectedEvent(newEvent);
-    setIsPanelOpen(true);
-    setEvents(prevEvents => [...prevEvents, newEvent]);
+  const handleCreateEvent = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
 };
 
-  const [sidebarWidth, setSidebarWidth] = useState(300);
+const handleEventCreate = async (formData) => {
+  const finalFormData = {
+    title: formData.title.trim() || 'New Event',
+    type: formData.type || 'entertainment',
+    exclusivity: formData.exclusivity || 'open',
+    description: formData.description.trim() || 'default description',
+    event_date: formData.date || new Date().toISOString().split("T")[0],
+    start_time: formData.startTime || '16:00', 
+    end_time: formData.endTime || '21:00',
+    location: formData.location.trim() || 'unset',
+    color: formData.color || '#d3d3d3',
+  };
+
+  try {
+      const response = await fetch('/api/events', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(finalFormData),
+      });
+
+      if (response.ok) {
+          const responseData = await response.json();
+
+          const startDateTime = new Date(`${finalFormData.event_date}T${finalFormData.start_time}`);
+          const endDateTime = new Date(`${finalFormData.event_date}T${finalFormData.end_time}`);
+
+          const createdEvent = {
+              id: responseData.id, 
+              startDateTime: startDateTime,
+              endDateTime: endDateTime,
+              title: finalFormData.title,
+              description: finalFormData.description,
+              note: finalFormData.note || '',
+              color: finalFormData.color,
+              location: finalFormData.location,
+              type: finalFormData.type,
+              exclusivity: finalFormData.exclusivity,
+              participants: formData.guests || [],
+              temp: false,
+          };
+
+          setEvents(prevEvents => [...prevEvents, createdEvent]);
+      } else {
+          console.error('Failed to create event:', response.statusText);
+      }
+  } catch (error) {
+      console.error('Error creating event:', error);
+  }
+
+  handleCloseModal();
+};
 
   useEffect(() => {
     if (isPanelOpen) {
@@ -439,11 +494,19 @@ function Cal() {
   const [displayedEvents, setDisplayedEvents] = useState([]);
 
   useEffect(() => {
-    const sortedEvents = [...events].sort((a, b) => (
-      sortDirection === 'asc' ? new Date(a.startDateTime) - new Date(b.startDateTime) : new Date(b.startDateTime) - new Date(a.startDateTime)
-    ));
-    const filteredEvents = sortedEvents.filter(event => event.title.toLowerCase().includes(filter.toLowerCase()));
-    setDisplayedEvents(filteredEvents);
+    const sortedEvents = [...events].sort((a, b) => {
+        if (sortDirection === 'asc') {
+            return a.startDateTime - b.startDateTime;
+        } else {
+            return b.startDateTime - a.startDateTime;
+        }
+      });
+
+      const filteredEvents = sortedEvents.filter(event => 
+          event.title.toLowerCase().includes(filter.toLowerCase())
+      );
+
+      setDisplayedEvents(filteredEvents);
   }, [sortDirection, filter, events]);
   
   const toggleSortDirection = () => {
@@ -549,15 +612,27 @@ function Cal() {
     handleClosePanel();
   };
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   return (
     <>
       <div className="home">
       <Steamed />
       <br></br>
       <div className="container">
-      {userDetails.type !== 'Standard' && (
-          <button onClick={handleCreateEvent}>Create Event</button>
-      )}
+        {userDetails.type !== 'Standard' && (
+            <button onClick={handleCreateEvent}>Create Event</button>
+        )}
+        {isModalOpen && (
+          <>
+            <div className="backdrop backdrop-active" onClick={handleCloseModal}></div>
+            <EventsThreeTabbedModal 
+                onClose={handleCloseModal} 
+                onEventCreate={handleEventCreate}
+            />
+          </>
+        )}
+
             {isPanelOpen && selectedEvent && (
               <>
                 <div className="backdrop backdrop-active" onClick={handleBackdropClick}></div>
@@ -572,6 +647,7 @@ function Cal() {
                 />
               </>
             )}
+            
         <div className="title">Schedule</div>
         <Calendar
           onChange={onChange}

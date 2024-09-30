@@ -284,3 +284,9 @@
 .home .hamburger-menu-container {
   z-index: unset;
 }
+
+@media (prefers-color-scheme: dark) {
+  .modal {
+    background-color: black;
+  }
+}

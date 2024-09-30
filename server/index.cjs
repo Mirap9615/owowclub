@@ -127,7 +127,6 @@ app.post('/upload-image', upload.single('image'), async (req, res) => {
     const result = await pool.query(insertQuery, [imageId, user_id, eventId, name, tags, title, description, imageUrl]);
     const newImage = result.rows[0];
 
-    console.log("File uploaded; Session User Data:", req.session.user);
     return res.json({
       url: newImage.url,
       title: newImage.title,
@@ -263,15 +262,29 @@ app.get("/api/events", async (req, res) => {
   }
 });
 
+// update an event ENDPOINT
 app.put('/api/events/:id', async (req, res) => {
   const { id } = req.params;
-  const { start_time, end_time, title, description, note, color } = req.body;
+  const { date, start_time, end_time, title, description, note, color, location, type, exclusivity } = req.body;
+
   try {
     await pool.query(
-      'SELECT update_event($1, $2, $3, $4, $5, $6, $7)',
-      [id, start_time, end_time, title, description, note, color]
+      `UPDATE event 
+       SET event_date = $1,
+           start_time = $2,
+           end_time = $3,
+           title = $4,
+           description = $5,
+           note = $6,
+           color = $7,
+           location = $8,
+           type = $9,
+           exclusivity = $10
+       WHERE id = $11`,
+      [date, start_time, end_time, title, description, note, color, location, type, exclusivity, id]
     );
-    res.json({ message: 'Event updated successfully' + id });
+
+    res.json({ message: `Event with ID ${id} updated successfully` });
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
@@ -292,7 +305,6 @@ app.delete('/api/events/:id', async (req, res) => {
 // events creator
 app.post('/api/events', async (req, res) => {
   const { event_date, start_time, end_time, title, description, note, color, location, type, exclusivity } = req.body;
-  console.log("given metrics:" + req.body);
   try {
       const result = await pool.query(
         'INSERT INTO event (event_date, start_time, end_time, title, description, note, color, location, type, exclusivity) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id',
@@ -392,7 +404,6 @@ app.post('/login', async (req, res) => {
       type: user.type,
       admin: user.admin,
     };
-    console.log('Session data SET:', req.session.user);
 
     res.status(200).send('Login successful');
   } catch (err) {
@@ -578,7 +589,6 @@ app.put('/api/users/:id/reset-password-to-temp', async (req, res) => {
 
 // endpoint to allow a user to join an event
 app.post('/api/events/:eventId/join', async (req, res) => {
-  console.log('Session data:', req.session);
   const userId = req.session.user.user_id; 
   const { eventId } = req.params;
 
@@ -596,7 +606,6 @@ app.post('/api/events/:eventId/join', async (req, res) => {
 
 // endpoint to allow a user to leave an event
 app.delete('/api/events/:eventId/leave', async (req, res) => {
-  console.log('Session data:', req.session);
   const userId = req.session.user.user_id; 
   const { eventId } = req.params;
 

@@ -11,312 +11,6 @@ import { v4 as uuidv4 } from 'uuid';
 import EventsThreeTabbedModal from './EventsThreeTabbedModal.jsx';
 import EventsFourTabbedModal from './EventsFourTabbedModal.jsx';
 
-
-const EventDetailsPanel = ({ event, onClose, onTriggerEdit, onColorChange, setEvents, fetchEvents, toggleScrollability, userDetails}) => {
-    if (event == null) { return };
-    const navigate = useNavigate();
-    const [eventData, setEventData] = useState(() => event || {});
-
-    const [showConfirmModal, setShowConfirmModal] = useState(false);
-    const [isEditMode, setIsEditMode] = useState(false);
-    const [originalColor, setOriginalColor] = useState(null);
-    const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
-    const toggleColorPicker = () => {
-        if (isEditMode) {  
-            setIsColorPickerVisible(prev => !prev);
-        }
-    };
-    const startTimeRef = useRef(event.startDateTime);
-    const endTimeRef = useRef(event.endDateTime);
-    const titleRef = useRef(event.title);
-    const descRef = useRef(event.description);
-    const noteRef = useRef(event.note);
-
-    useEffect(() => {
-        if (onTriggerEdit) {
-            onTriggerEdit(setIsEditMode);
-        }
-    }, [onTriggerEdit]);
-
-    useEffect(() => {
-      const checkLoginStatus = async () => {
-        const isAuthenticated = await checkAuth();
-        if (!isAuthenticated) {
-          navigate('/no-permission');
-        }
-      };
-      checkLoginStatus();
-    }, [navigate]);
-
-    useEffect(() => {
-      if (event && event.id !== eventData.id) {
-          setEventData(event);
-      }
-    }, [event]);
-    
-    const toggleEditMode = () => {
-        setIsEditMode(!isEditMode);
-        if (!isEditMode) {
-            setOriginalColor(event.color);
-        } else {
-            handleColorRevert(); 
-        }
-    };
-
-    const handleChange = (key, value) => {
-        setEventData(prev => ({ ...prev, [key]: value }));
-    };
-
-    const handleDeleteInitiate = () => {
-        setShowConfirmModal(true);
-    };
-
-    const handleDeleteConfirm = () => {
-        handleDelete(event.id);
-        setShowConfirmModal(false);
-        onClose();
-    };
-
-    const handleCloseModal = () => {
-        setShowConfirmModal(false);
-    };
-
-    const handleDelete = async (eventId) => {
-        try {
-            const response = await fetch(`/api/events/${eventId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-    
-            if (!response.ok) {
-                throw new Error('Failed to delete event');
-            }
-    
-            setEvents(currentEvents => currentEvents.filter(event => event.id !== eventId));
-            setEventData(null);
-        } catch (error) {
-            console.error('Error deleting event:', error);
-        }
-    };
-
-    const handleSave = async () => {
-        const eventToSave = {
-            start_time: new Date(startTimeRef.current.textContent).toISOString(),
-            end_time: new Date(endTimeRef.current.textContent).toISOString(),
-            title: titleRef.current.textContent,
-            description: descRef.current.textContent,
-            note: noteRef.current.textContent,
-            color: event.color
-        };
-
-        const isNew = typeof eventData.id === 'string' && eventData.id.includes('-');
-        const url = `/api/events${isNew ? '' : '/' + eventData.id}`;
-        const method = isNew ? 'POST' : 'PUT';
-    
-        try {
-            const response = await fetch(url, {
-                method: method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(eventToSave)
-            });
-    
-            if (!response.ok) {
-                throw new Error('Failed to save event');
-            }
-    
-            const data = await response.json();
-
-            setEvents(currentEvents => currentEvents.map(event => 
-                event.id === eventData.id ? {...eventData, id: data.id} : event
-            ));
-
-            await fetchEvents();
-        } catch (error) {
-            console.error('Error saving event:', error);
-        }
-        setIsEditMode(false);
-        toggleScrollability(true);
-    };
-
-    const handleJoinEvent = async (eventId) => {
-      try {
-        const response = await fetch(`/api/events/${eventId}/join`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include', 
-        });
-    
-        if (response.ok) {
-          const updatedParticipants = [...eventData.participants, { user_id: userDetails.user_id, name: userDetails.name }];
-          setEventData((prevData) => ({
-          ...prevData,
-          participants: updatedParticipants,
-          }));
-          fetchEvents(); 
-        } else {
-          throw new Error('Failed to join event');
-        }
-      } catch (error) {
-        console.error('Error joining event:', error);
-      }
-    };
-
-    const handleLeaveEvent = async (eventId) => {
-      try {
-        const response = await fetch(`/api/events/${eventId}/leave`, {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include', 
-        });
-    
-        if (response.ok) {
-          const updatedParticipants = eventData.participants.filter((participant) => participant.user_id !== userDetails.user_id);
-          setEventData((prevData) => ({
-            ...prevData,
-            participants: updatedParticipants,
-          }));
-          fetchEvents(); 
-        } else {
-          throw new Error('Failed to leave event');
-        }
-      } catch (error) {
-        console.error('Error leave event:', error);
-      }
-    };
-
-    if (!event) return null;
-
-    return (
-        <div className="side-panel"> 
-            
-            <div
-                className="card-title"
-                contentEditable={isEditMode}
-                ref={titleRef}
-                suppressContentEditableWarning={true} 
-                style={{minWidth: 'fit-content'}}
-            >
-                {eventData.title}
-            </div>
-
-            <div className="card-datg">
-                <div
-                    className="card-date"
-                    contentEditable={isEditMode}
-                    ref={startTimeRef}
-                    suppressContentEditableWarning={true}
-                >
-                    {format(new Date(eventData.startDateTime), 'MM/dd/yyyy HH:mm')}
-                </div>
-                <span className="card-date-span">to</span>
-                <div
-                    className="card-date"
-                    contentEditable={isEditMode}
-                    ref={endTimeRef}
-                    suppressContentEditableWarning={true}
-                >
-                    {format(new Date(eventData.endDateTime), 'MM/dd/yyyy HH:mm')}
-                </div>
-            </div>
-
-            <div className="desc-lead">Description</div>
-                <div
-                    className="card-desc"
-                    contentEditable={isEditMode}
-                    ref={descRef}
-                    suppressContentEditableWarning={true}
-                >
-                    {eventData.description}
-            </div>
-
-            <div className="card-part">Participating Members</div>
-            <div>
-                {eventData.participants.length > 0 
-              ? eventData.participants.map((participant) => participant.name).join(', ') 
-              : 'No participants yet'}
-            </div>
-            <button 
-              className="card-join"
-              onClick={() => {
-                if (eventData.participants.some(participant => participant.user_id === userDetails.user_id)) {
-                  handleLeaveEvent(eventData.id); 
-                } else {
-                  handleJoinEvent(eventData.id); 
-                }
-              }}
-            >
-              {eventData.participants.some(participant => participant.user_id === userDetails.user_id) ? 'Leave' : 'Join'}
-            </button>
-
-            <div className="note-lead">Notes</div>
-                <div
-                    className="card-note"
-                    contentEditable={isEditMode}
-                    ref={noteRef}
-                    suppressContentEditableWarning={true}
-                >
-                    {eventData.note}
-            </div>
-
-            {isEditMode && (
-                <div className="color-picker-container">
-                    <button className="card-ccol" onClick={toggleColorPicker}>
-                        Change Color
-                    </button>
-
-                    {isColorPickerVisible && (
-                        <HexColorPicker
-                            color={eventData.color}
-                            onChange={(color) => onColorChange(color, eventData.id)}
-                        />
-                    )}
-                </div>
-            )}
-
-            <div className="edit-n-close">
-            {userDetails.type !== 'Standard' && (
-              <>
-                <button className="card-edit" onClick={isEditMode ? handleSave : toggleEditMode}>
-                    {isEditMode ? "Save" : "Edit"}
-                </button>
-                <button className="card-delete" onClick={handleDeleteInitiate} style={{ visibility: isEditMode ? 'visible' : 'hidden' }}>Delete</button>
-              </>
-              )}
-                <button className="card-close" onClick={onClose}>Close</button>
-            </div>
-
-            {showConfirmModal && (
-                <ConfirmModal 
-                    isOpen={showConfirmModal} 
-                    onClose={handleCloseModal} 
-                    onConfirm={handleDeleteConfirm}
-                />
-            )}
-        </div>
-    );
-};
-
-function ConfirmModal({ isOpen, onClose, onConfirm }) {
-    if (!isOpen) return null;
-
-    return (
-        <div className="modal-overlay">
-            <div className="modal">
-                <h2>Confirm Delete</h2>
-                <p>Are you sure you want to delete this event?</p>
-                <button onClick={onConfirm}>Confirm</button>
-                <button onClick={onClose}>Cancel</button>
-            </div>
-        </div>
-    );
-}
-
 const findEventsForDate = (selectedDate, allEvents) => {
     return allEvents.filter(event => {
       const startDate = new Date(event.startDateTime);
@@ -342,7 +36,6 @@ function Cal() {
         let response = await fetch(Url);
         if (response.ok) {
             const data = await response.json();
-            console.log(data);
             const parsedEvents = data.map(event => {
                 // Combine event_date and start_time to form startDateTime
                 const eventDate = event.event_date.split('T')[0];
@@ -424,61 +117,61 @@ function Cal() {
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
-};
-
-const handleEventCreate = async (formData) => {
-  const finalFormData = {
-    title: formData.title.trim() || 'New Event',
-    type: formData.type || 'entertainment',
-    exclusivity: formData.exclusivity || 'open',
-    description: formData.description.trim() || 'default description',
-    event_date: formData.date || new Date().toISOString().split("T")[0],
-    start_time: formData.startTime || '16:00', 
-    end_time: formData.endTime || '21:00',
-    location: formData.location.trim() || 'unset',
-    color: formData.color || '#d3d3d3',
   };
 
-  try {
-      const response = await fetch('/api/events', {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(finalFormData),
-      });
+  const handleEventCreate = async (formData) => {
+    const finalFormData = {
+      title: formData.title.trim() || 'New Event',
+      type: formData.type || 'entertainment',
+      exclusivity: formData.exclusivity || 'open',
+      description: formData.description.trim() || 'default description',
+      event_date: formData.date || new Date().toISOString().split("T")[0],
+      start_time: formData.startTime || '16:00', 
+      end_time: formData.endTime || '21:00',
+      location: formData.location.trim() || 'unset',
+      color: formData.color || '#d3d3d3',
+    };
 
-      if (response.ok) {
-          const responseData = await response.json();
+    try {
+        const response = await fetch('/api/events', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(finalFormData),
+        });
 
-          const startDateTime = new Date(`${finalFormData.event_date}T${finalFormData.start_time}`);
-          const endDateTime = new Date(`${finalFormData.event_date}T${finalFormData.end_time}`);
+        if (response.ok) {
+            const responseData = await response.json();
 
-          const createdEvent = {
-              id: responseData.id, 
-              startDateTime: startDateTime,
-              endDateTime: endDateTime,
-              title: finalFormData.title,
-              description: finalFormData.description,
-              note: finalFormData.note || '',
-              color: finalFormData.color,
-              location: finalFormData.location,
-              type: finalFormData.type,
-              exclusivity: finalFormData.exclusivity,
-              participants: formData.guests || [],
-              temp: false,
-          };
+            const startDateTime = new Date(`${finalFormData.event_date}T${finalFormData.start_time}`);
+            const endDateTime = new Date(`${finalFormData.event_date}T${finalFormData.end_time}`);
 
-          setEvents(prevEvents => [...prevEvents, createdEvent]);
-      } else {
-          console.error('Failed to create event:', response.statusText);
-      }
-  } catch (error) {
-      console.error('Error creating event:', error);
-  }
+            const createdEvent = {
+                id: responseData.id, 
+                startDateTime: startDateTime,
+                endDateTime: endDateTime,
+                title: finalFormData.title,
+                description: finalFormData.description,
+                note: finalFormData.note || '',
+                color: finalFormData.color,
+                location: finalFormData.location,
+                type: finalFormData.type,
+                exclusivity: finalFormData.exclusivity,
+                participants: formData.guests || [],
+                temp: false,
+            };
 
-  handleCloseModal();
-};
+            setEvents(prevEvents => [...prevEvents, createdEvent]);
+        } else {
+            console.error('Failed to create event:', response.statusText);
+        }
+    } catch (error) {
+        console.error('Error creating event:', error);
+    }
+
+    handleCloseModal();
+  };
 
   useEffect(() => {
     if (isPanelOpen) {
@@ -521,7 +214,7 @@ const handleEventCreate = async (formData) => {
     setEvents(prevEvents => prevEvents.map(event =>
         event.id === eventId ? { ...event, color: given_color } : event
     ));
-};
+  };
 
   useEffect(() => {
     const originalDisplay = document.body.style.display;
@@ -535,47 +228,48 @@ const handleEventCreate = async (formData) => {
 
   const [userDetails, setUserDetails] = useState({
     name: '',
+    user_id: '',
     type: '',
   });
 
-  useEffect(() => {
-    const fetchUserDetails = async () => {
-      try {
-        const response = await fetch('/user-details', {
-          method: 'GET',
-          credentials: 'include',
+    useEffect(() => {
+      const fetchUserDetails = async () => {
+        try {
+          const response = await fetch('/user-details', {
+            method: 'GET',
+            credentials: 'include',
+          });
+          const data = await response.json();
+          setUserDetails(data);
+        } catch (error) {
+          console.error('Error fetching user details:', error);
+        }
+      };
+
+      fetchUserDetails();
+    }, []);
+
+    const tileClassName = ({ date, view }) => {
+      if (view === 'month') {
+        const dayEvents = events.filter(event => {
+          const startDate = new Date(event.startDateTime);
+          const endDate = new Date(event.endDateTime);
+          endDate.setHours(23, 59, 59, 999);  
+    
+          const checkDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    
+          startDate.setHours(0, 0, 0, 0);
+    
+          return checkDate >= startDate && checkDate <= endDate;
         });
-        const data = await response.json();
-        setUserDetails(data);
-      } catch (error) {
-        console.error('Error fetching user details:', error);
+    
+        if (dayEvents.length > 0) {
+          dayEvents.sort((a, b) => new Date(a.startDateTime) - new Date(b.startDateTime));
+          return `highlight-${dayEvents[0].id}`;
+        }
       }
+      return null;
     };
-
-    fetchUserDetails();
-  }, []);
-
-  const tileClassName = ({ date, view }) => {
-    if (view === 'month') {
-      const dayEvents = events.filter(event => {
-        const startDate = new Date(event.startDateTime);
-        const endDate = new Date(event.endDateTime);
-        endDate.setHours(23, 59, 59, 999);  
-  
-        const checkDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  
-        startDate.setHours(0, 0, 0, 0);
-  
-        return checkDate >= startDate && checkDate <= endDate;
-      });
-  
-      if (dayEvents.length > 0) {
-        dayEvents.sort((a, b) => new Date(a.startDateTime) - new Date(b.startDateTime));
-        return `highlight-${dayEvents[0].id}`;
-      }
-    }
-    return null;
-  };
   
   const updateTileStyles = () => {
     const styleElement = document.getElementById('dynamic-styles');
@@ -608,9 +302,134 @@ const handleEventCreate = async (formData) => {
     }
   };
 
+  const handleDelete = async (eventId) => {
+    console.log('attempted to delete: '+ eventId)
+      try {
+          const response = await fetch(`/api/events/${eventId}`, {
+              method: 'DELETE',
+              headers: {
+                  'Content-Type': 'application/json'
+              }
+          });
+
+          if (!response.ok) {
+              throw new Error('Failed to delete event');
+          }
+
+          setEvents(currentEvents => currentEvents.filter(event => event.id !== eventId));
+      } catch (error) {
+          console.error('Error deleting event:', error);
+      }
+  };
+
   const handleBackdropClick = () => {
     handleClosePanel();
   };
+
+  const handleEventUpdate = async (updatedEventData) => {
+    try {
+      const commonAttributes = {
+        date: updatedEventData.event_date,
+        start_time: updatedEventData.start_time + ":00",
+        end_time: updatedEventData.end_time + ":00",
+        title: updatedEventData.title,
+        description: updatedEventData.description,
+        note: updatedEventData.note,
+        color: updatedEventData.color,
+        location: updatedEventData.location,
+        type: updatedEventData.type,
+        exclusivity: updatedEventData.exclusivity,
+      };
+  
+      const response = await fetch(`/api/events/${updatedEventData.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(commonAttributes),
+      });
+  
+      if (response.ok) {
+        const responseData = await response.json();
+  
+        const startDateTime = new Date(`${updatedEventData.event_date}T${updatedEventData.start_time}`);
+        const endDateTime = new Date(`${updatedEventData.event_date}T${updatedEventData.end_time}`);
+  
+        const updatedEvent = {
+          ...commonAttributes,
+          id: updatedEventData.id,
+          startDateTime,
+          endDateTime,
+          participants: updatedEventData.participants || [],
+          temp: false,
+        };
+  
+        setEvents(prevEvents =>
+          prevEvents.map(event =>
+            event.id === updatedEvent.id ? updatedEvent : event
+          )
+        );
+  
+        setIsPanelOpen(false);
+        toggleScrollability(true);
+      } else {
+        console.error('Failed to update event:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error updating event:', error);
+    }
+  };
+
+  const handleJoinEvent = async (eventId) => {
+    try {
+      const response = await fetch(`/api/events/${eventId}/join`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', 
+      });
+  
+      if (response.ok) {
+        const updatedParticipants = [...eventData.participants, { user_id: userDetails.user_id, name: userDetails.name }];
+        setEventData((prevData) => ({
+        ...prevData,
+        participants: updatedParticipants,
+        }));
+        fetchEvents(); 
+      } else {
+        throw new Error('Failed to join event');
+      }
+    } catch (error) {
+      console.error('Error joining event:', error);
+    }
+  };
+
+  const handleLeaveEvent = async (eventId) => {
+    try {
+      const response = await fetch(`/api/events/${eventId}/leave`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', 
+      });
+  
+      if (response.ok) {
+        const updatedParticipants = eventData.participants.filter((participant) => participant.user_id !== userDetails.user_id);
+        setEventData((prevData) => ({
+          ...prevData,
+          participants: updatedParticipants,
+        }));
+        fetchEvents(); 
+      } else {
+        throw new Error('Failed to leave event');
+      }
+    } catch (error) {
+      console.error('Error leave event:', error);
+    }
+  };
+  
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -636,18 +455,18 @@ const handleEventCreate = async (formData) => {
             {isPanelOpen && selectedEvent && (
               <>
                 <div className="backdrop backdrop-active" onClick={handleBackdropClick}></div>
-                <EventDetailsPanel 
-                    event={selectedEvent} 
-                    onClose={handleClosePanel} 
-                    onColorChange={handleColorChange}
-                    setEvents={setEvents}
-                    fetchEvents={fetchEvents}
-                    toggleScrollability={toggleScrollability}
+                <EventsFourTabbedModal
+                    eventData={selectedEvent}
+                    onClose={handleClosePanel}
+                    onEventUpdate={handleEventUpdate}
                     userDetails={userDetails}
+                    handleJoinEvent={handleJoinEvent}
+                    handleLeaveEvent={handleLeaveEvent}
+                    handleDelete={handleDelete}
                 />
               </>
             )}
-            
+
         <div className="title">Schedule</div>
         <Calendar
           onChange={onChange}

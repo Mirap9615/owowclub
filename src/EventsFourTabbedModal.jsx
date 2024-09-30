@@ -2,21 +2,23 @@ import React, { useState } from 'react';
 import './EventsFourTabbedModal.css';
 import { HexColorPicker } from 'react-colorful';
 
-const EventsFourTabbedModal = ({ onClose, eventData, onEventUpdate }) => {
+const EventsFourTabbedModal = ({ onClose, eventData, onEventUpdate, userDetails, handleJoinEvent, handleLeaveEvent, handleDelete }) => {
     const [step, setStep] = useState(1);
-    const [formData, setFormData] = useState(eventData);
-    const [isEditMode, setIsEditMode] = useState(false); 
+
+    const transformedEventData = {
+        ...eventData,
+        event_date: eventData.startDateTime ? eventData.startDateTime.toISOString().split('T')[0] : '',
+        start_time: eventData.startDateTime ? eventData.startDateTime.toTimeString().split(' ')[0].substring(0, 5) : '',
+        end_time: eventData.endDateTime ? eventData.endDateTime.toTimeString().split(' ')[0].substring(0, 5) : '',
+    };
+
+    const [formData, setFormData] = useState(transformedEventData);
+    const [originalData, setOriginalData] = useState(transformedEventData);
     const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
 
     const handleNext = () => {
         if (step < 4) {
             setStep(step + 1);
-        } else if (isEditMode) {
-            // Save changes in edit mode
-            onEventUpdate(formData);
-            setIsEditMode(false);
-        } else {
-            onClose();
         }
     };
 
@@ -24,6 +26,7 @@ const EventsFourTabbedModal = ({ onClose, eventData, onEventUpdate }) => {
         if (step > 1) setStep(step - 1);
     };
 
+    // Handle input change events for form inputs
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData((prevData) => ({
@@ -36,23 +39,62 @@ const EventsFourTabbedModal = ({ onClose, eventData, onEventUpdate }) => {
         setIsColorPickerVisible(!isColorPickerVisible);
     };
 
-    const toggleEditMode = () => {
-        setIsEditMode(!isEditMode);
+    const handleSave = () => {
+        onEventUpdate(formData);
+        onClose();
     };
+
+    const handleClose = () => {
+        setFormData({ ...originalData }); 
+        onClose();
+    };
+
+    const handleParticipationToggle = async () => {
+        let updatedParticipants;
+    
+        if (formData.participants.some(participant => participant.user_id === userDetails.user_id)) {
+            console.log(userDetails.user_id + " wants to leave!");
+            updatedParticipants = formData.participants.filter(participant => participant.user_id !== userDetails.user_id);
+            
+            setFormData(prevFormData => ({
+                ...prevFormData,
+                participants: updatedParticipants,
+            }));
+    
+            try {
+                await handleLeaveEvent(eventData.id);
+            } catch (error) {
+                console.error('Error leaving event:', error);
+            }
+        } else {
+            updatedParticipants = [...formData.participants, { user_id: userDetails.user_id, name: userDetails.name }];
+    
+            setFormData(prevFormData => ({
+                ...prevFormData,
+                participants: updatedParticipants,
+            }));
+    
+            try {
+                await handleJoinEvent(eventData.id);
+            } catch (error) {
+                console.error('Error joining event:', error);
+            }
+        }
+    };
+    
 
     const renderStep = () => {
         switch (step) {
             case 1:
                 return (
                     <div className="step-content">
-                        <h3>Details</h3>
+                        <h3>Overview</h3>
                         <label>
                             Event Title
                             <input
                                 name="title"
                                 value={formData.title}
                                 onChange={handleInputChange}
-                                disabled={!isEditMode} // Disable input if not in edit mode
                             />
                         </label>
                         <label>
@@ -61,7 +103,6 @@ const EventsFourTabbedModal = ({ onClose, eventData, onEventUpdate }) => {
                                 name="type"
                                 value={formData.type}
                                 onChange={handleInputChange}
-                                disabled={!isEditMode} // Disable input if not in edit mode
                             >
                                 <option value="none">Select...</option>
                                 <option value="travel">Travel Adventure</option>
@@ -95,7 +136,6 @@ const EventsFourTabbedModal = ({ onClose, eventData, onEventUpdate }) => {
                                 name="exclusivity"
                                 value={formData.exclusivity}
                                 onChange={handleInputChange}
-                                disabled={!isEditMode}
                             >
                                 <option value="open">Open</option>
                                 <option value="invite-only">Invite Only</option>
@@ -107,68 +147,6 @@ const EventsFourTabbedModal = ({ onClose, eventData, onEventUpdate }) => {
                                 name="description"
                                 value={formData.description}
                                 onChange={handleInputChange}
-                                disabled={!isEditMode}
-                            />
-                        </label>
-                    </div>
-                );
-            case 2:
-                return (
-                    <div className="step-content">
-                        <h3>Date & Location</h3>
-                        <label>
-                            Date
-                            <input
-                                type="date"
-                                name="date"
-                                value={formData.date}
-                                onChange={handleInputChange}
-                                disabled={!isEditMode}
-                            />
-                        </label>
-                        <label>
-                            Start Time
-                            <input
-                                type="time"
-                                name="startTime"
-                                value={formData.startTime}
-                                onChange={handleInputChange}
-                                disabled={!isEditMode}
-                            />
-                        </label>
-                        <label>
-                            End Time
-                            <input
-                                type="time"
-                                name="endTime"
-                                value={formData.endTime}
-                                onChange={handleInputChange}
-                                disabled={!isEditMode}
-                            />
-                        </label>
-                        <label>
-                            Location
-                            <input
-                                type="text"
-                                name="location"
-                                placeholder="Address or virtual link"
-                                value={formData.location}
-                                onChange={handleInputChange}
-                                disabled={!isEditMode}
-                            />
-                        </label>
-                    </div>
-                );
-            case 3:
-                return (
-                    <div className="step-content">
-                        <h3>Guests & Color Selection</h3>
-                        <label>
-                            Invite Guests
-                            <input
-                                type="text"
-                                placeholder="Search for users..."
-                                disabled={!isEditMode}
                             />
                         </label>
                         <div className="color-picker-section">
@@ -178,14 +156,12 @@ const EventsFourTabbedModal = ({ onClose, eventData, onEventUpdate }) => {
                                     className="color-preview"
                                     style={{ backgroundColor: formData.color || '#d3d3d3' }}
                                 />
-                                {isEditMode && (
-                                    <button
-                                        className="pick-color-button"
-                                        onClick={toggleColorPicker}
-                                    >
-                                        {formData.color ? "Change Color" : "Pick Color"}
-                                    </button>
-                                )}
+                                <button
+                                    className="pick-color-button"
+                                    onClick={toggleColorPicker}
+                                >
+                                    {formData.color ? "Change Color" : "Pick Color"}
+                                </button>
                             </div>
                             {isColorPickerVisible && (
                                 <div className="color-picker-popover">
@@ -202,6 +178,62 @@ const EventsFourTabbedModal = ({ onClose, eventData, onEventUpdate }) => {
                         </div>
                     </div>
                 );
+            case 2:
+                return (
+                    <div className="step-content">
+                        <h3>Date & Location</h3>
+                        <label>
+                            Date
+                            <input
+                                type="date"
+                                name="event_date"
+                                value={formData.event_date}
+                                onChange={handleInputChange}
+                            />
+                        </label>
+                        <label>
+                            Start Time
+                            <input
+                                type="time"
+                                name="start_time"
+                                value={formData.start_time}
+                                onChange={handleInputChange}
+                            />
+                        </label>
+                        <label>
+                            End Time
+                            <input
+                                type="time"
+                                name="end_time"
+                                value={formData.end_time}
+                                onChange={handleInputChange}
+                            />
+                        </label>
+                        <label>
+                            Location
+                            <input
+                                type="text"
+                                name="location"
+                                placeholder="Address or virtual link"
+                                value={formData.location}
+                                onChange={handleInputChange}
+                            />
+                        </label>
+                    </div>
+                );
+            case 3:
+                return (
+                    <div className="step-content">
+                        <h3>Invite Guests</h3>
+                        <label>
+                            <input
+                                type="text"
+                                value={''}
+                                placeholder="Search for users..."
+                            />
+                        </label>
+                    </div>
+                );
             case 4:
                 return (
                     <div className="step-content">
@@ -214,13 +246,12 @@ const EventsFourTabbedModal = ({ onClose, eventData, onEventUpdate }) => {
                                 ))
                                 : <div>No participants yet.</div>
                             }
-                            <button onClick={() => { /* Handle Join/Leave Event */ }}>
-                                {/* Display Join or Leave based on participation */}
-                                {formData.participants.some(participant => participant.user_id === 'CURRENT_USER_ID') ? 'Leave' : 'Join'}
+                            <button onClick={handleParticipationToggle}>
+                                {formData.participants.some(participant => participant.user_id === userDetails.user_id) ? 'Leave' : 'Join'}
                             </button>
                         </div>
                     </div>
-                );
+                );                
             default:
                 return null;
         }
@@ -231,27 +262,43 @@ const EventsFourTabbedModal = ({ onClose, eventData, onEventUpdate }) => {
             <div className="modal-header">
                 <h2>{formData.title || 'Event Details'}</h2>
                 <div className="progress-bar">
-                    <div className={`progress-step ${step === 1 ? 'active' : ''}`}>Details</div>
+                    <div className={`progress-step ${step === 1 ? 'active' : ''}`}>Overview</div>
                     <div className={`progress-step ${step === 2 ? 'active' : ''}`}>Date & Location</div>
-                    <div className={`progress-step ${step === 3 ? 'active' : ''}`}>Guests & Color</div>
-                    <div className={`progress-step ${step === 4 ? 'active' : ''}`}>Members & Participation</div>
+                    <div className={`progress-step ${step === 3 ? 'active' : ''}`}>Invites</div>
+                    <div className={`progress-step ${step === 4 ? 'active' : ''}`}>Attendance</div>
                 </div>
             </div>
 
             <div className="modal-body">{renderStep()}</div>
 
             <div className="modal-footer">
-                <button onClick={handleBack} disabled={step === 1}>
+                <button
+                    onClick={handleBack}
+                    disabled={step === 1}
+                    className="button-red"
+                >
                     Back
                 </button>
-                {isEditMode ? (
-                    <button onClick={handleNext}>
-                        {step === 4 ? 'Save Changes' : 'Next'}
-                    </button>
-                ) : (
-                    <button onClick={toggleEditMode}>Edit</button>
-                )}
-                <button onClick={onClose}>Close</button>
+
+                <button
+                    onClick={handleNext}
+                    className={`button-red ${step === 4 ? 'disabled-button' : ''}`}
+                    disabled={step === 4}
+                >
+                    Next
+                </button>
+
+                <button onClick={handleSave} className="button-blue">
+                    Save
+                </button>
+
+                <button onClick={() => handleDelete(eventData.id)} className="button-red">
+                    Delete
+                </button>
+
+                <button onClick={handleClose} className="button-blue">
+                    Close
+                </button>
             </div>
         </div>
     );

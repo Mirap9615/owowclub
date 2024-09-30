@@ -49,8 +49,9 @@ const EventsThreeTabbedModal = ({ onClose, onEventCreate }) => {
         switch (step) {
             case 1:
                 return (
-                    <div className="step-content">
-                        <h3>Details</h3>
+                    <>
+                        <div className="step-content">
+                        <h3>Overview</h3>
                         <label>
                             Event Title 
                             <input name="title" value={formData.title} onChange={handleInputChange} />
@@ -96,6 +97,35 @@ const EventsThreeTabbedModal = ({ onClose, onEventCreate }) => {
                             <textarea name="description" value={formData.description} onChange={handleInputChange} />
                         </label>
                     </div>
+                         <div className="color-picker-section">
+                            <label>Event Color</label>
+                            <div className="color-picker-container">
+                                <div
+                                    className="color-preview"
+                                    style={{ backgroundColor: formData.color || '#d3d3d3' }} 
+                                />
+                                <button
+                                    className="pick-color-button"
+                                    onClick={toggleColorPicker}
+                                >
+                                    {formData.color ? "Change Color" : "Pick Color"}
+                                </button>
+                            </div>
+            
+                            {isColorPickerVisible && (
+                                <div className="color-picker-popover">
+                                    <HexColorPicker
+                                        color={formData.color || '#d3d3d3'}
+                                        onChange={(color) => setFormData({ ...formData, color })}
+                                    />
+                                    <div className="color-picker-buttons">
+                                        <button className="close-button" onClick={toggleColorPicker}>Close</button>
+                                        <button className="done-button" onClick={toggleColorPicker}>Done</button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </>
                 );
             case 2:
                 return (
@@ -133,39 +163,12 @@ const EventsThreeTabbedModal = ({ onClose, onEventCreate }) => {
                         {/* Guests Section */}
                         <label>
                             Invite Guests
-                            <input type="text" placeholder="Search for users..." />
-                            {/* Implement a search mechanism to invite users */}
+                            <input 
+                                type="text" 
+                                placeholder="Search for users..." 
+                                value={''}
+                            />
                         </label>
-            
-                        {/* Color Picker Section */}
-                        <div className="color-picker-section">
-                            <label>Event Color</label>
-                            <div className="color-picker-container">
-                                <div
-                                    className="color-preview"
-                                    style={{ backgroundColor: formData.color || '#d3d3d3' }} 
-                                />
-                                <button
-                                    className="pick-color-button"
-                                    onClick={toggleColorPicker}
-                                >
-                                    {formData.color ? "Change Color" : "Pick Color"}
-                                </button>
-                            </div>
-            
-                            {isColorPickerVisible && (
-                                <div className="color-picker-popover">
-                                    <HexColorPicker
-                                        color={formData.color || '#d3d3d3'}
-                                        onChange={(color) => setFormData({ ...formData, color })}
-                                    />
-                                    <div className="color-picker-buttons">
-                                        <button className="close-button" onClick={toggleColorPicker}>Close</button>
-                                        <button className="done-button" onClick={toggleColorPicker}>Done</button>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
                     </div>
                 );                
             default:
@@ -178,9 +181,9 @@ const EventsThreeTabbedModal = ({ onClose, onEventCreate }) => {
             <div className="modal-header">
                 <h2>{formData.title || 'Create New Event'}</h2>
                 <div className="progress-bar">
-                    <div className={`progress-step ${step == 1 ? 'active' : ''}`}>Details</div>
+                    <div className={`progress-step ${step == 1 ? 'active' : ''}`}>Overview</div>
                     <div className={`progress-step ${step == 2 ? 'active' : ''}`}>Date & Location</div>
-                    <div className={`progress-step ${step === 3 ? 'active' : ''}`}>Guests & Color</div>
+                    <div className={`progress-step ${step === 3 ? 'active' : ''}`}>Invite Guests</div>
                 </div>
             </div>
 

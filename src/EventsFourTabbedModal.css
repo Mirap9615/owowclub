@@ -29,6 +29,7 @@
     display: flex;
     justify-content: space-between;
     margin-top: 15px;
+    align-items: flex-end;
 }
 
 .progress-step {
@@ -76,6 +77,45 @@ textarea {
     padding: 15px 20px;
     background: #fff;
     border-top: 1px solid #e0e0e0;
+}
+
+.button-red {
+    background-color: #f44336; 
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out;
+}
+
+.button-red:hover {
+    background-color: #d32f2f;
+}
+
+.button-blue {
+    background-color: #457ad6;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out;
+}
+
+.button-blue:hover {
+    background-color: #365ea7;
+}
+
+.disabled-button {
+    background-color: #e0e0e0; 
+    color: #999;
+    cursor: not-allowed;
+}
+
+button:disabled {
+    background-color: #e0e0e0; 
+    color: #999;
 }
 
 .modal-footer button {

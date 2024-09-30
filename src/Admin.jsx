@@ -19,7 +19,6 @@ const Admin = () => {
             setUsername(authStatus.user.name);
             setIsLoggedIn(true);
             setAdmin(authStatus.user.admin);
-            console.log(authStatus.user);
             if (!authStatus.user.admin) {
                 navigate('/home');
             }

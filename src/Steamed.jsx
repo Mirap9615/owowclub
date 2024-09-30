@@ -17,7 +17,6 @@ const Steamed = () => {
           if (authStatus.authenticated) {
             setUsername(authStatus.user.name);
             setAdmin(authStatus.user.admin);
-            console.log(authStatus.user);
           }
         };
         checkLoginStatus();

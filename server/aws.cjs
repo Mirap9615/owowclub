@@ -16,7 +16,6 @@ async function awsAccess() {
 
   try {
     const data = await s3Client.send(command);
-    console.log("Number of objects in the bucket:", data.KeyCount);
   } catch (err) {
     console.log("Error", err);
   }

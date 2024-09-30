@@ -29,6 +29,7 @@
     display: flex;
     justify-content: space-between;
     margin-top: 15px;
+    align-items: flex-end;
 }
 
 .progress-step {

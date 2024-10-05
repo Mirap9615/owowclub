@@ -37,7 +37,6 @@ function Cal() {
         if (response.ok) {
             const data = await response.json();
             const parsedEvents = data.map(event => {
-                // Combine event_date and start_time to form startDateTime
                 const eventDate = event.event_date.split('T')[0];
                 const startDateTime = new Date(`${eventDate}T${event.start_time}`);
                 const endDateTime = new Date(`${eventDate}T${event.end_time}`);

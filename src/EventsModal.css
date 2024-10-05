@@ -33,7 +33,6 @@
 }
 
 .progress-step {
-    width: 30%;
     text-align: center;
     padding: 5px 0;
     border-bottom: 4px solid #e0e0e0;
@@ -77,45 +76,6 @@ textarea {
     padding: 15px 20px;
     background: #fff;
     border-top: 1px solid #e0e0e0;
-}
-
-.button-red {
-    background-color: #f44336; 
-    color: #fff;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease-in-out;
-}
-
-.button-red:hover {
-    background-color: #d32f2f;
-}
-
-.button-blue {
-    background-color: #457ad6;
-    color: #fff;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease-in-out;
-}
-
-.button-blue:hover {
-    background-color: #365ea7;
-}
-
-.disabled-button {
-    background-color: #e0e0e0; 
-    color: #999;
-    cursor: not-allowed;
-}
-
-button:disabled {
-    background-color: #e0e0e0; 
-    color: #999;
 }
 
 .modal-footer button {
@@ -172,7 +132,59 @@ input[type="text"][placeholder="Search for users..."] {
     background: url('search-icon.svg') no-repeat left 10px center;
 }
 
-/* Color Picker Section Styles */
+.close-button-modal {
+    padding: 5px 10px;
+    font-size: .9rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color .3s ease;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    color: white;
+}
+
+.button-red {
+    background-color: #f44336; 
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out;
+}
+
+.button-red:hover {
+    background-color: #d32f2f;
+}
+
+.button-blue {
+    background-color: #457ad6;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out;
+}
+
+.button-blue:hover {
+    background-color: #365ea7;
+}
+
+.disabled-button {
+    background-color: #e0e0e0; 
+    color: #999;
+    cursor: not-allowed;
+}
+
+button:disabled {
+    background-color: #e0e0e0; 
+    color: #999;
+}
+
 .color-picker-section {
     margin-top: 20px;
     position: relative;
@@ -277,3 +289,6 @@ input[type="text"][placeholder="Search for users..."] {
         background: gainsboro;
     }
 }
+
+
+

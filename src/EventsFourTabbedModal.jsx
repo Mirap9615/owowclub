@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './EventsFourTabbedModal.css';
+import './EventsModal.css';
 import { HexColorPicker } from 'react-colorful';
 
 const EventsFourTabbedModal = ({ onClose, eventData, onEventUpdate, userDetails, handleJoinEvent, handleLeaveEvent, handleDelete }) => {
@@ -262,11 +262,27 @@ const EventsFourTabbedModal = ({ onClose, eventData, onEventUpdate, userDetails,
             <div className="modal-header">
                 <h2>{formData.title || 'Event Details'}</h2>
                 <div className="progress-bar">
-                    <div className={`progress-step ${step === 1 ? 'active' : ''}`}>Overview</div>
-                    <div className={`progress-step ${step === 2 ? 'active' : ''}`}>Date & Location</div>
-                    <div className={`progress-step ${step === 3 ? 'active' : ''}`}>Invites</div>
-                    <div className={`progress-step ${step === 4 ? 'active' : ''}`}>Attendance</div>
+                    <div 
+                        className={`progress-step ${step === 1 ? 'active' : ''}`}
+                        onClick={() => setStep(1)}
+                    >Overview</div>
+                    <div 
+                        className={`progress-step ${step === 2 ? 'active' : ''}`}
+                        onClick={() => setStep(2)}
+                    >Date & Location</div>
+                    <div 
+                        className={`progress-step ${step === 3 ? 'active' : ''}`}
+                        onClick={() => setStep(3)}
+                    >Invites</div>
+                    <div 
+                        className={`progress-step ${step === 4 ? 'active' : ''}`}
+                        onClick={() => setStep(4)}
+                    >Attendance</div>
                 </div>
+
+                <button className="close-button-modal" onClick={handleClose} aria-label="Close">
+                    &times;
+                </button>
             </div>
 
             <div className="modal-body">{renderStep()}</div>
@@ -294,10 +310,6 @@ const EventsFourTabbedModal = ({ onClose, eventData, onEventUpdate, userDetails,
 
                 <button onClick={() => handleDelete(eventData.id)} className="button-red">
                     Delete
-                </button>
-
-                <button onClick={handleClose} className="button-blue">
-                    Close
                 </button>
             </div>
         </div>

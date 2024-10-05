@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './EventsThreeTabbedModal.css';
+import './EventsModal.css';
 import { HexColorPicker } from 'react-colorful';
 
 const EventsThreeTabbedModal = ({ onClose, onEventCreate }) => {
@@ -181,10 +181,23 @@ const EventsThreeTabbedModal = ({ onClose, onEventCreate }) => {
             <div className="modal-header">
                 <h2>{formData.title || 'Create New Event'}</h2>
                 <div className="progress-bar">
-                    <div className={`progress-step ${step == 1 ? 'active' : ''}`}>Overview</div>
-                    <div className={`progress-step ${step == 2 ? 'active' : ''}`}>Date & Location</div>
-                    <div className={`progress-step ${step === 3 ? 'active' : ''}`}>Invite Guests</div>
+                    <div 
+                        className={`progress-step ${step == 1 ? 'active' : ''}`}
+                        onClick={() => setStep(1)}
+                    >Overview</div>
+                    <div 
+                        className={`progress-step ${step == 2 ? 'active' : ''}`}
+                        onClick={() => setStep(2)}
+                    >Date & Location</div>
+                    <div 
+                        className={`progress-step ${step === 3 ? 'active' : ''}`}
+                        onClick={() => setStep(3)}
+                    >Invite Guests</div>
                 </div>
+
+                <button className="close-button-modal" onClick={onClose} aria-label="Close">
+                    &times;
+                </button>
             </div>
 
             <div className="modal-body">{renderStep()}</div>

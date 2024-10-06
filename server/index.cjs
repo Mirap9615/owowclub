@@ -466,7 +466,7 @@ app.post('/forgot-password', async (req, res) => {
       },
       Message: {
         Subject: {
-          Data: 'Password Reset Request',
+          Data: 'OWL^2 Club: Password Reset Request',
         },
         Body: {
           Html: {
@@ -504,7 +504,8 @@ app.post('/reset-password', async (req, res) => {
 
     const user = result.rows[0];
 
-    if (user.reset_token_expiry < new Date()) {
+    if (new Date(user.reset_token_expiry) < new Date()) {
+      console.log("Expired; stored date: " + new Date(user.reset_token_expiry) + "Current date: " + new Date());
       return res.status(400).send('Reset token has expired.');
     }
 

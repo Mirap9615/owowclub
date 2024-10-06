@@ -503,13 +503,21 @@ app.post('/reset-password', async (req, res) => {
     }
 
     const user = result.rows[0];
+    const tokenExpiry = new Date(user.reset_token_expiry).toISOString();
+    const currentUTC = new Date().toISOString();
 
-    if (new Date(user.reset_token_expiry) < new Date()) {
-      console.log("Expired; stored date: " + new Date(user.reset_token_expiry) + "Current date: " + new Date());
+    console.log("Stored token expiry date (UTC):", tokenExpiry);
+    console.log("Current date (UTC):", currentUTC);
+
+    // Compare as ISO strings, which are both in UTC
+    if (tokenExpiry < currentUTC) {
       return res.status(400).send('Reset token has expired.');
     }
 
+    // Hash the new password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update the user's password and clear the reset token and expiry
     const updateQuery = `
       UPDATE users
       SET password = $1, reset_token = NULL, reset_token_expiry = NULL
@@ -523,6 +531,7 @@ app.post('/reset-password', async (req, res) => {
     res.status(500).send('An error occurred while resetting the password.');
   }
 });
+
 
 // Endpoint to get current user details
 app.get('/user-details', (req, res) => {

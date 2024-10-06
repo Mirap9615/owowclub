@@ -1,118 +1,135 @@
-import React, { useState } from 'react';
-import './Register.css';
-import Steamed from './Steamed.jsx';
+import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 
 const Register = () => {
-  const [username, setUsername] = useState('');
+  const { token } = useParams(); 
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
+  const [type, setType] = useState(''); 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [invitationCode, setInvitationCode] = useState('');
-  const [error, setError] = useState('');
-  
-  const handleRegister = async (e) => {
+  const [errorMessage, setErrorMessage] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [isValidToken, setIsValidToken] = useState(false);
+
+  useEffect(() => {
+    const verifyToken = async () => {
+      try {
+        const response = await fetch(`/api/register/validate-token/${token}`);
+        if (response.ok) {
+          const data = await response.json();
+          setEmail(data.email); 
+          setIsValidToken(true);
+        } else {
+          setErrorMessage('Invalid or expired token. Please request a new invitation.');
+        }
+      } catch (error) {
+        setErrorMessage('Error verifying token. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    verifyToken();
+  }, [token]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!username || !email || !password || !confirmPassword || !invitationCode) {
-        setError('All fields are required.');
-        return;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setError('Invalid email format.');
+    if (password !== confirmPassword) {
+      setErrorMessage('Passwords do not match.');
       return;
     }
 
-    if (password.length < 6 || password.length > 30) {
-        setError('Password length must be between 6 and 30 characters.');
-        return;
+    if (!name) {
+      setErrorMessage('Name is required.');
+      return;
     }
 
-    if (password !== confirmPassword) {
-        setError('Passwords do not match.');
-        return;
+    if (!type) {
+      setErrorMessage('Account type is required.');
+      return;
     }
 
     try {
-      const response = await fetch('/register', {
+      const response = await fetch('/api/register', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name: username, email, invitationCode, password }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, password, name, type }),
       });
 
       if (response.ok) {
-        alert('Registration successful');
-        window.location.href = '/login'; 
+        navigate('/login');
       } else {
-        const data = await response.json();
-        setError(data.error || 'Registration failed.');
+        const errorData = await response.json();
+        setErrorMessage(errorData.message || 'Error creating account.');
       }
     } catch (error) {
-      console.error('Error:', error);
-      alert('Registration failed');
+      setErrorMessage('Error creating account. Please try again later.');
     }
   };
 
+  if (loading) {
+    return <p>Loading...</p>;
+  }
+
+  if (!isValidToken) {
+    return <p>{errorMessage}</p>;
+  }
+
   return (
-    <>
-      <Steamed />
-      <div className="centerer">
-        <div className="standard-container">
-          <h2>Register</h2>
-          <form onSubmit={handleRegister}>
-            <div className="input-group">
-              <label>Username</label>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-              />
-            </div>
-            <div className="input-group">
-              <label>Email</label>
-              <input
-                type="text"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div className="input-group">
-              <label>Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-            <div className="input-group">
-              <label>Confirm Password</label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-              />
-            </div>
-            <div className="input-group">
-              <label>Invitation Code</label>
-              <input
-                type="text"
-                value={invitationCode}
-                onChange={(e) => setInvitationCode(e.target.value)}
-              />
-            </div>
-            <small className="info-text">
-              Don’t have an invitation code? <br></br><a href="/request" className="link-text">Apply by filling out your application here</a>
-            </small>
-            {error && <div className="error">{error}</div>}
-            <button type="submit" className="register-button">Register</button>
-          </form>
-          <button className="login-button" onClick={() => window.location.href = '/login'}>Back to Login</button>
+    <div className="register-container">
+      <h2>Create Your Account</h2>
+      {errorMessage && <p className="error">{errorMessage}</p>}
+      <form onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label>Email</label>
+          <input type="email" value={email} disabled readOnly />
         </div>
-      </div>
-    </>
+        <div className="form-group">
+          <label>Name</label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label>Account Type</label>
+          <select
+            value={type}
+            onChange={(e) => setType(e.target.value)}
+            required
+          >
+            <option value="" disabled>Select account type</option>
+            <option value="Founding">Founding</option>
+            <option value="Standard">Standard</option>
+            <option value="Travel Host">Travel Host</option>
+          </select>
+        </div>
+        <div className="form-group">
+          <label>Password</label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label>Confirm Password</label>
+          <input
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+          />
+        </div>
+        <button type="submit">Create Account</button>
+      </form>
+    </div>
   );
 };
 

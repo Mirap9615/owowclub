@@ -197,36 +197,139 @@ app.put('/api/images/:id', async (req, res) => {
   }
 })
 
-// update application status
+// Endpoint to update application status and send invitation if accepted
 app.patch('/api/applications/:id/status', async (req, res) => {
   const { id } = req.params;
-  const { accepted } = req.body; 
+  const { accepted } = req.body;
 
   try {
-    if (typeof accepted !== 'boolean') {
-      return res.status(400).json({ error: 'Invalid status. "accepted" must be true or false.' });
-    }
-
-    const query = `
-      UPDATE membership_applications 
-      SET accepted = $1
-      WHERE id = $2
-      RETURNING *;
-    `;
-
-    const result = await pool.query(query, [accepted, id]);
+    const updateQuery = 'UPDATE applications SET accepted = $1 WHERE id = $2 RETURNING *';
+    const result = await pool.query(updateQuery, [accepted, id]);
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Application not found.' });
+      return res.status(404).send('Application not found');
     }
 
-    res.json(result.rows[0]);
-  } catch (err) {
-    console.error('Error updating application status:', err);
-    res.status(500).json({ error: 'Error updating application status.' });
+    const application = result.rows[0];
+
+    if (accepted) {
+      // Unique registration token + new user entry in table
+      const registrationToken = crypto.randomBytes(32).toString('hex');
+
+      const insertUserQuery = `
+        INSERT INTO users (email, registration_token, name, type, admin)
+        VALUES ($1, $2, NULL, 'member', FALSE)
+        ON CONFLICT (email) DO NOTHING
+        RETURNING user_id
+      `;
+      const insertResult = await pool.query(insertUserQuery, [application.email, registrationToken]);
+
+      if (insertResult.rows.length === 0) {
+        return res.status(400).send('User already exists.');
+      }
+
+      const registrationLink = `https://jessicatspace.com/register/${registrationToken}`;
+
+      const emailParams = {
+        Source: 'no-reply@jessicatspace.com',
+        Destination: {
+          ToAddresses: [application.email],
+        },
+        Message: {
+          Subject: {
+            Data: 'OWL^2 Club: Invitation to Create Your Account',
+          },
+          Body: {
+            Html: {
+              Data: `
+                <p>Congratulations! Your application to join OWL^2 Club has been approved.</p>
+                <p>Please click the link below to create your account:</p>
+                <a href="${registrationLink}">Create Your Account</a>
+              `,
+            },
+          },
+        },
+      };
+
+      const command = new SendEmailCommand(emailParams);
+      await sesClient.send(command);
+
+      res.send('Application status updated and invitation email sent.');
+    } else {
+      res.send('Application status updated.');
+    }
+  } catch (error) {
+    console.error('Error updating application status:', error);
+    res.status(500).send('Error updating application status.');
   }
 });
 
+// check if the register attempt is valid 
+app.get('/api/register/validate-token/:token', async (req, res) => {
+  const { token } = req.params;
+
+  try {
+    const query = 'SELECT email FROM users WHERE registration_token = $1';
+    const result = await pool.query(query, [token]);
+
+    if (result.rows.length === 0) {
+      return res.status(400).send({ message: 'Invalid token' });
+    }
+
+    const { email } = result.rows[0];
+
+    res.send({ email });
+  } catch (error) {
+    console.error('Error validating registration token:', error);
+    res.status(500).send({ message: 'Error validating token' });
+  }
+});
+
+app.post('/api/register', async (req, res) => {
+  const { token, password, name, type } = req.body;
+
+  if (!token || !password || !name || !type) {
+    return res.status(400).send({ message: 'All fields are required.' });
+  }
+
+  try {
+    // 1. Validate the registration token
+    const tokenQuery = 'SELECT * FROM users WHERE registration_token = $1';
+    const tokenResult = await pool.query(tokenQuery, [token]);
+
+    if (tokenResult.rows.length === 0) {
+      return res.status(400).send({ message: 'Invalid or expired registration token.' });
+    }
+
+    const user = tokenResult.rows[0];
+
+    // 2. Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // 3. Update the user record
+    const updateUserQuery = `
+      UPDATE users 
+      SET 
+        name = $1, 
+        type = $2, 
+        password = $3, 
+        registration_token = NULL 
+      WHERE user_id = $4
+      RETURNING *;
+    `;
+    const updateResult = await pool.query(updateUserQuery, [name, type, hashedPassword, user.user_id]);
+
+    if (updateResult.rows.length === 0) {
+      return res.status(500).send({ message: 'Error updating user account.' });
+    }
+
+    // 4. Respond with success
+    res.status(200).send({ message: 'Account created successfully.' });
+  } catch (error) {
+    console.error('Error creating account:', error);
+    res.status(500).send({ message: 'Error creating account. Please try again later.' });
+  }
+});
 
 
 // redirect

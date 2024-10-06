@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
-import './Register.css';
-
-const useQuery = () => {
-  return new URLSearchParams(useLocation().search);
-};
+import { useParams, useNavigate } from 'react-router-dom';
 
 const ResetPassword = () => {
+  const { token } = useParams();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [message, setMessage] = useState('');
-  const query = useQuery();
-  const token = query.get('token');
+  const history = useNavigate();
 
+  useEffect(() => {
+    console.log("In the reset password page with token " + token);
+  }, []);
+
+  
   const handleResetPassword = async (e) => {
     e.preventDefault();
 
@@ -32,6 +32,12 @@ const ResetPassword = () => {
 
       const result = await response.text();
       setMessage(result);
+
+      if (response.ok) {
+        setTimeout(() => {
+          history.push('/login'); 
+        }, 2000);
+      }
     } catch (error) {
       console.error('Error:', error);
       setMessage('Error resetting password.');

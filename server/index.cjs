@@ -13,6 +13,7 @@ const pgSession = require('connect-pg-simple')(session);
 const { Pool } = require('pg');
 const { awsAccess } = require('./aws.cjs');
 const { S3Client, ListObjectsV2Command, PutObjectCommand, DeleteObjectCommand} = require("@aws-sdk/client-s3");
+const { SESClient, SendEmailCommand } = require('@aws-sdk/client-ses');
 const uuid = require('uuid');
 const multer = require('multer');
 const upload = multer({ storage: multer.memoryStorage() });
@@ -52,6 +53,14 @@ const isAuthenticated = (req, res, next) => {
 awsAccess();
 
 const s3Client = new S3Client({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+  }
+});
+
+const sesClient = new SESClient({
   region: process.env.AWS_REGION,
   credentials: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -429,68 +438,88 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const sendResetEmail = (email, token) => {
-  const resetLink = `/reset-password?token=${token}`;
-  const mailOptions = {
-    from: 'meanleanm@gmail.com',
-    to: email,
-    subject: 'Password Reset',
-    html: `<p>[OWOW Club] \nYou requested a password reset. Click <a href="${resetLink}">here</a> to reset your password. This link will expire in 5 minutes.</p>`,
-  };
-
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.log('Error sending email:', error);
-    } else {
-      console.log('Email sent:', info.response);
-    }
-  });
-};
-
+// Endpoint to allow the user to reset their password through SES
 app.post('/forgot-password', async (req, res) => {
   const { email } = req.body;
-  const token = generateToken();
-  const expiration = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes from now
-
-  const query = 'INSERT INTO password_resets (email, token, expiration) VALUES ($1, $2, $3) ON CONFLICT (email) DO UPDATE SET token = $2, expiration = $3';
-  const values = [email, token, expiration];
 
   try {
-    await pool.query(query, values);
-    sendResetEmail(email, token);
-    res.status(200).send('If this email exists, a reset link has been sent.');
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Error processing request');
+    const query = 'SELECT user_id FROM users WHERE email = $1';
+    const result = await pool.query(query, [email]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).send('Email not found');
+    }
+
+    const user_id_password_reset = result.rows[0].user_id;
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hr
+
+    const updateQuery = 'UPDATE users SET reset_token = $1, reset_token_expiry = $2 WHERE user_id = $3';
+    await pool.query(updateQuery, [resetToken, resetTokenExpiry, user_id_password_reset]);
+
+    const resetLink = `https://jessicatspace.com/reset-password/${resetToken}`;
+    const emailParams = {
+      Source: 'no-reply@jessicatspace.com',
+      Destination: {
+        ToAddresses: [email],
+      },
+      Message: {
+        Subject: {
+          Data: 'Password Reset Request',
+        },
+        Body: {
+          Html: {
+            Data: `
+              <p>You requested a password reset.</p>
+              <p>Click the link below to reset your password:</p>
+              <a href="${resetLink}">Reset Password</a>
+            `,
+          },
+        },
+      },
+    };
+
+    const command = new SendEmailCommand(emailParams);
+    await sesClient.send(command);
+
+    res.send('Password reset link has been sent to your email.');
+  } catch (error) {
+    console.error('Error sending password reset email:', error);
+    res.status(500).send('Error sending reset link.');
   }
 });
 
+// Endpoint to allow the user to change their password through the reset flow 
 app.post('/reset-password', async (req, res) => {
   const { token, newPassword } = req.body;
-  const query = 'SELECT * FROM password_resets WHERE token = $1';
-  const result = await pool.query(query, [token]);
-
-  if (result.rows.length === 0) {
-    return res.status(400).send('Invalid or expired token');
-  }
-
-  const resetRequest = result.rows[0];
-
-  if (resetRequest.expiration < new Date()) {
-    return res.status(400).send('Token has expired');
-  }
-
-  const hashedPassword = await bcrypt.hash(newPassword, 10);
-  const updateQuery = 'UPDATE users SET password = $1 WHERE email = $2';
-  const deleteQuery = 'DELETE FROM password_resets WHERE token = $1';
 
   try {
-    await pool.query(updateQuery, [hashedPassword, resetRequest.email]);
-    await pool.query(deleteQuery, [token]);
-    res.status(200).send('Password has been reset successfully');
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Error resetting password');
+    const query = 'SELECT user_id, reset_token_expiry FROM users WHERE reset_token = $1';
+    const result = await pool.query(query, [token]);
+
+    if (result.rows.length === 0) {
+      return res.status(400).send('Invalid or expired reset token.');
+    }
+
+    const user = result.rows[0];
+
+    if (user.reset_token_expiry < new Date()) {
+      return res.status(400).send('Reset token has expired.');
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const updateQuery = `
+      UPDATE users
+      SET password = $1, reset_token = NULL, reset_token_expiry = NULL
+      WHERE user_id = $2
+    `;
+    await pool.query(updateQuery, [hashedPassword, user.user_id]);
+
+    res.send('Password has been reset successfully.');
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    res.status(500).send('An error occurred while resetting the password.');
   }
 });
 

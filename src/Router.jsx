@@ -41,7 +41,7 @@ function AppRouter() {
         <Route path="/request" element={<Request />} />
 
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/reset-password:token" element={<ResetPassword />} />
 
         <Route path="/member-home" element={<ProtectedRoute element={MemberHome} />} />
         <Route path="/no-permission" element={<NoPermission />} />

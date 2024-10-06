@@ -7,13 +7,13 @@ const ResetPassword = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [message, setMessage] = useState('');
+  const [isPasswordReset, setIsPasswordReset] = useState(false); 
   const history = useNavigate();
 
   useEffect(() => {
     console.log("In the reset password page with token " + token);
   }, []);
 
-  
   const handleResetPassword = async (e) => {
     e.preventDefault();
 
@@ -35,8 +35,9 @@ const ResetPassword = () => {
       setMessage(result);
 
       if (response.ok) {
+        setIsPasswordReset(true); // Set the state to true upon successful reset
         setTimeout(() => {
-          history.push('/login'); 
+          history('/login'); // Navigate back to login after a short delay
         }, 2000);
       }
     } catch (error) {
@@ -49,31 +50,40 @@ const ResetPassword = () => {
     <div className="reset-password-container">
       <h2>Reset Password</h2>
       {message && <div className="message">{message}</div>}
-      <form onSubmit={handleResetPassword}>
-        <div className="input-group-res">
-          <label>New Password</label>
-          <input
-            type="password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            required
-            minLength="6"
-            maxLength="30"
-          />
+      {!isPasswordReset ? (
+        <form onSubmit={handleResetPassword}>
+          <div className="input-group-res">
+            <label>New Password</label>
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              required
+              minLength="6"
+              maxLength="30"
+            />
+          </div>
+          <div className="input-group-res">
+            <label>Confirm Password</label>
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              minLength="6"
+              maxLength="30"
+            />
+          </div>
+          <button type="submit" className="submit-button">Reset Password</button>
+        </form>
+      ) : (
+        <div className="success-message">
+          <p>Password has been reset successfully.</p>
+          <button onClick={() => history('/login')} className="login-button">
+            Go to Login
+          </button>
         </div>
-        <div className="input-group-res">
-          <label>Confirm Password</label>
-          <input
-            type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-            minLength="6"
-            maxLength="30"
-          />
-        </div>
-        <button type="submit" className="submit-button">Reset Password</button>
-      </form>
+      )}
     </div>
   );
 };

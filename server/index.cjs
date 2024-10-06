@@ -203,7 +203,7 @@ app.patch('/api/applications/:id/status', async (req, res) => {
   const { accepted } = req.body;
 
   try {
-    const updateQuery = 'UPDATE applications SET accepted = $1 WHERE id = $2 RETURNING *';
+    const updateQuery = 'UPDATE membership_applications SET accepted = $1 WHERE id = $2 RETURNING *';
     const result = await pool.query(updateQuery, [accepted, id]);
 
     if (result.rows.length === 0) {

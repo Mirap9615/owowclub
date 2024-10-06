@@ -37,7 +37,7 @@ function AppRouter() {
         <Route path="/gallery" element={<ProtectedRoute element={Gallery} />} />
         <Route path="/settings" element={<ProtectedRoute element={Settings} />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} /> 
+        <Route path="/register/:token" element={<Register />} /> 
         <Route path="/request" element={<Request />} />
 
         <Route path="/forgot-password" element={<ForgotPassword />} />

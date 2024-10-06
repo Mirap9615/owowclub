@@ -7,12 +7,12 @@ const ResetPassword = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [message, setMessage] = useState('');
-  const [isPasswordReset, setIsPasswordReset] = useState(false); 
+  const [isPasswordReset, setIsPasswordReset] = useState(false);
   const history = useNavigate();
 
   useEffect(() => {
     console.log("In the reset password page with token " + token);
-  }, []);
+  }, [token]);
 
   const handleResetPassword = async (e) => {
     e.preventDefault();
@@ -31,14 +31,12 @@ const ResetPassword = () => {
         body: JSON.stringify({ token, newPassword }),
       });
 
-      const result = await response.text();
-      setMessage(result);
-
       if (response.ok) {
         setIsPasswordReset(true); // Set the state to true upon successful reset
-        setTimeout(() => {
-          history('/login'); // Navigate back to login after a short delay
-        }, 2000);
+        setMessage('Password has been reset successfully.');
+      } else {
+        const result = await response.text();
+        setMessage(result);
       }
     } catch (error) {
       console.error('Error:', error);

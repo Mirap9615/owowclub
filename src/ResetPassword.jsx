@@ -50,7 +50,7 @@ const ResetPassword = () => {
       <h2>Reset Password</h2>
       {message && <div className="message">{message}</div>}
       <form onSubmit={handleResetPassword}>
-        <div className="input-group">
+        <div className="input-group-res">
           <label>New Password</label>
           <input
             type="password"
@@ -61,7 +61,7 @@ const ResetPassword = () => {
             maxLength="30"
           />
         </div>
-        <div className="input-group">
+        <div className="input-group-res">
           <label>Confirm Password</label>
           <input
             type="password"

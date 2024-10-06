@@ -32,8 +32,7 @@ const ResetPassword = () => {
       });
 
       if (response.ok) {
-        setIsPasswordReset(true); // Set the state to true upon successful reset
-        setMessage('Password has been reset successfully.');
+        setIsPasswordReset(true);
       } else {
         const result = await response.text();
         setMessage(result);
@@ -47,7 +46,7 @@ const ResetPassword = () => {
   return (
     <div className="reset-password-container">
       <h2>Reset Password</h2>
-      {message && <div className="message">{message}</div>}
+      {!isPasswordReset && message && <div className="message">{message}</div>}
       {!isPasswordReset ? (
         <form onSubmit={handleResetPassword}>
           <div className="input-group-res">

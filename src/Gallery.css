@@ -359,4 +359,8 @@
   .comment-section button, .button-group button {
     background-color: rgb(83, 80, 80);
   }
+
+  .date-marker {
+    color: white;
+  }
 }

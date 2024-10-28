@@ -146,11 +146,22 @@ function Gallery() {
     }
   }, [selectedImages, toggleImageEditMode]);
 
-  const filteredImages = useMemo(() => {
-    return images.filter(image => {
+  const groupedFilteredImages = useMemo(() => {
+    const filtered = images.filter(image => {
       if (!searchQuery) return true;
       return image.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
     });
+  
+    const sortedImages = filtered.sort((a, b) => new Date(b.upload_date) - new Date(a.upload_date));
+  
+    return sortedImages.reduce((acc, image) => {
+      const date = new Date(image.upload_date).toLocaleDateString(); // Format date as MM/DD/YYYY
+      if (!acc[date]) {
+        acc[date] = [];
+      }
+      acc[date].push(image);
+      return acc;
+    }, {});
   }, [images, searchQuery]);
 
   const handleAddComment = useCallback(async (commentText) => {
@@ -216,17 +227,24 @@ function Gallery() {
           />
         </div>
   
-        <div className={`gallery ${images.length === 0 ? 'empty' : ''}`}>
-          {filteredImages.length !== 0 ? (
-            filteredImages.map((image) => (
-              <ImageItem 
-                key={image.url}
-                image={image}
-                editImageMode={editImageMode}
-                selectedImages={selectedImages}
-                handleSelectImage={handleSelectImage}
-                handleImageClick={handleImageClick}
-              />
+        <div className="gallery">
+          {Object.keys(groupedFilteredImages).length > 0 ? (
+            Object.entries(groupedFilteredImages).map(([date, imagesByDate]) => (
+              <div key={date} className="date-group">
+                <h2 className="date-marker">{date}</h2>
+                <div className="image-row">
+                  {imagesByDate.map((image) => (
+                    <ImageItem 
+                      key={image.url}
+                      image={image}
+                      editImageMode={editImageMode}
+                      selectedImages={selectedImages}
+                      handleSelectImage={handleSelectImage}
+                      handleImageClick={handleImageClick}
+                    />
+                  ))}
+                </div>
+              </div>
             ))
           ) : (
             <div className="gallery-no-images">No images to display</div>
@@ -255,7 +273,11 @@ function Gallery() {
             sources={[currentImage.url]}
             captions={[<>
               <h2>{currentImage.title}</h2>
-              <p>{currentImage.uploadDate} by {currentImage.author}</p>
+              <p>Uploaded on {new Date(currentImage.upload_date).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })} by {currentImage.author}</p>
               <p>{currentImage.description}</p>
             </>]}
             types={['image']}
@@ -290,6 +312,14 @@ const ImageItem = React.memo(({ image, editImageMode, selectedImages, handleSele
     <img src={image.url} alt={image.name || ''} loading="lazy" />
   </div>
 ));
+
+const formatDate = (isoDate) => {
+  return new Date(isoDate).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+};
 
 const ImageModal = React.memo(({ 
   isOpen, 
@@ -346,12 +376,14 @@ const ImageModal = React.memo(({
               }))}
             />
           </div>
+          <div>Uploaded on {formatDate(currentImage.upload_date)}</div>
         </>
       ) : (
         <>
           <div><strong>File Name:</strong> {currentImage.name}</div>
           <div><strong>Description:</strong> {currentImage.description}</div>
           <div><strong>Tags:</strong> {currentImage.tags.join(', ') || 'No tags'}</div> 
+          <div>Uploaded on {formatDate(currentImage.upload_date)}</div>
         </>
       )}
     </div>

@@ -161,8 +161,6 @@
 
 }
 
-
-/* Modal styling */
 .image-modal {
     background-color: #f9f9f9; 
     border-radius: 8px;
@@ -174,7 +172,7 @@
     display: flex;
     flex-direction: column;
     overflow-y: auto;
-    max-height: 80vh;
+    max-height: 90vh;
     z-index: 2501;
   }
   
@@ -315,6 +313,27 @@
 .search-icon {
   color: #888;
   font-size: 18px; 
+}
+
+.date-group {
+  width: 100%;            
+  margin-bottom: 2rem;      
+}
+
+.date-marker {
+  font-size: 1.3rem;
+  font-weight: bold;
+  margin-bottom: 1rem;     
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 0.5rem;
+  text-align: left;
+  color: #333;
+}
+
+.image-row {
+  display: flex;
+  flex-wrap: wrap;     
+  gap: 1rem;           
 }
 
 @media (max-width: 768px) {

@@ -379,6 +379,54 @@ const generateUniqueSlug = async (title) => {
   return slug;
 };
 
+// endpoint that gets hit when event invite gets accepted
+app.get('/api/events/invite/:token', async (req, res) => {
+  const { token } = req.params;
+  
+  try {
+    const inviteQuery = `
+      SELECT i.*, e.title as event_title 
+      FROM event_invites i 
+      JOIN event e ON i.event_id = e.id 
+      WHERE i.invite_token = $1 AND i.status = 'pending' AND i.expires_at > NOW()
+    `;
+    const inviteResult = await pool.query(inviteQuery, [token]);
+    
+    if (inviteResult.rows.length === 0) {
+      return res.status(404).json({ 
+        error: 'Invalid or expired invitation' 
+      });
+    }
+    
+    const invite = inviteResult.rows[0];
+    
+    await pool.query(
+      'UPDATE event_invites SET status = $1 WHERE invite_token = $2',
+      ['accepted', token]
+    );
+    
+    await pool.query(
+      'INSERT INTO event_user (event_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+      [invite.event_id, invite.user_id]
+    );
+    
+    res.json({
+      success: true,
+      message: 'Invitation accepted successfully',
+      event: {
+        id: invite.event_id,
+        title: invite.event_title
+      }
+    });
+  } catch (error) {
+    console.error('Error accepting invite:', error);
+    res.status(500).json({ 
+      error: 'Failed to accept invitation',
+      details: error.message 
+    });
+  }
+});
+
 // create an event
 app.post('/api/events', async (req, res) => {
   const { event_date, start_time, end_time, title, description, note, color, location, type, exclusivity } = req.body;
@@ -895,54 +943,6 @@ app.post('/api/events/invite', async (req, res) => {
     console.error('Error sending invites:', error);
     res.status(500).json({ 
       error: 'Failed to send invites',
-      details: error.message 
-    });
-  }
-});
-
-// endpoint that gets hit when event invite gets accepted
-app.get('/api/events/invite/:token', async (req, res) => {
-  const { token } = req.params;
-  
-  try {
-    const inviteQuery = `
-      SELECT i.*, e.title as event_title 
-      FROM event_invites i 
-      JOIN event e ON i.event_id = e.id 
-      WHERE i.invite_token = $1 AND i.status = 'pending' AND i.expires_at > NOW()
-    `;
-    const inviteResult = await pool.query(inviteQuery, [token]);
-    
-    if (inviteResult.rows.length === 0) {
-      return res.status(404).json({ 
-        error: 'Invalid or expired invitation' 
-      });
-    }
-    
-    const invite = inviteResult.rows[0];
-    
-    await pool.query(
-      'UPDATE event_invites SET status = $1 WHERE invite_token = $2',
-      ['accepted', token]
-    );
-    
-    await pool.query(
-      'INSERT INTO event_user (event_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
-      [invite.event_id, invite.user_id]
-    );
-    
-    res.json({
-      success: true,
-      message: 'Invitation accepted successfully',
-      event: {
-        id: invite.event_id,
-        title: invite.event_title
-      }
-    });
-  } catch (error) {
-    console.error('Error accepting invite:', error);
-    res.status(500).json({ 
-      error: 'Failed to accept invitation',
       details: error.message 
     });
   }

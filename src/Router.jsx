@@ -23,6 +23,7 @@ import Applications from './Applications.jsx'
 import ActivitiesMember from './ActivitiesMember.jsx'
 import Users from './Users.jsx'
 import EventPage from './Event.jsx'
+import EventInviteHandler from './EventInviteHandler.jsx';
 
 function AppRouter() {
   return (
@@ -40,6 +41,8 @@ function AppRouter() {
         <Route path="/login" element={<Login />} />
         <Route path="/register/:token" element={<Register />} /> 
         <Route path="/request" element={<Request />} />
+
+        <Route path="/events/invite/:token" element={<EventInviteHandler />} />
         <Route path="/events/:id" element={<EventPage />} />
 
         <Route path="/forgot-password" element={<ForgotPassword />} />

@@ -6,7 +6,7 @@ const Settings = () => {
   const [userDetails, setUserDetails] = useState({
     name: '',
     type: '',
-    admin: false,  // Changed to boolean since admin is either true or false
+    admin: false,  
   });
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -20,7 +20,7 @@ const Settings = () => {
           credentials: 'include',
         });
         const data = await response.json();
-        setUserDetails(data);  // Update with the full user details (name, type, admin)
+        setUserDetails(data);  
       } catch (error) {
         console.error('Error fetching user details:', error);
       }

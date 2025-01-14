@@ -131,13 +131,11 @@ const EventDetailsPanel = ({ event, onClose, onTriggerEdit, onColorChange, setEv
 
     return (
         <div className="side-panel" style={{ width: '350px' }}>
-            {/* Rest of your component code */}
+            
         </div>
     );
 };
 
-// Removed all references to "findEventsForDate" and "value, onChange" as they were related to the calendar
-// Removed duplicate EventDetailsPanel rendering
 
 function Cal() {
     const [events, setEvents] = useState([]);

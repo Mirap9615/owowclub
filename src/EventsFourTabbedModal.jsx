@@ -26,7 +26,6 @@ const EventsFourTabbedModal = ({ onClose, eventData, onEventUpdate, userDetails,
         if (step > 1) setStep(step - 1);
     };
 
-    // Handle input change events for form inputs
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData((prevData) => ({

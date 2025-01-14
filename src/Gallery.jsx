@@ -3,6 +3,7 @@ import Steamed from './Steamed.jsx';
 import FsLightbox from "fslightbox-react";
 import './Gallery.css';  
 import Modal from 'react-modal';
+import TagEditor from './TagEditor.jsx';
 
 function Gallery() {
   const [images, setImages] = useState([]);
@@ -36,6 +37,9 @@ function Gallery() {
   const handleImageClick = useCallback((image) => {
     setCurrentImage(image);
     setIsModalOpen(true);
+
+    const imageId = image.id;
+    history.pushState({ modalOpen: true, imageId }, '', `?image=${imageId}`);
   }, []);
 
   const handleViewInLightbox = useCallback(() => {
@@ -53,6 +57,21 @@ function Gallery() {
       setEditModalMode(true);
     }
   }, [currentImage]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const imageId = params.get('image');
+
+    if (imageId && images.length > 0) {
+        // Find the image by its unique ID
+        const image = images.find((img) => img.id === imageId);
+
+        if (image) {
+            setCurrentImage(image); 
+            setIsModalOpen(true);  
+        }
+    }
+}, [images]);
 
   const handleModalSaveChanges = useCallback(async () => {
     if (!currentImage) return;
@@ -193,6 +212,8 @@ function Gallery() {
   const closeModal = useCallback(() => {
     setIsModalOpen(false);
     setCurrentImage(null);
+
+    history.pushState(null, '', window.location.pathname);
   }, []);
 
   return (
@@ -345,7 +366,7 @@ const ImageModal = React.memo(({
       <h2 style={{display: 'flex', justifyContent: 'center'}}>Detailed Image View</h2>
     </div>
     <img src={currentImage.url} alt={currentImage.name || 'Selected Image'} className="modal-image" />
-    <div className="image-author">Uploaded by {currentImage.author}</div>
+    <div className="image-author">Uploaded by {currentImage.author} on {formatDate(currentImage.upload_date)}</div>
     <br></br>
     <div className="modal-tags">
       {editModalMode ? (
@@ -366,24 +387,18 @@ const ImageModal = React.memo(({
             />
           </div>
           <div>
-            <strong>Tags:</strong>
-            <input 
-              type="text" 
-              value={editFields.tags.join(', ')} 
-              onChange={(e) => setEditFields(prev => ({
-                ...prev, 
-                tags: e.target.value.split(',').map(tag => tag.trim())
-              }))}
+          <strong>Tags:</strong>
+            <TagEditor 
+              tags={editFields.tags} 
+              onTagsChange={(newTags) => setEditFields(prev => ({...prev, tags: newTags}))} 
             />
           </div>
-          <div>Uploaded on {formatDate(currentImage.upload_date)}</div>
         </>
       ) : (
         <>
           <div><strong>File Name:</strong> {currentImage.name}</div>
           <div><strong>Description:</strong> {currentImage.description}</div>
           <div><strong>Tags:</strong> {currentImage.tags.join(', ') || 'No tags'}</div> 
-          <div>Uploaded on {formatDate(currentImage.upload_date)}</div>
         </>
       )}
     </div>

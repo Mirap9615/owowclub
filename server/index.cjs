@@ -355,6 +355,98 @@ app.post('/logout', (req, res) => {
   });
 });
 
+const slugify = (title) => title
+  .toLowerCase()
+  .trim()
+  .replace(/[^a-z0-9]+/g, '-') 
+  .replace(/^-+|-+$/g, ''); 
+
+const generateUniqueSlug = async (title) => {
+  let slug = slugify(title);
+  let suffix = 1;
+  let isUnique = false;
+
+  while (!isUnique) {
+    const result = await pool.query('SELECT 1 FROM event WHERE slug = $1', [slug]);
+    if (result.rows.length === 0) {
+      isUnique = true;
+    } else {
+      slug = `${slugify(title)}-${suffix}`;
+      suffix++;
+    }
+  }
+
+  return slug;
+};
+
+// create an event
+app.post('/api/events', async (req, res) => {
+  const { event_date, start_time, end_time, title, description, note, color, location, type, exclusivity } = req.body;
+  try {
+      const slug = await generateUniqueSlug(title);
+
+      const result = await pool.query(
+        'INSERT INTO event (event_date, start_time, end_time, title, description, note, color, location, type, exclusivity, slug) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id',
+        [event_date, start_time, end_time, title, description, note, color, location, type, exclusivity, slug]
+      );    
+      const newId = result.rows[0].id; 
+      res.status(201).json({ id: newId });
+  } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Error creating event');
+  }
+});
+
+// update an event 
+app.put('/api/events/:id', async (req, res) => {
+  const { id } = req.params;
+  const { date, start_time, end_time, title, description, note, color, location, type, exclusivity } = req.body;
+
+  try {
+    let slug; 
+
+    const existingEvent = await pool.query('SELECT title FROM event WHERE id = $1', [id]);
+    if (existingEvent.rows[0].title !== title) {
+      slug = await generateUniqueSlug(title);
+    }
+
+    await pool.query(
+      `UPDATE event 
+       SET event_date = $1,
+           start_time = $2,
+           end_time = $3,
+           title = $4,
+           description = $5,
+           note = $6,
+           color = $7,
+           location = $8,
+           type = $9,
+           exclusivity = $10,
+           slug = COALESCE($11, slug),
+       WHERE id = $12`,
+      [date, start_time, end_time, title, description, note, color, location, type, exclusivity, slug, id]
+    );
+
+    res.json({ message: `Event with ID ${id} updated successfully` });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// delete an event 
+app.delete('/api/events/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+      await pool.query('SELECT delete_event($1)', [id]);
+      res.json({ message: 'Event deleted successfully' });
+  } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Server Error');
+  }
+});
+
+// get all events
 app.get("/api/events", async (req, res) => {
   try {
     /*const { rows } = await pool.query('SELECT * FROM event'); */
@@ -374,59 +466,44 @@ app.get("/api/events", async (req, res) => {
   }
 });
 
-// update an event ENDPOINT
-app.put('/api/events/:id', async (req, res) => {
-  const { id } = req.params;
-  const { date, start_time, end_time, title, description, note, color, location, type, exclusivity } = req.body;
-
+// get one event w/ slug 
+app.get("/api/events/:slug", async (req, res) => {
+  const { slug } = req.params;
   try {
-    await pool.query(
-      `UPDATE event 
-       SET event_date = $1,
-           start_time = $2,
-           end_time = $3,
-           title = $4,
-           description = $5,
-           note = $6,
-           color = $7,
-           location = $8,
-           type = $9,
-           exclusivity = $10
-       WHERE id = $11`,
-      [date, start_time, end_time, title, description, note, color, location, type, exclusivity, id]
+    const result = await pool.query(
+      `
+      SELECT e.*, 
+             COALESCE(json_agg(json_build_object('user_id', u.user_id, 'name', u.name)) FILTER (WHERE u.user_id IS NOT NULL), '[]') AS participants
+      FROM event e
+      LEFT JOIN event_user eu ON e.id = eu.event_id
+      LEFT JOIN users u ON eu.user_id = u.user_id
+      WHERE e.slug = $1
+      GROUP BY e.id
+      `,
+      [slug]
     );
-
-    res.json({ message: `Event with ID ${id} updated successfully` });
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+    
+    res.json(result.rows[0]);
   } catch (err) {
-    console.error(err.message);
+    console.error(err);
     res.status(500).send('Server Error');
   }
 });
 
-app.delete('/api/events/:id', async (req, res) => {
-  const { id } = req.params;
+// get event tags 
+app.get('/api/images/:title', async (req, res) => {
   try {
-      await pool.query('SELECT delete_event($1)', [id]);
-      res.json({ message: 'Event deleted successfully' });
-  } catch (err) {
-      console.error(err.message);
-      res.status(500).send('Server Error');
-  }
-});
-
-// events creator
-app.post('/api/events', async (req, res) => {
-  const { event_date, start_time, end_time, title, description, note, color, location, type, exclusivity } = req.body;
-  try {
-      const result = await pool.query(
-        'INSERT INTO event (event_date, start_time, end_time, title, description, note, color, location, type, exclusivity) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id',
-        [event_date, start_time, end_time, title, description, note, color, location, type, exclusivity]
-      );    
-      const newId = result.rows[0].id; 
-      res.status(201).json({ id: newId });
-  } catch (err) {
-      console.error(err.message);
-      res.status(500).send('Error creating event');
+    const { title } = req.params;
+    const query = 'SELECT * FROM images WHERE $1 = ANY(tags)';
+    const result = await pool.query(query, [title]);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error:', error);
+    res.json([]);
   }
 });
 
@@ -750,6 +827,124 @@ app.delete('/api/events/:eventId/leave', async (req, res) => {
   } catch (error) {
     console.error('Error leaving event:', error);
     res.status(500).send('Server error');
+  }
+});
+
+// endpoint to invite user to event
+app.post('/api/events/invite', async (req, res) => {
+  const { eventId, eventTitle, userIds } = req.body;
+  
+  try {
+    // First fetch all users' details
+    const userQuery = 'SELECT user_id, email, name FROM users WHERE user_id = ANY($1)';
+    const usersResult = await pool.query(userQuery, [userIds]);
+    
+    // For each user, create an invite record and send email
+    for (const user of usersResult.rows) {
+      const inviteToken = crypto.randomBytes(32).toString('hex');
+      const expiryDate = new Date();
+      expiryDate.setHours(expiryDate.getHours() + 48); // Set expiry to 48 hours from now
+      
+      // Create invite record
+      await pool.query(
+        `INSERT INTO event_invites 
+         (event_id, user_id, invite_token, expires_at) 
+         VALUES ($1, $2, $3, $4)
+         ON CONFLICT (event_id, user_id) 
+         DO UPDATE SET 
+           invite_token = EXCLUDED.invite_token,
+           expires_at = EXCLUDED.expires_at,
+           status = 'pending'`,
+        [eventId, user.user_id, inviteToken, expiryDate]
+      );
+      
+      // Send email invitation
+      const inviteLink = `https://jessicatspace.com/events/invite/${inviteToken}`;
+      const emailParams = {
+        Source: 'no-reply@jessicatspace.com',
+        Destination: { 
+          ToAddresses: [user.email] 
+        },
+        Message: {
+          Subject: { 
+            Data: `Invitation to ${eventTitle}` 
+          },
+          Body: {
+            Html: {
+              Data: `
+                <p>Hello ${user.name || 'there'},</p>
+                <p>You've been invited to join "${eventTitle}".</p>
+                <p>Click the link below to accept the invitation:</p>
+                <a href="${inviteLink}">Accept Invitation</a>
+                <p>This invitation will expire in 48 hours.</p>
+              `
+            }
+          }
+        }
+      };
+      
+      const command = new SendEmailCommand(emailParams);
+      await sesClient.send(command);
+    }
+    
+    res.json({ 
+      success: true,
+      message: `Invitations sent to ${usersResult.rows.length} users`
+    });
+  } catch (error) {
+    console.error('Error sending invites:', error);
+    res.status(500).json({ 
+      error: 'Failed to send invites',
+      details: error.message 
+    });
+  }
+});
+
+// endpoint that gets hit when event invite gets accepted
+app.get('/api/events/invite/:token', async (req, res) => {
+  const { token } = req.params;
+  
+  try {
+    const inviteQuery = `
+      SELECT i.*, e.title as event_title 
+      FROM event_invites i 
+      JOIN event e ON i.event_id = e.id 
+      WHERE i.invite_token = $1 AND i.status = 'pending' AND i.expires_at > NOW()
+    `;
+    const inviteResult = await pool.query(inviteQuery, [token]);
+    
+    if (inviteResult.rows.length === 0) {
+      return res.status(404).json({ 
+        error: 'Invalid or expired invitation' 
+      });
+    }
+    
+    const invite = inviteResult.rows[0];
+    
+    await pool.query(
+      'UPDATE event_invites SET status = $1 WHERE invite_token = $2',
+      ['accepted', token]
+    );
+    
+    await pool.query(
+      'INSERT INTO event_user (event_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+      [invite.event_id, invite.user_id]
+    );
+    
+    res.json({
+      success: true,
+      message: 'Invitation accepted successfully',
+      event: {
+        id: invite.event_id,
+        title: invite.event_title
+      }
+    });
+  } catch (error) {
+    console.error('Error accepting invite:', error);
+    res.status(500).json({ 
+      error: 'Failed to accept invitation',
+      details: error.message 
+    });
   }
 });
 

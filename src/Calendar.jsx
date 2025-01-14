@@ -52,6 +52,7 @@ function Cal() {
                     location: event.location,
                     type: event.type,
                     exclusivity: event.exclusivity,
+                    slug: event.slug,
                     participants: event.participants || []
                 };
             });
@@ -302,7 +303,6 @@ function Cal() {
   };
 
   const handleDelete = async (eventId) => {
-    console.log('attempted to delete: '+ eventId)
       try {
           const response = await fetch(`/api/events/${eventId}`, {
               method: 'DELETE',
@@ -431,6 +431,7 @@ function Cal() {
   
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const Navigate = useNavigate();
 
   return (
     <>
@@ -466,14 +467,6 @@ function Cal() {
               </>
             )}
 
-        <div className="title">Schedule</div>
-        <Calendar
-          onChange={onChange}
-          value={value}
-          tileClassName={tileClassName}
-          onClickDay={handleDayClick}
-        />
-
         <input
           type="text"
           className="search-bar"
@@ -485,9 +478,9 @@ function Cal() {
         <table className="table upcoming-events">
           <thead>
             <tr>
+              <th>Name</th>
               <th onClick={toggleSortDirection}>Date {sortDirection === 'asc' ? '↓' : '↑'}</th>
-              <th>Event Name</th>
-              <th>Details</th>
+              <th className="venue-column">Venue</th>
             </tr>
           </thead>
           <tbody>
@@ -495,12 +488,13 @@ function Cal() {
             const formattedStart = format(new Date(event.startDateTime), 'MM/dd/yyyy');
             const formattedEnd = format(new Date(event.endDateTime), 'MM/dd/yyyy');
             const dateDisplay = formattedStart === formattedEnd ? formattedStart : `${formattedStart} to ${formattedEnd}`;
+            console.log(event)
 
             return (
               <tr key={event.id} style={{ backgroundColor: event.color, color: '#ffffff' }}>
+                <td className="details-cell" onClick={() => Navigate(`/events/${event.slug}`)}>{event.title}</td>
                 <td>{dateDisplay}</td>
-                <td>{event.title}</td>
-                <td className="details-cell" onClick={() => handleEventSelect(event)}>Click to View</td>
+                <td className="venue-cell">{event.location}</td>
               </tr>
             );
           })}

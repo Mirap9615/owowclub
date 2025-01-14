@@ -2,7 +2,6 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
     width: 100%;
     margin-bottom: 2vh;
 }
@@ -215,6 +214,21 @@
     overflow: hidden;          
 }
 
+.table.upcoming-events {
+  width: 100%; 
+  max-width: 750px; 
+  margin: 0 auto; 
+  table-layout: fixed; 
+}
+
+.table.upcoming-events th,
+.table.upcoming-events td {
+  padding: 12px; 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+  white-space: nowrap; 
+}
+
 
 @media (max-width: 750px) { 
     .card-datg {
@@ -224,7 +238,11 @@
       margin-bottom:14vh;
     }
     .table.upcoming-events {
-      width: auto;
+      width: 100%;
+      max-width: 100%;
+    }
+    .venue-column, .venue-cell {
+      display: none; 
     }
 }
 

@@ -512,7 +512,14 @@ app.get('/api/events/invite/:token', async (req, res) => {
 // create an event
 app.post('/api/events', async (req, res) => {
   const { event_date, start_time, end_time, title, description, note, color, location, type, exclusivity } = req.body;
+  const userId = req.session?.user?.user_id;
+
+  if (!userId) {
+    return res.status(401).json({ error: 'Unauthorized: User not logged in' });
+  }
+
   try {
+      await pool.query('BEGIN');
       const slug = await generateUniqueSlug(title);
 
       const result = await pool.query(
@@ -520,8 +527,16 @@ app.post('/api/events', async (req, res) => {
         [event_date, start_time, end_time, title, description, note, color, location, type, exclusivity, slug]
       );    
       const newId = result.rows[0].id; 
+
+      await pool.query(
+        'INSERT INTO event_user (event_id, user_id) VALUES ($1, $2)',
+        [newId, userId]
+      );
+
+      await pool.query('COMMIT');
       res.status(201).json({ id: newId });
   } catch (err) {
+      await pool.query('ROLLBACK');
       console.error(err.message);
       res.status(500).send('Error creating event');
   }
@@ -1198,7 +1213,6 @@ app.delete('/api/comments/:id/unlike', async (req, res) => {
   }
 });
 
-// get like status given comment id 
 app.get('/api/comments', async (req, res) => {
   const { commentableId } = req.query;
   const userId = req.session.user?.user_id;
@@ -1212,9 +1226,11 @@ app.get('/api/comments', async (req, res) => {
     const query = `
       SELECT 
         c.*,
+        u.name AS username,
         COALESCE(cl.like_count, 0) AS like_count,
         EXISTS (
-          SELECT 1 FROM comment_likes 
+          SELECT 1 
+          FROM comment_likes 
           WHERE comment_id = c.id AND user_id = $1
         ) AS user_liked
       FROM comments c
@@ -1223,10 +1239,12 @@ app.get('/api/comments', async (req, res) => {
         FROM comment_likes 
         GROUP BY comment_id
       ) cl ON c.id = cl.comment_id
+      JOIN users u ON c.user_id = u.user_id
       WHERE c.commentable_id = $2
       ORDER BY c.created_at ASC;
     `;
     const comments = await pool.query(query, [userId, commentableId]);
+    console.log(comments);
     res.json(comments.rows);
   } catch (error) {
     console.error('Error fetching comments with likes:', error);

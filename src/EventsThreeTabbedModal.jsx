@@ -13,12 +13,11 @@ const EventsThreeTabbedModal = ({ onClose, onEventCreate }) => {
         startTime: '',
         endTime: '',
         location: '',
-        guests: [],
         color: '',
     });
 
     const handleNext = () => {
-        if (step < 3) {
+        if (step < 2) {
             setStep(step + 1);
         } else {
             onEventCreate(formData);
@@ -154,23 +153,7 @@ const EventsThreeTabbedModal = ({ onClose, onEventCreate }) => {
                             />
                         </label>
                     </div>
-                );
-            case 3:
-                return (
-                    <div className="step-content">
-                        <h3>Guests & Color Selection</h3>
-            
-                        {/* Guests Section */}
-                        <label>
-                            Invite Guests
-                            <input 
-                                type="text" 
-                                placeholder="Search for users..." 
-                                value={''}
-                            />
-                        </label>
-                    </div>
-                );                
+                );         
             default:
                 return null;
         }
@@ -189,10 +172,6 @@ const EventsThreeTabbedModal = ({ onClose, onEventCreate }) => {
                         className={`progress-step ${step == 2 ? 'active' : ''}`}
                         onClick={() => setStep(2)}
                     >Date & Location</div>
-                    <div 
-                        className={`progress-step ${step === 3 ? 'active' : ''}`}
-                        onClick={() => setStep(3)}
-                    >Invite Guests</div>
                 </div>
 
                 <button className="close-button-modal" onClick={onClose} aria-label="Close">
@@ -207,7 +186,7 @@ const EventsThreeTabbedModal = ({ onClose, onEventCreate }) => {
                     Back
                 </button>
                 <button onClick={onClose}>Cancel</button>
-                <button onClick={handleNext}>{step === 3 ? 'Create Event' : 'Next'}</button>
+                <button onClick={handleNext}>{step === 2 ? 'Create Event' : 'Next'}</button>
             </div>
         </div>
     );

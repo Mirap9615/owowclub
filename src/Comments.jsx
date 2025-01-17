@@ -42,6 +42,7 @@ const Comments = ({ commentableId }) => {
         const response = await fetch(`/api/comments?commentableId=${commentableId}`);
         if (!response.ok) throw new Error('Failed to fetch comments');
         const data = await response.json();
+        console.log(data);
         setComments(data);
       } catch (err) {
         setError(err.message);
@@ -192,54 +193,69 @@ const Comments = ({ commentableId }) => {
         {comments.map((comment) => (
           <div key={comment.id} className="comment-item">
             <div className="comment-user">
-            <strong>{comment.user_name || (userDetails && userDetails.name) || 'You'}</strong>
-            <span className="comment-time">{" " + formatRelativeTime(comment.created_at)}</span>
+              <strong>{comment.username}</strong>
+              <span className="comment-time">{" " + formatRelativeTime(comment.created_at)}</span>
             </div>
             <div className="comment-content">
-            {editingCommentId === comment.id ? (
+              {editingCommentId === comment.id ? (
                 <>
-                <input
+                  <input
                     type="text"
                     value={editedContent}
                     onChange={(e) => setEditedContent(e.target.value)}
-                />
-                <button onClick={() => saveEditedComment(comment.id)}>Save</button>
-                <button onClick={() => setEditingCommentId(null)}>Cancel</button>
+                  />
+                  <button onClick={() => saveEditedComment(comment.id)}>Save</button>
+                  <button onClick={() => setEditingCommentId(null)}>Cancel</button>
                 </>
-            ) : (
+              ) : (
                 comment.content
-            )}
+              )}
             </div>
             <div className="comment-actions">
-            <button
-                className={`like-button ${comment.user_liked ? 'liked' : ''}`}
-                onClick={() => handleLike(comment.id, comment.user_liked)}
-                >
-                <FontAwesomeIcon icon={faThumbsUp} size="sm" /> {comment.like_count}
-            </button>
-            <button className="reply-button">Reply</button>
-            {currentUserId === comment.user_id && (
-                <button onClick={() => handleEditComment(comment.id)}>Edit</button>
-            )}
-            {(currentUserId === comment.user_id || userDetails.admin) && (
-                <button onClick={() => handleDeleteComment(comment.id)}>Delete</button>
-            )}
+              {userDetails ? (
+                <>
+                  <button
+                    className={`like-button ${comment.user_liked ? 'liked' : ''}`}
+                    onClick={() => handleLike(comment.id, comment.user_liked)}
+                  >
+                    <FontAwesomeIcon icon={faThumbsUp} size="sm" /> {comment.like_count}
+                  </button>
+                  {currentUserId === comment.user_id && (
+                    <button onClick={() => handleEditComment(comment.id)}>Edit</button>
+                  )}
+                  {(currentUserId === comment.user_id || userDetails.admin) && (
+                    <button onClick={() => handleDeleteComment(comment.id)}>Delete</button>
+                  )}
+                </>
+              ) : (
+                <>
+                  <button className="like-button" disabled title="Log in to like comments">
+                    <FontAwesomeIcon icon={faThumbsUp} size="sm" /> {comment.like_count}
+                  </button>
+                </>
+              )}
             </div>
           </div>
         ))}
       </div>
       <div className="add-comment">
-        <input
-          type="text"
-          value={newComment}
-          onFocus={() => setShowPostButton(true)}
-          onChange={(e) => setNewComment(e.target.value)}
-          placeholder="Write a comment..."
-        />
-        {showPostButton && (
-          <button onClick={handleAddComment} disabled={loading || !newComment.trim()}>
-            Post
-          </button>
+        {userDetails ? (
+          <>
+            <input
+              type="text"
+              value={newComment}
+              onFocus={() => setShowPostButton(true)}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="Write a comment..."
+            />
+            {showPostButton && (
+              <button onClick={handleAddComment} disabled={loading || !newComment.trim()}>
+                Post
+              </button>
+            )}
+          </>
+        ) : (
+          <p>Please <a href="/login">log in</a> to post a comment.</p>
         )}
       </div>
     </div>

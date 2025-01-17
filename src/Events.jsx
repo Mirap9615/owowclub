@@ -17,7 +17,6 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import './Cal.css';
 import checkAuth from './CheckAuth.jsx';
-import { HexColorPicker } from 'react-colorful';
 import { format } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
 import EventsThreeTabbedModal from './EventsThreeTabbedModal.jsx';
@@ -169,7 +168,7 @@ function Cal() {
                 location: finalFormData.location,
                 type: finalFormData.type,
                 exclusivity: finalFormData.exclusivity,
-                participants: formData.guests || [],
+                participants: userDetails.user_id || [],
                 temp: false,
             };
 

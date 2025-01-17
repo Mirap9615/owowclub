@@ -33,13 +33,13 @@ const Home = () => {
             <h3 className="island-title">Welcome to OWL<sup>2</sup>!</h3>
             <h4 className="island-subtitle">This is your sanctuary.</h4>
             <p className="island-description">
-              Here, we celebrate the beauty of living fully without worry. A place to bond, laugh, and experience the fullness of life with no strings attached.
+              Here, we celebrate the beauty of living fully without worry. This is a place to bond, laugh, and experience the fullness of life together with no strings attached.
             </p>
           </div>
         </div>
         <footer className="bottom-bar">
           <div className="bottom-bar-content">
-            <h2>Explore More</h2>
+            <h2>Explore</h2>
             <button onClick={() => handleNavigate('/membership')}>Membership</button>
             <button onClick={() => handleNavigate('/activities')}>Activities</button>
           </div>

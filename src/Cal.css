@@ -236,7 +236,7 @@
       margin-bottom:14vh;
     }
     .table.upcoming-events {
-      width: 100%;
+      width: 80%;
       max-width: 100%;
     }
     .venue-column, .venue-cell {

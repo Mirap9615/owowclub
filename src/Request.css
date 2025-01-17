@@ -1,0 +1,14 @@
+.input-group-request {
+    width: 100%;
+    margin-bottom: 15px;
+    margin-left: 25vw;
+}
+
+.input-group-request label {
+    display: block;
+    margin-bottom: 5px;
+  }
+  
+  .input-group-request input {
+    padding: 8px;
+  }

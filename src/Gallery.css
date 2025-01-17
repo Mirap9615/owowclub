@@ -20,7 +20,7 @@
 .button-group {
     display: flex;
     gap: 10px; 
-    z-index: 900;
+    z-index: 500;
     grid-column: 3 / 4;
     margin-left: 40px;
 }
@@ -30,7 +30,6 @@
 }
 
 .button-group button {
-    background-color: #d6d4d4;
     border: 1px solid #ccc;
     padding: 8px 12px;
     cursor: pointer;
@@ -218,37 +217,7 @@
   .modal-buttons button:hover {
     background-color: #0056b3;
   }
-  
-  .comment-section .comment {
-    margin-bottom: 10px;
-    padding: 8px;
-    background-color: #e9ecef;
-    border-radius: 4px;
-  }
-  
-  .comment-section input {
-    width: 90%;
-    padding: 8px;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-  }
-  
-  .comment-section button {
-    padding: 8px 12px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    background-color: rgb(18, 91, 216);
-    color: white;
-    transition: background-color 0.3s ease;
-  }
-  
-  .comment-section button:hover {
-    background-color: #218838;
-  }
-  
+
   .centered-blue-button {
     background-color: rgb(197, 197, 197);
     color: white;

@@ -70,6 +70,46 @@ const sesClient = new SESClient({
 
 const bucketName = process.env.AWS_BUCKET_NAME;
 
+app.get('/api/images/event/:eventId', async (req, res) => {
+  const { eventId } = req.params;
+
+  try {
+    // Fetch images associated with the given eventId
+    const query = `
+      SELECT 
+        i.*,
+        e.title AS event_title,
+        u.name AS user_name
+      FROM images i
+      LEFT JOIN event e ON i.associated_event_id = e.id
+      LEFT JOIN users u ON i.user_id = u.user_id
+      WHERE i.associated_event_id = $1
+    `;
+    const imagesData = await pool.query(query, [eventId]);
+
+    // Format response
+    const images = imagesData.rows.map(img => ({
+      url: img.url,
+      title: img.title,
+      id: img.image_id,
+      description: img.description,
+      name: img.name,
+      tags: img.tags,
+      author: img.user_id,
+      author_name: img.user_name,
+      upload_date: img.upload_date,
+      associated_event_id: img.associated_event_id,
+      event_name: img.event_title || null,
+    }));
+
+    res.json(images);
+  } catch (err) {
+    console.error('Error fetching event images:', err);
+    res.status(500).json({ error: 'Failed to fetch event images' });
+  }
+});
+
+
 app.get('/api/images', async (req, res) => {
   const command = new ListObjectsV2Command({
     Bucket: bucketName,
@@ -82,7 +122,16 @@ app.get('/api/images', async (req, res) => {
 
     const imageUrls = Contents.map(file => `https://${bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${file.Key}`);
 
-    const imagesData = await pool.query(`SELECT * FROM images WHERE url = ANY($1)`, [imageUrls]);
+    const query = `
+    SELECT 
+      i.*,
+      e.title AS event_title -- Fetch event title if associated_event_id is not null
+    FROM images i
+    LEFT JOIN event e ON i.associated_event_id = e.id
+    WHERE i.url = ANY($1)
+    `;
+
+    const imagesData = await pool.query(query, [imageUrls]);
 
     // Combined
     const images = imagesData.rows.map(img => ({
@@ -94,6 +143,8 @@ app.get('/api/images', async (req, res) => {
       tags: img.tags,
       author: img.user_id,
       upload_date: img.upload_date,
+      associated_event_id: img.associated_event_id ,
+      event_name: img.event_title || null,
   }));
 
     return res.json(images);
@@ -112,7 +163,7 @@ app.post('/upload-image', upload.single('image'), async (req, res) => {
   const imageId = uuid.v4();
   const key = `images/${imageId}.jpg`;
   const name = "no name"
-  const tags = ["unspecified event"]
+  const tags = []
   const eventId = null
   const title = "new image"
   const description = "default description"
@@ -174,17 +225,19 @@ app.post('/api/delete-images', async (req, res) => {
 
 app.put('/api/images/:id', async (req, res) => {
   const { id } = req.params; 
-  const { name, description, tags } = req.body; 
+  const { name, description, tags, associatedEventId } = req.body; 
 
   try {
     const query = `
       UPDATE images 
-      SET name = $1, description = $2, tags = $3
-      WHERE image_id = $4
+      SET name = $1, description = $2, tags = $3, associated_event_id = $4
+      WHERE image_id = $5
       RETURNING *;
     `;
 
-    const result = await pool.query(query, [name, description, tags, id]);
+    const eventId = associatedEventId === '' ? null : associatedEventId;
+
+    const result = await pool.query(query, [name, description, tags, eventId, id]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Image not found.' });
@@ -218,11 +271,11 @@ app.patch('/api/applications/:id/status', async (req, res) => {
 
       const insertUserQuery = `
         INSERT INTO users (email, registration_token, name, type, admin)
-        VALUES ($1, $2, NULL, 'member', FALSE)
+        VALUES ($1, $2, $3, $4, $5)
         ON CONFLICT (email) DO NOTHING
         RETURNING user_id
       `;
-      const insertResult = await pool.query(insertUserQuery, [application.email, registrationToken]);
+      const insertResult = await pool.query(insertUserQuery, [application.email, registrationToken, application.full_name, application.membership_type, false,]);
 
       if (insertResult.rows.length === 0) {
         return res.status(400).send('User already exists.');
@@ -256,6 +309,35 @@ app.patch('/api/applications/:id/status', async (req, res) => {
 
       res.send('Application status updated and invitation email sent.');
     } else {
+
+      const emailParams = {
+        Source: 'no-reply@jessicatspace.com',
+        Destination: {
+          ToAddresses: [application.email],
+        },
+        Message: {
+          Subject: {
+            Data: 'OWL^2 Club: Application Update',
+          },
+          Body: {
+            Html: {
+              Data: `
+                <p>We regret to inform you that your application to join OWL^2 Club has been denied.</p>
+                <p>If you have any questions, please contact support.</p>
+              `,
+            },
+          },
+        },
+      };
+    
+      const command = new SendEmailCommand(emailParams);
+      await sesClient.send(command);
+
+      const deletePropertiesQuery = `
+        DELETE FROM pending_user_properties WHERE application_id = $1
+      `;
+      await pool.query(deletePropertiesQuery, [id]);
+
       res.send('Application status updated.');
     }
   } catch (error) {
@@ -470,7 +552,7 @@ app.put('/api/events/:id', async (req, res) => {
            location = $8,
            type = $9,
            exclusivity = $10,
-           slug = COALESCE($11, slug),
+           slug = COALESCE($11, slug)
        WHERE id = $12`,
       [date, start_time, end_time, title, description, note, color, location, type, exclusivity, slug, id]
     );
@@ -583,21 +665,50 @@ app.post('/register', async (req, res) => {
 
 // application endpoint
 app.post('/request', async (req, res) => {
-  const { full_name, email, phone, reason, interests, availability, referral, comments } = req.body;
-
+  console.log('Received payload:', req.body);
+  const { full_name, email, phone, reason, interests, availability, referral, comments, 
+    membershipType, propertyAddress, propertyType, propertyDescription, propertyAvailability, } = req.body;
+  console.log('Step 2');
   // Check if email already exists
   const emailCheckQuery = 'SELECT * FROM membership_applications WHERE email = $1';
   const emailCheckResult = await pool.query(emailCheckQuery, [email]);
+  console.log('Step 3');
 
+  console.log('Step 4');
   if (emailCheckResult.rows.length > 0) {
     return res.status(400).json({ error: 'This email already has a pending application.'});
   }
+  console.log('Step 5');
 
-  const query = 'INSERT INTO membership_applications (full_name, email, phone, reason, interests, availability, referral, comments) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)';
-  const values = [full_name, email, phone, reason, interests, availability, referral, comments];
-  
+  console.log('Inserting application into membership_applications...');
+  const query = 'INSERT INTO membership_applications (full_name, email, phone, reason, interests, availability, referral, comments, membership_type) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id';
+  const values = [full_name, email, phone, reason, interests || '{}', availability, referral, comments, membershipType];
+  console.log(values);
+
   try {
-    await pool.query(query, values);  
+    const applicationResult = await pool.query(query, values);
+  
+    console.log('Application inserted successfully:', applicationResult.rows[0]);
+    const applicationId = applicationResult.rows[0].id;
+
+    if (membershipType === 'Travel Host') {
+      console.log('Inserting property details into pending_user_properties...');
+      const propertyQuery = `
+        INSERT INTO pending_user_properties 
+        (application_id, address, type, description, availability) 
+        VALUES ($1, $2, $3, $4, $5)
+      `;
+      const propertyValues = [
+        applicationId,
+        propertyAddress,
+        propertyType,
+        propertyDescription,
+        propertyAvailability,
+      ];
+      await pool.query(propertyQuery, propertyValues);
+      console.log('Property details inserted successfully.');
+    }
+
     res.status(201).send('Application stored');
   } catch (err) {
     console.error(err);
@@ -608,7 +719,16 @@ app.post('/request', async (req, res) => {
 // get applications endpoint
 app.get('/api/applications', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM membership_applications ORDER BY created_at DESC');
+    const query = `
+      SELECT 
+        ma.*, 
+        json_agg(pup.*) AS properties
+      FROM membership_applications ma
+      LEFT JOIN pending_user_properties pup ON ma.id = pup.application_id
+      GROUP BY ma.id
+      ORDER BY ma.created_at DESC
+    `;
+    const result = await pool.query(query);
     res.json(result.rows);
   } catch (err) {
     console.error('Error fetching applications:', err);
@@ -920,7 +1040,7 @@ app.post('/api/events/invite', async (req, res) => {
           Body: {
             Html: {
               Data: `
-                <p>Hello ${user.name || 'there'},</p>
+                <p>Hello ${user.name},</p>
                 <p>You've been invited to join "${eventTitle}".</p>
                 <p>Click the link below to accept the invitation:</p>
                 <a href="${inviteLink}">Accept Invitation</a>
@@ -945,6 +1065,282 @@ app.post('/api/events/invite', async (req, res) => {
       error: 'Failed to send invites',
       details: error.message 
     });
+  }
+});
+
+// post a comment 
+app.post('/api/comments', async (req, res) => {
+  const { content, commentableId } = req.body;
+
+  if (!content || !commentableId) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  try {
+    const insertQuery = `
+      INSERT INTO comments (content, user_id, commentable_id)
+      VALUES ($1, $2, $3) RETURNING *
+    `;
+    const result = await pool.query(insertQuery, [content, req.session.user.user_id, commentableId]);
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error posting comment:', error);
+    res.status(500).json({ error: 'Failed to post comment' });
+  }
+});
+
+// Edit a comment
+app.put('/api/comments/:id', async (req, res) => {
+  const { id } = req.params;
+  const { content } = req.body;
+
+  if (!content) {
+    return res.status(400).json({ error: 'Missing content' });
+  }
+
+  try {
+    // Check if the comment exists and belongs to the user
+    const commentQuery = `
+      SELECT * FROM comments WHERE id = $1 AND user_id = $2
+    `;
+    const comment = await pool.query(commentQuery, [id, req.session.user.user_id]);
+
+    if (comment.rows.length === 0) {
+      return res.status(403).json({ error: 'Unauthorized or comment not found' });
+    }
+
+    // Update the comment
+    const updateQuery = `
+      UPDATE comments
+      SET content = $1, updated_at = NOW()
+      WHERE id = $2
+      RETURNING *
+    `;
+    const updatedComment = await pool.query(updateQuery, [content, id]);
+
+    res.json(updatedComment.rows[0]);
+  } catch (error) {
+    console.error('Error updating comment:', error);
+    res.status(500).json({ error: 'Failed to update comment' });
+  }
+});
+
+// Delete a comment
+app.delete('/api/comments/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Fetch the current user details (from session)
+    const { user_id, admin } = req.session.user;
+
+    // Check if the comment exists and verify permission
+    const commentQuery = `
+      SELECT * FROM comments WHERE id = $1
+    `;
+    const comment = await pool.query(commentQuery, [id]);
+
+    if (comment.rows.length === 0) {
+      return res.status(404).json({ error: 'Comment not found' });
+    }
+
+    // Ensure the user is either the owner of the comment or an admin
+    const isOwner = comment.rows[0].user_id === user_id;
+    if (!isOwner && !admin) {
+      return res.status(403).json({ error: 'Unauthorized to delete this comment' });
+    }
+
+    // Perform the deletion
+    const deleteQuery = `
+      DELETE FROM comments WHERE id = $1
+    `;
+    await pool.query(deleteQuery, [id]);
+
+    res.status(200).json({ message: 'Comment deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting comment:', error);
+    res.status(500).json({ error: 'Failed to delete comment' });
+  }
+});
+
+// add a like
+app.post('/api/comments/:id/like', async (req, res) => {
+  const { id } = req.params;
+  const userId = req.session.user.user_id; 
+
+  try {
+    const insertQuery = `
+      INSERT INTO comment_likes (comment_id, user_id)
+      VALUES ($1, $2)
+      ON CONFLICT (comment_id, user_id) DO NOTHING
+    `;
+    await pool.query(insertQuery, [id, userId]);
+    res.status(200).json({ message: 'Comment liked successfully' });
+  } catch (error) {
+    console.error('Error liking comment:', error);
+    res.status(500).json({ error: 'Failed to like comment' });
+  }
+});
+
+// remove a like (delete)
+app.delete('/api/comments/:id/unlike', async (req, res) => {
+  const { id } = req.params; 
+  const userId = req.session.user.user_id;
+
+  try {
+    const deleteQuery = `
+      DELETE FROM comment_likes WHERE comment_id = $1 AND user_id = $2
+    `;
+    await pool.query(deleteQuery, [id, userId]);
+    res.status(200).json({ message: 'Comment unliked successfully' });
+  } catch (error) {
+    console.error('Error unliking comment:', error);
+    res.status(500).json({ error: 'Failed to unlike comment' });
+  }
+});
+
+// get like status given comment id 
+app.get('/api/comments', async (req, res) => {
+  const { commentableId } = req.query;
+  const userId = req.session.user?.user_id;
+
+  if (!commentableId) {
+    return res.status(400).json({ error: 'Missing commentableId' });
+  }
+
+  try {
+    // Fetch comments with like counts and user-like status
+    const query = `
+      SELECT 
+        c.*,
+        COALESCE(cl.like_count, 0) AS like_count,
+        EXISTS (
+          SELECT 1 FROM comment_likes 
+          WHERE comment_id = c.id AND user_id = $1
+        ) AS user_liked
+      FROM comments c
+      LEFT JOIN (
+        SELECT comment_id, COUNT(*) AS like_count 
+        FROM comment_likes 
+        GROUP BY comment_id
+      ) cl ON c.id = cl.comment_id
+      WHERE c.commentable_id = $2
+      ORDER BY c.created_at ASC;
+    `;
+    const comments = await pool.query(query, [userId, commentableId]);
+    res.json(comments.rows);
+  } catch (error) {
+    console.error('Error fetching comments with likes:', error);
+    res.status(500).json({ error: 'Failed to fetch comments' });
+  }
+});
+
+app.post('/api/events/send-confirmation', async (req, res) => {
+  const { eventId, userId } = req.body;
+
+  try {
+    // Fetch event details
+    const eventQuery = `
+      SELECT 
+        title, 
+        event_date, 
+        start_time, 
+        end_time, 
+        location 
+      FROM event 
+      WHERE id = $1
+    `;
+    const eventResult = await pool.query(eventQuery, [eventId]);
+    if (eventResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Event not found' });
+    }
+
+    const event = eventResult.rows[0];
+
+    // Fetch user details
+    const userQuery = `
+      SELECT name, email 
+      FROM users 
+      WHERE user_id = $1
+    `;
+    const userResult = await pool.query(userQuery, [userId]);
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const user = userResult.rows[0];
+
+    // Format event date and time
+    const formattedDate = new Date(event.event_date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+    const formattedTime = `${event.start_time} - ${event.end_time}`;
+
+    // Send confirmation email
+    const emailParams = {
+      Source: 'no-reply@jessicatspace.com',
+      Destination: { 
+        ToAddresses: [user.email] 
+      },
+      Message: {
+        Subject: { 
+          Data: `You’ve joined "${event.title}"!` 
+        },
+        Body: {
+          Html: {
+            Data: `
+              <p>Hello ${user.name},</p>
+              <p>You’ve successfully joined the event <strong>${event.title}</strong>.</p>
+              <p><strong>Date:</strong> ${formattedDate}</p>
+              <p><strong>Time:</strong> ${formattedTime}</p>
+              <p><strong>Location:</strong> ${event.location || 'TBD'}</p>
+              <p>We’re excited to have you with us! Feel free to reach out if you have any questions.</p>
+              <p>Best regards,</p>
+              <p>The OWL<sup>2</sup> Team</p>
+            `,
+          },
+        },
+      },
+    };
+
+    const command = new SendEmailCommand(emailParams);
+    await sesClient.send(command);
+
+    res.json({ 
+      success: true, 
+      message: `Confirmation email sent to ${user.email}` 
+    });
+  } catch (error) {
+    console.error('Error sending confirmation email:', error);
+    res.status(500).json({ 
+      error: 'Failed to send confirmation email',
+      details: error.message 
+    });
+  }
+});
+
+app.post('/api/validate-code', async (req, res) => {
+  const { code } = req.body;
+
+  if (!code) {
+      return res.status(400).json({ error: 'Invitation code is required.' });
+  }
+
+  try {
+      const result = await pool.query(
+          'SELECT * FROM invitation_codes WHERE code = $1',
+          [code]
+      );
+
+      if (result.rows.length > 0) {
+          return res.status(200).json({ valid: true });
+      } else {
+          return res.status(404).json({ valid: false, error: 'Invalid Invitation Code' });
+      }
+  } catch (err) {
+      console.error('Error validating code:', err.message);
+      res.status(500).json({ error: 'Server error. Please try again later.' });
   }
 });
 

@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import './Request.css';
+import Steamed from './Steamed.jsx'
 
 const Request = () => {
   const [step, setStep] = useState(1); 
@@ -14,6 +16,12 @@ const Request = () => {
   const [availability, setAvailability] = useState(''); 
   const [referral, setReferral] = useState('');
   const [comments, setComments] = useState('');
+  const [membershipType, setMembershipType] = useState('');
+  const [propertyAddress, setPropertyAddress] = useState('');
+  const [propertyType, setPropertyType] = useState('');
+  const [propertyDescription, setPropertyDescription] = useState('');
+  const [propertyAvailability, setPropertyAvailability] = useState('');
+
   // binary outcome 
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -31,6 +39,30 @@ const Request = () => {
         setError('Please enter your invitation code.');
         return;
       }
+
+      try {
+            const response = await fetch('/api/validate-code', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ code: invitationCode }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.valid) {
+                setError('');
+                setStep(2); 
+            } else {
+                setError(data.error || 'Invalid invitation code.');
+            }
+        } catch (error) {
+            console.error('Error validating code:', error);
+            setError('Failed to validate code. Please try again later.');
+        }
+
+        return;
     }
 
     if (step === 2) {
@@ -61,6 +93,8 @@ const Request = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    console.log("mb: " + membershipType);
     
     try {
       const response = await fetch('/request', {
@@ -69,7 +103,11 @@ const Request = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          invitationCode, full_name, email, phone, reason, interests, availability, referral, comments,
+          invitationCode, full_name, email, phone, reason, interests, availability, referral, comments, membershipType,
+          propertyAddress: membershipType === 'Travel Host' ? propertyAddress : null,
+          propertyType: membershipType === 'Travel Host' ? propertyType : null,
+          propertyDescription: membershipType === 'Travel Host' ? propertyDescription : null,
+          propertyAvailability: membershipType === 'Travel Host' ? propertyAvailability : null,
         }),
       });
 
@@ -116,7 +154,7 @@ const Request = () => {
         return (
           <>
             <h2>Step 2: Personal Information</h2>
-            <div className="input-group">
+            <div className="input-group-request">
               <label>Full Name</label>
               <input
                 type="text"
@@ -125,7 +163,7 @@ const Request = () => {
                 required
               />
             </div>
-            <div className="input-group">
+            <div className="input-group-request">
               <label>Email Address</label>
               <input
                 type="email"
@@ -134,7 +172,7 @@ const Request = () => {
                 required
               />
             </div>
-            <div className="input-group">
+            <div className="input-group-request">
               <label>Phone Number (Optional)</label>
               <input
                 type="tel"
@@ -142,7 +180,7 @@ const Request = () => {
                 onChange={(e) => setPhone(e.target.value)}
               />
             </div>
-            <div className="input-group">
+            <div className="input-group-request">
               <label>Why do you want to join the club?</label>
               <textarea
                 value={reason}
@@ -150,7 +188,7 @@ const Request = () => {
                 required
               />
             </div>
-            <div className="input-group">
+            <div className="input-group-request">
               <label>What types of activities interest you most?</label>
               <div className="checkbox-group">
                 <label>
@@ -197,7 +235,7 @@ const Request = () => {
         return (
           <>
             <h2>Step 3: Additional Information</h2>
-            <div className="input-group">
+            <div className="input-group-request">
               <label>Availability</label>
               <select
                 value={availability}
@@ -210,14 +248,70 @@ const Request = () => {
                 <option value="Flexible">Flexible</option>
               </select>
             </div>
-            <div className="input-group">
+
+        <div className="input-group-request">
+            <label>Membership Type</label>
+            <select
+                value={membershipType}
+                onChange={(e) => setMembershipType(e.target.value)}
+                required
+            >
+                <option value="">Select Membership Type</option>
+                <option value="Standard">Standard</option>
+                <option value="Travel Host">Travel Host</option>
+            </select>
+        </div>
+
+        {membershipType === 'Travel Host' && (
+            <>
+                <div className="input-group-request">
+                    <label>Property Address</label>
+                    <input
+                        type="text"
+                        value={propertyAddress}
+                        onChange={(e) => setPropertyAddress(e.target.value)}
+                        required
+                    />
+                </div>
+                <div className="input-group-request">
+                    <label>Type of Property</label>
+                    <input
+                        type="text"
+                        value={propertyType}
+                        onChange={(e) => setPropertyType(e.target.value)}
+                        required
+                    />
+                </div>
+                <div className="input-group-request">
+                    <label>Property Description</label>
+                    <textarea
+                        value={propertyDescription}
+                        onChange={(e) => setPropertyDescription(e.target.value)}
+                        required
+                    />
+                </div>
+                <div className="input-group-request">
+                    <label>Property Availability</label>
+                    <select
+                        value={propertyAvailability}
+                        onChange={(e) => setPropertyAvailability(e.target.value)}
+                        required
+                    >
+                        <option value="">Select Availability</option>
+                        <option value="Available Now">Available Now</option>
+                        <option value="Seasonal">Seasonal</option>
+                    </select>
+                </div>
+            </>
+        )}
+            <div className="input-group-request">
               <label>How did you hear about us?</label>
               <textarea
                 value={referral}
                 onChange={(e) => setReferral(e.target.value)}
               />
             </div>
-            <div className="input-group">
+            <div className="input-group-request">
               <label>Additional Comments or Questions (Optional)</label>
               <textarea
                 value={comments}
@@ -248,38 +342,40 @@ const Request = () => {
   };
 
   return (
-    <div className="centerer">
-      <div className="standard-container">
-        <h2>Club Application</h2>
-        <form onSubmit={handleSubmit}>
-          {renderStep()}
+    <>
+      <Steamed />
+      <div className="centerer">
+        <div className="standard-container">
+          <h2>Club Application</h2>
+          <form onSubmit={handleSubmit}>
+            {renderStep()}
 
-          {error && <div className="error">{error}</div>}
+            {error && <div className="error">{error}</div>}
 
-          {step < 4 && ( 
-            <div className="button-group">
-              <button
-                type="button"
-                onClick={handleBack}
-                disabled={step === 1} 
-              >
-                Back
-              </button>
-              {step < 3 ? (
-                <button type="button" onClick={handleNext}>
-                  Next
+            {step < 4 && ( 
+              <div className="button-group">
+                <button
+                  type="button"
+                  onClick={handleBack}
+                  disabled={step === 1} 
+                >
+                  Back
                 </button>
-              ) : (
-                <button type="submit" className="submit-button">
-                  Submit Application
-                </button>
-              )}
-            </div>
-          )}
-
-        </form>
+                {step < 3 ? (
+                  <button type="button" onClick={handleNext}>
+                    Next
+                  </button>
+                ) : (
+                  <button type="submit" className="submit-button">
+                    Submit Application
+                  </button>
+                )}
+              </div>
+            )}
+          </form>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

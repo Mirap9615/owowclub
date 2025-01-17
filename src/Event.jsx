@@ -1,132 +1,42 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import './Event.css'
 import Steamed from './Steamed.jsx';
-import { createPortal } from 'react-dom';
 import bannerImage from './assets/banner1.jpeg';
 import EventsFourTabbedModal from './EventsFourTabbedModal.jsx';
 import ImageModal from './ImageModal.jsx';
+import InviteModal from './InviteModal.jsx';
+import Comments from './Comments.jsx';
+import { createPortal } from 'react-dom';
 
-const InviteModal = ({ isOpen, onClose, eventId, eventTitle }) => {
-  const [users, setUsers] = useState([]);
-  const [selectedUsers, setSelectedUsers] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await fetch('/api/users');
-        const data = await response.json();
-        console.log(data)
-
-        setUsers(data);
-      } catch (error) {
-        console.error('Error fetching users:', error);
-      }
-    };
-
-    if (isOpen) {
-      fetchUsers();
-    }
-  }, [isOpen]);
-
-  const handleUserSelect = (userId) => {
-    setSelectedUsers(prev => {
-      if (prev.includes(userId)) {
-        return prev.filter(id => id !== userId);
-      }
-      return [...prev, userId];
-    });
-  };
-
-  const filteredUsers = users.filter(user => {
-    const searchLower = searchTerm.toLowerCase();
-    const nameMatch = user.name ? user.name.toLowerCase().includes(searchLower) : false;
-    const emailMatch = user.email.toLowerCase().includes(searchLower);
-    return nameMatch || emailMatch;
-  });
-
-  const handleSendInvites = async () => {
-    setLoading(true);
-    try {
-      console.log('Sending invites for users:', selectedUsers); 
-      const response = await fetch('/api/events/invite', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          eventId: Number(eventId), 
-          eventTitle,
-          userIds: selectedUsers.map(id => Number(id)) 
-        }),
-      });
-  
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.details || 'Failed to send invites');
-      }
-  
-      const data = await response.json();
-      console.log('Invite response:', data); 
-      onClose();
-    } catch (error) {
-      console.error('Error sending invites:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+const JoinedModal = ({ isOpen, onClose, eventName, onSendConfirmation }) => {
   if (!isOpen) return null;
 
-  return createPortal(
+  return (
     <div className="modal-container">
-      <div className="backdrop" onClick={onClose} />
-      <div className="modal invite-modal">
-        <div className="modal-header">
-          <h2>Invite Members</h2>
-          <button className="close-button" onClick={onClose}>&times;</button>
-        </div>
-        <div className="modal-content">
-          <input
-            type="text"
-            placeholder="Search users..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
-          />
-          <div className="users-list">
-            {filteredUsers.map(user => (
-              <div key={user.user_id} className="user-item">
-                <label className="user-label">
-                  <input
-                    type="checkbox"
-                    checked={selectedUsers.includes(user.user_id)}
-                    onChange={() => handleUserSelect(user.user_id)}
-                  />
-                  <span className="user-info">
-                  <span className="user-name">{user.name || user.email}</span>
-                  <span className="user-email">({user.email})</span>
-                    <span className="user-type">{user.type}</span>
-                  </span>
-                </label>
-              </div>
-            ))}
-          </div>
-          <div className="modal-footer">
-            <button
-              className="invite-button"
-              onClick={handleSendInvites}
-              disabled={loading || selectedUsers.length === 0}
-            >
-              {loading ? 'Sending Invites...' : `Invite Selected (${selectedUsers.length})`}
-            </button>
-          </div>
-        </div>
+      <div className="modal-overlay" onClick={onClose}></div>
+      <div className="modal-content">
+        <h2>Welcome to {eventName}!</h2>
+        <p>You have successfully joined the event.</p>
+        <button onClick={onSendConfirmation}>Send Confirmation Email</button>
+        <button onClick={onClose}>Close</button>
       </div>
-    </div>,
-    document.body
+    </div>
+  );
+};
+
+const LeaveConfirmationModal = ({ isOpen, onClose, onConfirm }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-container">
+      <div className="modal-overlay" onClick={onClose}></div>
+      <div className="modal-content">
+        <h3>Are you sure you want to leave?</h3>
+        <button onClick={onConfirm}>Yes, Leave</button>
+        <button onClick={onClose}>Cancel</button>
+      </div>
+    </div>
   );
 };
 
@@ -143,10 +53,13 @@ const EventPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentImage, setCurrentImage] = useState(null);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [isJoinedModalOpen, setIsJoinedModalOpen] = useState(false);
+  const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
+  const [pendingLeaveEventId, setPendingLeaveEventId] = useState(null);
+
   const navigate = useNavigate();
 
   const handleImageClick = (image) => {
-    console.log('Selected image:', image);
     setCurrentImage(image);
     setIsModalOpen(true);
   };
@@ -157,70 +70,57 @@ const EventPage = () => {
     type: '',
   });
 
-  const handleAddComment = async (commentText) => {
-    if (!currentImage) return;
+  const showLeaveModal = (eventId) => {
+    setPendingLeaveEventId(eventId);
+    setIsLeaveModalOpen(true); 
+  };
   
+  const confirmLeaveEvent = () => {
+    if (pendingLeaveEventId) {
+      handleLeaveEvent(pendingLeaveEventId);
+    }
+    setIsLeaveModalOpen(false);
+  };
+
+  const sendConfirmationEmail = async (eventId, userId) => {
     try {
-      const response = await fetch(`/api/images/${currentImage.id}/comments`, {
+      const response = await fetch('/api/events/send-confirmation', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ text: commentText }),
+        body: JSON.stringify({ eventId, userId }),
       });
   
       if (response.ok) {
-        const newComment = await response.json();
-        setCurrentImage(prev => ({
-          ...prev,
-          comments: [...(prev?.comments || []), newComment]
-        }));
+        console.log('Confirmation email sent successfully');
       } else {
-        console.error('Failed to add comment');
+        console.error('Failed to send confirmation email');
       }
     } catch (error) {
-      console.error('Error adding comment:', error);
+      console.error('Error sending confirmation email:', error);
     }
   };
 
-  const handleSaveChanges = async (editFields) => {
-    if (!currentImage || !currentImage.image_id) return; // Check for image_id specifically
-  
-    const updatedImage = {
-      ...currentImage,
-      name: editFields.name,
-      description: editFields.description,
-      tags: editFields.tags
-    };
-  
+  const handleModalSaveChanges = async (updatedImage) => {
     try {
-      const response = await fetch(`/api/images/${currentImage.image_id}`, { // Use image_id
+      const response = await fetch(`/api/images/${updatedImage.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          name: editFields.name,
-          description: editFields.description,
-          tags: editFields.tags
-        }), // Only send the fields the server expects
+        body: JSON.stringify(updatedImage),
       });
   
+      console.log(response);
+      console.log(updatedImage);
+  
       if (response.ok) {
-        const updatedImageData = await response.json();
-        
-        // Update eventImages state with the new data
-        setEventImages(prevImages => 
-          prevImages.map(img => 
-            img.image_id === currentImage.image_id ? updatedImageData : img
+        setEventImages(prevImages =>
+          prevImages.map(img =>
+            img.id === updatedImage.id ? updatedImage : img
           )
         );
-        
-        // Update the currentImage state to reflect changes
-        setCurrentImage(updatedImageData);
-        
-        // Close the modal
-        setIsModalOpen(false);
       } else {
         console.error('Failed to save changes');
       }
@@ -228,7 +128,6 @@ const EventPage = () => {
       console.error('Error saving changes:', error);
     }
   };
-
 
     useEffect(() => {
       const fetchUserDetails = async () => {
@@ -267,6 +166,7 @@ const EventPage = () => {
           return;
         }
         const data = await response.json();
+        console.log(data);
         setEvent(data);
       } catch (err) {
         console.error('Failed to fetch event:', err);
@@ -281,24 +181,25 @@ const EventPage = () => {
 
   useEffect(() => {
     const fetchEventImages = async () => {
-      if (!activeTab === "images" || !event?.title) {
+      if (activeTab !== "images" || !event?.id) {
         return;
       }
   
       setImagesLoading(true);
       try {
-        const response = await fetch('/api/images/' + event.title);
+        const response = await fetch(`/api/images/event/${event.id}`); 
         const data = await response.json();
         setEventImages(data);
       } catch (error) {
-        console.error('Error:', error);
+        console.error('Error fetching event images:', error);
         setEventImages([]);
+      } finally {
+        setImagesLoading(false);
       }
-      setImagesLoading(false);
     };
   
     fetchEventImages();
-  }, [activeTab, event?.title]);
+  }, [activeTab, event?.id]);
 
   const renderImagesTab = () => {
     if (imagesLoading) {
@@ -313,18 +214,17 @@ const EventPage = () => {
               <div 
                 key={image.image_id} 
                 className="image-card"
-                onClick={() => handleImageClick(image)} // Add this click handler
-                style={{ cursor: 'pointer' }} // Optional: add pointer cursor
+                onClick={() => handleImageClick(image)}
+                style={{ cursor: 'pointer' }}
               >
                 <img 
                   src={image.url} 
-                  alt={image.name || 'Event image'} 
                 />
-                {image.name && (
+                {/*image.name && (
                   <div className="image-caption">
                     {image.name}
                   </div>
-                )}
+                )*/}
               </div>
             ))
           ) : (
@@ -334,14 +234,12 @@ const EventPage = () => {
           )}
         </div>
   
-        {/* Add ImageModal here, inside the images tab */}
         {currentImage && (
           <ImageModal
             isOpen={isModalOpen}
             closeModal={() => setIsModalOpen(false)}
             currentImage={currentImage}
-            onSaveChanges={handleSaveChanges}
-            onAddComment={handleAddComment}
+            onSave={handleModalSaveChanges}
           />
         )}
       </div>
@@ -363,9 +261,16 @@ const EventPage = () => {
     const handleEventUpdate = async (updatedEventData) => {
         try {
           const commonAttributes = {
-            date: updatedEventData.event_date,
-            start_time: updatedEventData.start_time + ":00",
-            end_time: updatedEventData.end_time + ":00",
+            date: updatedEventData.event_date && updatedEventData.event_date.trim() !== "" 
+                ? updatedEventData.event_date 
+                : event.event_date, 
+            start_time: updatedEventData.start_time && updatedEventData.start_time.trim() !== "" 
+                ? `${updatedEventData.start_time}:00` 
+                : event.start_time, 
+            end_time: updatedEventData.end_time && updatedEventData.end_time.trim() !== "" 
+                ? `${updatedEventData.end_time}:00` 
+                : event.end_time, 
+                
             title: updatedEventData.title,
             description: updatedEventData.description,
             note: updatedEventData.note,
@@ -374,6 +279,8 @@ const EventPage = () => {
             type: updatedEventData.type,
             exclusivity: updatedEventData.exclusivity,
           };
+
+          console.log(updatedEventData);
       
           const response = await fetch(`/api/events/${updatedEventData.id}`, {
             method: 'PUT',
@@ -444,7 +351,8 @@ const EventPage = () => {
                   ...prevEvent.participants,
                   { user_id: userDetails.user_id, name: userDetails.name }
                 ]
-              }));   
+              }));
+              setIsJoinedModalOpen(true);   
           } else {
             throw new Error('Failed to join event');
           }
@@ -470,6 +378,7 @@ const EventPage = () => {
                   participant => participant.user_id !== userDetails.user_id
                 )
               }));
+            setIsLeaveModalOpen(false);
           } else {
             throw new Error('Failed to leave event');
           }
@@ -519,7 +428,6 @@ const EventPage = () => {
         {/* Title and Edit Button */}
         <div className="event-title-container">
           <h1 className="event-title">{event.title}</h1>
-          <button className="edit-button" onClick={handleEdit}>Edit</button>
         </div>
 
       {renderModal()}
@@ -527,9 +435,9 @@ const EventPage = () => {
       {/* Tabs Navigation */}
       <div className="tabs">
         <button onClick={() => setActiveTab("details")} className={activeTab === "details" ? "active" : ""}>Details</button>
-        <button onClick={() => setActiveTab("comments")} className={activeTab === "comments" ? "active" : ""}>Notes</button>
         <button onClick={() => setActiveTab("participation")} className={activeTab === "participation" ? "active" : ""}>Participation</button>
         <button onClick={() => setActiveTab("images")} className={activeTab === "images" ? "active" : ""}>Images</button>
+        <button onClick={() => setActiveTab("comments")} className={activeTab === "comments" ? "active" : ""}>Notes and Comments</button>
       </div>
 
       {/* Tab Content */}
@@ -542,6 +450,7 @@ const EventPage = () => {
             <p><strong>Type:</strong> {event.type}</p>
             <p><strong>Exclusivity:</strong> {event.exclusivity}</p>
             <p><strong>Description:</strong> {event.description}</p>
+            <button className="edit-button" onClick={handleEdit}>Edit Details</button>
             {event.participants && event.participants.length > 0 && (
               <div>
                 <h4>Participants</h4>
@@ -558,8 +467,7 @@ const EventPage = () => {
         {activeTab === "comments" && (
           <div className="comments-tab">
             <h4>Notes and Comments</h4>
-            <textarea className="comments-input" placeholder="Write a comment..." />
-            {/* Render any existing notes/comments here */}
+            <Comments commentableId={event.id} />
           </div>
         )}
 
@@ -588,7 +496,7 @@ const EventPage = () => {
                 <div className="participation-actions">
                   {event.participants?.some(p => p.user_id === userDetails.user_id) ? (
                     <button 
-                      onClick={() => handleLeaveEvent(event.id)}
+                      onClick={() => showLeaveModal(event.id)}
                       className="leave-button"
                     >
                       Leave Event
@@ -615,6 +523,19 @@ const EventPage = () => {
                 onClose={() => setIsInviteModalOpen(false)}
                 eventId={event.id}
                 eventTitle={event.title}
+              />
+
+              <JoinedModal
+                isOpen={isJoinedModalOpen}
+                onClose={() => setIsJoinedModalOpen(false)}
+                eventName={event.title}
+                onSendConfirmation={() => sendConfirmationEmail(event.id, userDetails.user_id)}
+              />
+
+              <LeaveConfirmationModal
+                isOpen={isLeaveModalOpen}
+                onClose={() => setIsLeaveModalOpen(false)}
+                onConfirm={() => handleLeaveEvent(event.id)}
               />
             </div>
           )}

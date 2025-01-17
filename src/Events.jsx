@@ -314,7 +314,6 @@ function Cal() {
   };
 
   const handleDelete = async (eventId) => {
-    console.log('attempted to delete: '+ eventId)
       try {
           const response = await fetch(`/api/events/${eventId}`, {
               method: 'DELETE',
@@ -471,8 +470,6 @@ function Cal() {
                     onClose={handleClosePanel}
                     onEventUpdate={handleEventUpdate}
                     userDetails={userDetails}
-                    handleJoinEvent={handleJoinEvent}
-                    handleLeaveEvent={handleLeaveEvent}
                     handleDelete={handleDelete}
                 />
               </>

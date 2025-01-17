@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import './ImageModal.css';
 import Modal from 'react-modal';
-import FsLightbox from "fslightbox-react";
-import TagEditor from './TagEditor';
+import Comments from './Comments.jsx';
+import FsLightbox from 'fslightbox-react';
+
 
 const formatDate = (isoDate) => {
   return new Date(isoDate).toLocaleDateString('en-US', {
@@ -11,174 +13,153 @@ const formatDate = (isoDate) => {
   });
 };
 
-const CommentSection = React.memo(({ comments = [], onAddComment }) => {
-  const [newComment, setNewComment] = useState('');
-
-  const handleSubmit = () => {
-    if (newComment.trim() === '') return;
-    onAddComment(newComment);
-    setNewComment('');
-  };
-
-  return (
-    <div className="comment-section">
-      {comments.length === 0 ? (
-        <p>Be the first to comment!</p>
-      ) : (
-        comments.map((comment, idx) => (
-          <div key={idx} className="comment">
-            <strong>{comment.author}:</strong> {comment.text}
-          </div>
-        ))
-      )}
-      <input 
-        type="text" 
-        value={newComment} 
-        onChange={(e) => setNewComment(e.target.value)} 
-        placeholder="Add a comment..."
-      />
-      <br />
-      <button onClick={handleSubmit}>Post</button>
-    </div>
-  );
-});
-
-const ImageModal = ({
-  isOpen,
-  closeModal,
-  currentImage,
-  onSaveChanges,
-  onAddComment
+const ImageModal = React.memo(({ 
+  isOpen, 
+  closeModal, 
+  currentImage, 
+  onSave,
 }) => {
-  const [editMode, setEditMode] = useState(false);
-  const [editFields, setEditFields] = useState({
-    name: '',
-    description: '',
-    tags: []
-  });
+  const [activeTab, setActiveTab] = useState('comments'); 
+  const [editFields, setEditFields] = useState({ name: '', description: '', tags: [] });
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const [availableEvents, setAvailableEvents] = useState([]);
   const [lightboxToggler, setLightboxToggler] = useState(false);
 
-  const handleEditStart = () => {
-    setEditFields({
-      name: currentImage.name,
-      description: currentImage.description,
-      tags: currentImage.tags || [],
-    });
-    setEditMode(true);
+  const title = 'Detailed Image View';
+
+  useEffect(() => {
+    if (currentImage) {
+      setEditFields({
+        description: currentImage.description || '',
+        tags: currentImage.tags || [],
+        event: currentImage.associated_event_id || null,
+      });
+    }
+    console.log(currentImage);
+  }, [currentImage]);
+
+  useEffect(() => {
+    const fetchTagsAndEvents = async () => {
+      try {
+        const [tagsResponse, eventsResponse] = await Promise.all([
+          fetch(`/api/images/${currentImage?.title || ''}`),
+          fetch('/api/events'),
+        ]);
+
+        setAvailableEvents(await eventsResponse.json());
+      } catch (error) {
+        console.error('Error fetching tags or events:', error);
+      }
+    };
+
+    if (isOpen) {
+      fetchTagsAndEvents();
+    }
+  }, [isOpen, currentImage?.title]);
+
+  const handleEventSelection = (eventId) => {
+    setEditFields((prev) => ({
+      ...prev,
+      event: eventId || null,
+    }));
   };
 
-  const handleSave = () => {
-    onSaveChanges(editFields);
-    setEditMode(false);
+  const saveChanges = () => {
+    console.log('Saving Changes:', editFields);
+    onSave({ ...currentImage, ...editFields, associatedEventId: editFields.event, });
+    closeModal();
   };
 
-  const handleViewInLightbox = () => {
-    setLightboxToggler(prev => !prev);
+  const handleLightboxToggle = () => {
+    setLightboxToggler(!lightboxToggler);
   };
 
   return (
-    <>
-      <Modal
-        isOpen={isOpen}
-        onRequestClose={closeModal}
-        contentLabel="Detailed Image View"
-        className="image-modal"
-        overlayClassName="modal-overlay"
-      >
-        <div className="modal-title">
-          <h2 style={{display: 'flex', justifyContent: 'center'}}>Detailed Image View</h2>
-        </div>
-        
-        <img 
-          src={currentImage?.url} 
-          alt={currentImage?.name || 'Selected Image'} 
-          className="modal-image" 
+    <Modal
+      isOpen={isOpen}
+      onRequestClose={closeModal}
+      contentLabel={title}
+      className="image-modal"
+      overlayClassName="modal-overlay"
+    >
+      <div className="modal-header">
+        <h2 style={{ display: 'flex', justifyContent: 'center' }}>{title}</h2>
+      </div>
+
+      <img src={currentImage.url} className="modal-image" />
+      <div className="image-author">uploaded by {currentImage.author_name} on {formatDate(currentImage.upload_date)}</div>
+
+      {/* Description Editing */}
+  <div>
+    <div className="large-text">Description</div>
+    <div className="description-subtitle">Double-click to edit</div>
+    {isEditingDescription ? (
+      <div>
+        <textarea
+          value={editFields.description}
+          onChange={(e) =>
+            setEditFields((prev) => ({ ...prev, description: e.target.value }))
+          }
+          rows="4"
+          style={{ width: '100%' }}
         />
-        
-        <div className="image-author">
-          Uploaded by {currentImage?.author}
-        </div>
-        
-        <br />
-        
-        <div className="modal-tags">
-          {editMode ? (
-            <>
-              <div>
-                <strong>File Name:</strong>
-                <input 
-                  type="text" 
-                  value={editFields.name} 
-                  onChange={(e) => setEditFields(prev => ({...prev, name: e.target.value}))} 
-                />
-              </div>
-              <div>
-                <strong>Description:</strong>
-                <textarea 
-                  value={editFields.description} 
-                  onChange={(e) => setEditFields(prev => ({...prev, description: e.target.value}))}
-                />
-              </div>
-              <div>
-                <strong>Tags:</strong>
-                <TagEditor 
-                  tags={editFields.tags} 
-                  onTagsChange={(newTags) => setEditFields(prev => ({...prev, tags: newTags}))} 
-                />
-              </div>
-            </>
-          ) : (
-            <>
-              <div><strong>File Name:</strong> {currentImage?.name}</div>
-              <div><strong>Description:</strong> {currentImage?.description}</div>
-              <div><strong>Tags:</strong> {currentImage?.tags?.join(', ') || 'No tags'}</div>
-            </>
-          )}
-          <div>Uploaded on {currentImage?.upload_date && formatDate(currentImage.upload_date)}</div>
-        </div>
+        <button onClick={() => setIsEditingDescription(false)}>Save</button>
+      </div>
+    ) : (
+      <div className="small-text" onDoubleClick={() => setIsEditingDescription(true)}>
+        {editFields.description || 'Double-click to edit description'}
+      </div>
+    )}
+  </div>
 
+  {/* Event Association */}
+  <div>
+    <div className="large-text">Associated Event</div>
+    <div>
+      <select
+        value={editFields.event || ''}
+        onChange={(e) => handleEventSelection(e.target.value)}
+      >
+        <option value="">No event associated</option>
+        {availableEvents.map((event) => (
+          <option key={event.id} value={event.id}>
+            {event.title}
+          </option>
+        ))}
+      </select>
+    </div>
+  </div>
+
+      <div className="comment-section">
+        <Comments commentableId={currentImage.image_id || currentImage.id} />
+      </div>
+
+      <div className="modal-buttons">
         <div className="modal-buttons">
-          {editMode ? (
-            <>
-              <button onClick={handleSave}>Save</button>
-              <button onClick={() => setEditMode(false)}>Cancel</button>
-            </>
-          ) : (
-            <>
-              <button onClick={handleViewInLightbox}>Gallery Mode</button>
-              <button onClick={handleEditStart}>Edit</button>
-              <button onClick={closeModal}>Close</button>
-            </>
-          )}
+          <button onClick={saveChanges}>Save Changes</button>
+          <button onClick={closeModal}>Close</button>
+          <button onClick={handleLightboxToggle}>Gallery Mode</button>
         </div>
-
-        <div className="comment-section">
-          <h3>Comments</h3>
-          <CommentSection 
-            comments={currentImage?.comments} 
-            onAddComment={onAddComment} 
-          />
-        </div>
-      </Modal>
+      </div>
 
       {currentImage && (
         <FsLightbox
           toggler={lightboxToggler}
           sources={[currentImage.url]}
-          captions={[
-            <>
-              <h2>{currentImage.title}</h2>
-              <p>
-                Uploaded on {formatDate(currentImage.upload_date)} by {currentImage.author}
-              </p>
-              <p>{currentImage.description}</p>
-            </>
-          ]}
+          captions={[<>
+            <h2>{currentImage.title}</h2>
+            <p>Uploaded on {new Date(currentImage.upload_date).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            })} by {currentImage.author}</p>
+            <p>{currentImage.description}</p>
+          </>]}
           types={['image']}
         />
       )}
-    </>
+    </Modal>
   );
-};
+});
 
 export default ImageModal;

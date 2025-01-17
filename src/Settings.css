@@ -7,11 +7,11 @@
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   }
 
-.update-button {
-    margin-bottom: 2vh;
-}
+  .update-button {
+      margin-bottom: 2vh;
+  }
 
-.centerer {
+  .centerer {
     margin-top: 30px;
   }
 

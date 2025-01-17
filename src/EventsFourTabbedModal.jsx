@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import './EventsModal.css';
 import { HexColorPicker } from 'react-colorful';
 
-const EventsFourTabbedModal = ({ onClose, eventData, onEventUpdate, userDetails, handleJoinEvent, handleLeaveEvent, handleDelete }) => {
+const EventsFourTabbedModal = ({ onClose, eventData, onEventUpdate, handleDelete }) => {
     const [step, setStep] = useState(1);
 
     const transformedEventData = {
@@ -47,41 +47,7 @@ const EventsFourTabbedModal = ({ onClose, eventData, onEventUpdate, userDetails,
         setFormData({ ...originalData }); 
         onClose();
     };
-
-    const handleParticipationToggle = async () => {
-        let updatedParticipants;
     
-        if (formData.participants.some(participant => participant.user_id === userDetails.user_id)) {
-            console.log(userDetails.user_id + " wants to leave!");
-            updatedParticipants = formData.participants.filter(participant => participant.user_id !== userDetails.user_id);
-            
-            setFormData(prevFormData => ({
-                ...prevFormData,
-                participants: updatedParticipants,
-            }));
-    
-            try {
-                await handleLeaveEvent(eventData.id);
-            } catch (error) {
-                console.error('Error leaving event:', error);
-            }
-        } else {
-            updatedParticipants = [...formData.participants, { user_id: userDetails.user_id, name: userDetails.name }];
-    
-            setFormData(prevFormData => ({
-                ...prevFormData,
-                participants: updatedParticipants,
-            }));
-    
-            try {
-                await handleJoinEvent(eventData.id);
-            } catch (error) {
-                console.error('Error joining event:', error);
-            }
-        }
-    };
-    
-
     const renderStep = () => {
         switch (step) {
             case 1:
@@ -219,38 +185,7 @@ const EventsFourTabbedModal = ({ onClose, eventData, onEventUpdate, userDetails,
                             />
                         </label>
                     </div>
-                );
-            case 3:
-                return (
-                    <div className="step-content">
-                        <h3>Invite Guests</h3>
-                        <label>
-                            <input
-                                type="text"
-                                value={''}
-                                placeholder="Search for users..."
-                            />
-                        </label>
-                    </div>
-                );
-            case 4:
-                return (
-                    <div className="step-content">
-                        <h3>Members and Participation</h3>
-                        <div>
-                            <h4>Participating Members:</h4>
-                            {formData.participants.length > 0
-                                ? formData.participants.map((member) => (
-                                    <div key={member.user_id}>{member.name}</div>
-                                ))
-                                : <div>No participants yet.</div>
-                            }
-                            <button onClick={handleParticipationToggle}>
-                                {formData.participants.some(participant => participant.user_id === userDetails.user_id) ? 'Leave' : 'Join'}
-                            </button>
-                        </div>
-                    </div>
-                );                
+                );    
             default:
                 return null;
         }
@@ -269,16 +204,7 @@ const EventsFourTabbedModal = ({ onClose, eventData, onEventUpdate, userDetails,
                         className={`progress-step ${step === 2 ? 'active' : ''}`}
                         onClick={() => setStep(2)}
                     >Date & Location</div>
-                    <div 
-                        className={`progress-step ${step === 3 ? 'active' : ''}`}
-                        onClick={() => setStep(3)}
-                    >Invites</div>
-                    <div 
-                        className={`progress-step ${step === 4 ? 'active' : ''}`}
-                        onClick={() => setStep(4)}
-                    >Attendance</div>
                 </div>
-
                 <button className="close-button-modal" onClick={handleClose} aria-label="Close">
                     &times;
                 </button>
@@ -297,8 +223,8 @@ const EventsFourTabbedModal = ({ onClose, eventData, onEventUpdate, userDetails,
 
                 <button
                     onClick={handleNext}
-                    className={`button-red ${step === 4 ? 'disabled-button' : ''}`}
-                    disabled={step === 4}
+                    className={`button-red ${step === 2 ? 'disabled-button' : ''}`}
+                    disabled={step === 2}
                 >
                     Next
                 </button>
@@ -306,9 +232,9 @@ const EventsFourTabbedModal = ({ onClose, eventData, onEventUpdate, userDetails,
                 <button onClick={handleSave} className="button-blue">
                     Save
                 </button>
-
-                <button onClick={() => handleDelete(eventData.id)} className="button-red">
-                    Delete
+                
+                <button onClick={onClose} className="button-gray">
+                    Cancel
                 </button>
             </div>
         </div>

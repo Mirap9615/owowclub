@@ -1,13 +1,11 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import Steamed from './Steamed.jsx';
-import FsLightbox from "fslightbox-react";
 import './Gallery.css';  
-import Modal from 'react-modal';
+import ImageModal from './ImageModal.jsx'
 import TagEditor from './TagEditor.jsx';
 
 function Gallery() {
   const [images, setImages] = useState([]);
-  const [toggler, setToggler] = useState(false);
   const [currentImage, setCurrentImage] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const fileInputRef = useRef(null);
@@ -16,9 +14,6 @@ function Gallery() {
 
   const [editImageMode, setEditImageMode] = useState(false);
   const [selectedImages, setSelectedImages] = useState({});
-
-  const [editModalMode, setEditModalMode] = useState(false);
-  const [editFields, setEditFields] = useState({ name: '', description: '', tags: [] });
   
   useEffect(() => {
     const fetchImages = async () => {
@@ -42,22 +37,6 @@ function Gallery() {
     history.pushState({ modalOpen: true, imageId }, '', `?image=${imageId}`);
   }, []);
 
-  const handleViewInLightbox = useCallback(() => {
-    setToggler(prev => !prev);
-    setIsModalOpen(false);
-  }, []);
-
-  const handleModalEditStart = useCallback(() => {
-    if (currentImage) {
-      setEditFields({
-        name: currentImage.name,
-        description: currentImage.description,
-        tags: currentImage.tags || '',
-      });
-      setEditModalMode(true);
-    }
-  }, [currentImage]);
-
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const imageId = params.get('image');
@@ -73,34 +52,32 @@ function Gallery() {
     }
 }, [images]);
 
-  const handleModalSaveChanges = useCallback(async () => {
-    if (!currentImage) return;
+const handleModalSaveChanges = async (updatedImage) => {
+  try {
+    const response = await fetch(`/api/images/${updatedImage.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updatedImage),
+    });
 
-    const updatedImage = {
-      ...currentImage,
-      ...editFields, 
-    };
-  
-    try {
-      const response = await fetch(`/api/images/${currentImage.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updatedImage),
-      });
-  
-      if (response.ok) {
-        setImages(prevImages => prevImages.map(img => img.id === currentImage.id ? updatedImage : img));
-        setEditModalMode(false);
-        setIsModalOpen(false);
-      } else {
-        console.error('Failed to save changes');
-      }
-    } catch (error) {
-      console.error('Error saving changes:', error);
+    console.log(response);
+    console.log(updatedImage);
+
+    if (response.ok) {
+      setImages(prevImages =>
+        prevImages.map(img =>
+          img.id === updatedImage.id ? updatedImage : img
+        )
+      );
+    } else {
+      console.error('Failed to save changes');
     }
-  }, [currentImage, editFields]);
+  } catch (error) {
+    console.error('Error saving changes:', error);
+  }
+};
 
   const handleFileChange = useCallback(async (event) => {
     const file = event.target.files[0];
@@ -277,31 +254,7 @@ function Gallery() {
             isOpen={isModalOpen}
             closeModal={closeModal}
             currentImage={currentImage}
-            editModalMode={editModalMode}
-            editFields={editFields}
-            setEditFields={setEditFields}
-            handleModalSaveChanges={handleModalSaveChanges}
-            setEditModalMode={setEditModalMode}
-            handleViewInLightbox={handleViewInLightbox}
-            handleModalEditStart={handleModalEditStart}
-            handleAddComment={handleAddComment}
-          />
-        )}
-  
-        {currentImage && (
-          <FsLightbox
-            toggler={toggler}
-            sources={[currentImage.url]}
-            captions={[<>
-              <h2>{currentImage.title}</h2>
-              <p>Uploaded on {new Date(currentImage.upload_date).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })} by {currentImage.author}</p>
-              <p>{currentImage.description}</p>
-            </>]}
-            types={['image']}
+            onSave={handleModalSaveChanges}
           />
         )}
       </div>
@@ -333,128 +286,5 @@ const ImageItem = React.memo(({ image, editImageMode, selectedImages, handleSele
     <img src={image.url} alt={image.name || ''} loading="lazy" />
   </div>
 ));
-
-const formatDate = (isoDate) => {
-  return new Date(isoDate).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-};
-
-const ImageModal = React.memo(({ 
-  isOpen, 
-  closeModal, 
-  currentImage, 
-  editModalMode, 
-  editFields, 
-  setEditFields, 
-  handleModalSaveChanges, 
-  setEditModalMode, 
-  handleViewInLightbox, 
-  handleModalEditStart, 
-  handleAddComment 
-}) => (
-  <Modal
-    isOpen={isOpen}
-    onRequestClose={closeModal}
-    contentLabel="Detailed Image View"
-    className="image-modal"
-    overlayClassName="modal-overlay"
-  >
-    <div className="modal-title">
-      <h2 style={{display: 'flex', justifyContent: 'center'}}>Detailed Image View</h2>
-    </div>
-    <img src={currentImage.url} alt={currentImage.name || 'Selected Image'} className="modal-image" />
-    <div className="image-author">Uploaded by {currentImage.author} on {formatDate(currentImage.upload_date)}</div>
-    <br></br>
-    <div className="modal-tags">
-      {editModalMode ? (
-        <>
-          <div>
-            <strong>File Name:</strong>
-            <input 
-              type="text" 
-              value={editFields.name} 
-              onChange={(e) => setEditFields(prev => ({...prev, name: e.target.value}))} 
-            />
-          </div>
-          <div>
-            <strong>Description:</strong>
-            <textarea 
-              value={editFields.description} 
-              onChange={(e) => setEditFields(prev => ({...prev, description: e.target.value}))}
-            />
-          </div>
-          <div>
-          <strong>Tags:</strong>
-            <TagEditor 
-              tags={editFields.tags} 
-              onTagsChange={(newTags) => setEditFields(prev => ({...prev, tags: newTags}))} 
-            />
-          </div>
-        </>
-      ) : (
-        <>
-          <div><strong>File Name:</strong> {currentImage.name}</div>
-          <div><strong>Description:</strong> {currentImage.description}</div>
-          <div><strong>Tags:</strong> {currentImage.tags.join(', ') || 'No tags'}</div> 
-        </>
-      )}
-    </div>
-
-    <div className="modal-buttons">
-      {editModalMode ? (
-        <>
-          <button onClick={handleModalSaveChanges}>Save</button>
-          <button onClick={() => setEditModalMode(false)}>Cancel</button>
-        </>
-      ) : (
-        <>
-          <button onClick={handleViewInLightbox}>Gallery Mode</button>
-          <button onClick={handleModalEditStart}>Edit</button>
-          <button onClick={closeModal}>Close</button>
-        </>
-      )}
-    </div>
-
-    <div className="comment-section">
-      <h3>Comments</h3>
-      <CommentSection comments={currentImage.comments} onAddComment={handleAddComment} />
-    </div>
-  </Modal>
-));
-
-const CommentSection = React.memo(({ comments = [], onAddComment }) => {
-  const [newComment, setNewComment] = useState('');
-
-  const handleSubmit = () => {
-    if (newComment.trim() === '') return;
-    onAddComment(newComment);
-    setNewComment('');
-  };
-
-  return (
-    <div className="comment-section">
-      {comments.length === 0 ? (
-        <p>Be the first to comment!</p>
-      ) : (
-        comments.map((comment, idx) => (
-          <div key={idx} className="comment">
-            <strong>{comment.author}:</strong> {comment.text}
-          </div>
-        ))
-      )}
-      <input 
-        type="text" 
-        value={newComment} 
-        onChange={(e) => setNewComment(e.target.value)} 
-        placeholder="Add a comment..."
-      />
-      <br></br>
-      <button onClick={handleSubmit}>Post</button>
-    </div>
-  );
-});
 
 export default Gallery;

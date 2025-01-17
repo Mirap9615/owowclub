@@ -1,9 +1,7 @@
 .event-modal {
-    width: 500px;
     max-width: 100%;
     margin: 0 auto;
     background: #fff;
-    position: absolute;
     border-radius: 10px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     overflow: hidden;
@@ -12,8 +10,6 @@
 }
 
 .modal-header {
-    background: #457ad6;
-    color: #fff;
     padding: 20px;
     text-align: center;
     position: relative;
@@ -28,19 +24,21 @@
 .progress-bar {
     display: flex;
     justify-content: space-between;
-    margin-top: 15px;
-    align-items: flex-end;
+    /*align-items: flex-end;*/
+    align-items: center; /* Center items vertically */
+    gap: 10px; /* Add consistent spacing between items */
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    padding: 10px; /* Optional: Add padding for better visuals */
 }
 
 .progress-step {
     text-align: center;
-    padding: 5px 0;
-    border-bottom: 4px solid #e0e0e0;
+    border-bottom: 4px solid blue;
     transition: all 0.3s ease-in-out;
 }
 
 .progress-step.active {
-    border-color: #fff;
+    border-color: black;
     font-weight: bold;
 }
 
@@ -287,6 +285,20 @@ button:disabled {
     }
     .modal-footer {
         background: gainsboro;
+    }
+    .progress-step.active {
+        border-color: white;
+    }
+    .progress-step {
+        border-color: gray;
+    }
+    .progress-step {
+        flex: none; /* Reset equal distribution */
+        max-width: 100%; /* Allow full width if necessary */
+    }
+    .progress-bar {
+        gap: 5px; /* Reduce spacing on smaller screens */
+        flex-direction: column; /* Stack steps vertically if needed */
     }
 }
 

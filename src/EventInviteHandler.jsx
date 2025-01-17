@@ -1,9 +1,12 @@
 import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import './EventInviteHandler.css';
 
 const EventInviteHandler = () => {
   const { token } = useParams();
   const navigate = useNavigate();
+  const [status, setStatus] = React.useState('loading'); // 'loading', 'success', or 'error'
+  const [message, setMessage] = React.useState('');
 
   useEffect(() => {
     const acceptInvite = async () => {
@@ -14,26 +17,49 @@ const EventInviteHandler = () => {
 
         if (!response.ok) {
           const errorData = await response.json();
-          console.error('Failed to accept invite:', errorData);
-          alert(errorData.error || 'Invalid or expired invitation');
-          navigate('/events');
+          setStatus('error');
+          setMessage(errorData.error || 'Invalid or expired invitation');
           return;
         }
 
         const data = await response.json();
-        alert(`Joined '${data.event.title}' successfully!`);
-        navigate(`/events/${data.event.id}`); 
+        setStatus('success');
+        setMessage(`Joined '${data.event.title}' successfully!`);
+        setTimeout(() => navigate(`/events/${data.event.id}`), 3000); // Redirect after 3 seconds
       } catch (error) {
-        console.error('Error accepting invite:', error);
-        alert('Failed to accept invitation.');
-        navigate('/events'); 
+        setStatus('error');
+        setMessage('Failed to accept invitation.');
       }
     };
 
     acceptInvite();
   }, [token, navigate]);
 
-  return <p>Processing your invitation...</p>;
+  return (
+    <div className="invite-handler-container">
+      {status === 'loading' && (
+        <>
+          <div className="loader"></div>
+          <p className="invite-handler-title">Processing your invitation...</p>
+        </>
+      )}
+      {status === 'success' && (
+        <>
+          <p className="invite-handler-title">🎉 Success!</p>
+          <p className="success-message">{message}</p>
+        </>
+      )}
+      {status === 'error' && (
+        <>
+          <p className="invite-handler-title">❌ Oops!</p>
+          <p className="error-message">{message}</p>
+          <button className="invite-handler-button" onClick={() => navigate('/calendar')}>
+            Back to Events
+          </button>
+        </>
+      )}
+    </div>
+  );
 };
 
 export default EventInviteHandler;

@@ -488,7 +488,6 @@ function Cal() {
             const formattedStart = format(new Date(event.startDateTime), 'MM/dd/yyyy');
             const formattedEnd = format(new Date(event.endDateTime), 'MM/dd/yyyy');
             const dateDisplay = formattedStart === formattedEnd ? formattedStart : `${formattedStart} to ${formattedEnd}`;
-            console.log(event)
 
             return (
               <tr key={event.id} style={{ backgroundColor: event.color, color: '#ffffff' }}>

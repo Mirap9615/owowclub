@@ -122,6 +122,7 @@ const Applications = () => {
               <th>Email</th>
               <th>Phone</th>
               <th>Submitted</th>
+              <th>Membership Type</th>
               <th>Interests</th>
               <th>Status</th>
               {activeTab === 'Pending' && <th>Actions</th>}
@@ -135,6 +136,7 @@ const Applications = () => {
                   <td>{app.email}</td>
                   <td>{app.phone}</td>
                   <td>{new Date(app.created_at).toLocaleDateString()}</td>
+                  <td>{app.membership_type}</td>
                   <td>
                     {Array.isArray(app.interests)
                       ? app.interests.join(', ')
@@ -173,6 +175,32 @@ const Applications = () => {
                     <strong>Comments:</strong> {app.comments}
                   </td>
                 </tr>
+
+                {/* Display properties for Travel Host applications */}
+      {app.membership_type === 'Travel Host' && app.properties && app.properties.length > 0 && (
+        <tr className="application-detail-row">
+          <td colSpan="8">
+            <strong>Properties:</strong>
+            <ul>
+              {app.properties.map((property, index) => (
+                <li key={index}>
+                  <p>
+                    <strong>Address:</strong> {property.address}
+                  </p>
+                  <p>
+                    <strong>Type:</strong> {property.type}
+                  </p>
+                  <p>
+                    <strong>Description:</strong> {property.description}
+                  </p>
+                  <p>
+                    <strong>Availability:</strong> {property.availability}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </td>
+        </tr>)}
               </React.Fragment>
             ))}
           </tbody>

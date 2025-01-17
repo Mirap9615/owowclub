@@ -1,7 +1,23 @@
+.standard-container {
+    width: 300px;
+    margin: 0 auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 0 10px #0000001a;
+}
+
+.next-button {
+    background-color: #4caf50;
+}
+
+.back-button {
+    background-color: #008cba;
+}
+
 .input-group-request {
     width: 100%;
     margin-bottom: 15px;
-    margin-left: 25vw;
 }
 
 .input-group-request label {

@@ -154,7 +154,7 @@ const Request = () => {
         return (
           <>
             <h2>Step 2: Personal Information</h2>
-            <div className="input-group-request">
+            <div className="input-group">
               <label>Full Name</label>
               <input
                 type="text"
@@ -163,7 +163,7 @@ const Request = () => {
                 required
               />
             </div>
-            <div className="input-group-request">
+            <div className="input-group">
               <label>Email Address</label>
               <input
                 type="email"
@@ -172,7 +172,7 @@ const Request = () => {
                 required
               />
             </div>
-            <div className="input-group-request">
+            <div className="input-group">
               <label>Phone Number (Optional)</label>
               <input
                 type="tel"
@@ -180,7 +180,7 @@ const Request = () => {
                 onChange={(e) => setPhone(e.target.value)}
               />
             </div>
-            <div className="input-group-request">
+            <div className="input-group">
               <label>Why do you want to join the club?</label>
               <textarea
                 value={reason}
@@ -235,7 +235,7 @@ const Request = () => {
         return (
           <>
             <h2>Step 3: Additional Information</h2>
-            <div className="input-group-request">
+            <div className="input-group">
               <label>Availability</label>
               <select
                 value={availability}
@@ -249,7 +249,7 @@ const Request = () => {
               </select>
             </div>
 
-        <div className="input-group-request">
+        <div className="input-group">
             <label>Membership Type</label>
             <select
                 value={membershipType}
@@ -264,7 +264,7 @@ const Request = () => {
 
         {membershipType === 'Travel Host' && (
             <>
-                <div className="input-group-request">
+                <div className="input-group">
                     <label>Property Address</label>
                     <input
                         type="text"
@@ -273,7 +273,7 @@ const Request = () => {
                         required
                     />
                 </div>
-                <div className="input-group-request">
+                <div className="input-group">
                     <label>Type of Property</label>
                     <input
                         type="text"
@@ -282,7 +282,7 @@ const Request = () => {
                         required
                     />
                 </div>
-                <div className="input-group-request">
+                <div className="input-group">
                     <label>Property Description</label>
                     <textarea
                         value={propertyDescription}
@@ -290,7 +290,7 @@ const Request = () => {
                         required
                     />
                 </div>
-                <div className="input-group-request">
+                <div className="input-group">
                     <label>Property Availability</label>
                     <select
                         value={propertyAvailability}
@@ -304,14 +304,14 @@ const Request = () => {
                 </div>
             </>
         )}
-            <div className="input-group-request">
+            <div className="input-group">
               <label>How did you hear about us?</label>
               <textarea
                 value={referral}
                 onChange={(e) => setReferral(e.target.value)}
               />
             </div>
-            <div className="input-group-request">
+            <div className="input-group">
               <label>Additional Comments or Questions (Optional)</label>
               <textarea
                 value={comments}
@@ -344,7 +344,7 @@ const Request = () => {
   return (
     <>
       <Steamed />
-      <div className="centerer">
+      <div className="centerer-er">
         <div className="standard-container">
           <h2>Club Application</h2>
           <form onSubmit={handleSubmit}>
@@ -354,7 +354,7 @@ const Request = () => {
 
             {step < 4 && ( 
               <div className="button-group">
-                <button
+                <button className="back-button"
                   type="button"
                   onClick={handleBack}
                   disabled={step === 1} 
@@ -362,7 +362,7 @@ const Request = () => {
                   Back
                 </button>
                 {step < 3 ? (
-                  <button type="button" onClick={handleNext}>
+                  <button className="next-button" type="button" onClick={handleNext}>
                     Next
                   </button>
                 ) : (

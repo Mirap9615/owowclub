@@ -9,10 +9,12 @@
 
 .next-button {
     background-color: #4caf50;
+    color: white;
 }
 
 .back-button {
     background-color: #008cba;
+    color: white;
 }
 
 .input-group-request {

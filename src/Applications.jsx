@@ -8,6 +8,7 @@ const Applications = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [applications, setApplications] = useState([]);
+  const [currentApplicationIndex, setCurrentApplicationIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('Pending');
   const navigate = useNavigate();
@@ -70,6 +71,8 @@ const Applications = () => {
     return false;
   });
 
+  const currentApplication = filteredApplications[currentApplicationIndex] || null;
+
   if (loading) {
     return <p>Loading applications...</p>;
   }
@@ -84,129 +87,114 @@ const Applications = () => {
         <div className="tabs">
           <button
             className={activeTab === 'Pending' ? 'active' : ''}
-            onClick={() => setActiveTab('Pending')}
+            onClick={() => {
+              setActiveTab('Pending');
+              setCurrentApplicationIndex(0); // Reset index on tab switch
+            }}
           >
             Pending
           </button>
           <button
-              className={activeTab === 'All' ? 'active' : ''}
-              onClick={() => setActiveTab('All')}
-            >
-              All
+            className={activeTab === 'All' ? 'active' : ''}
+            onClick={() => {
+              setActiveTab('All');
+              setCurrentApplicationIndex(0);
+            }}
+          >
+            All
           </button>
           <button
             className={activeTab === 'Accepted' ? 'active' : ''}
-            onClick={() => setActiveTab('Accepted')}
+            onClick={() => {
+              setActiveTab('Accepted');
+              setCurrentApplicationIndex(0);
+            }}
           >
             Accepted
           </button>
           <button
             className={activeTab === 'Rejected' ? 'active' : ''}
-            onClick={() => setActiveTab('Rejected')}
+            onClick={() => {
+              setActiveTab('Rejected');
+              setCurrentApplicationIndex(0);
+            }}
           >
             Rejected
           </button>
         </div>
 
-        {/* Table or Message */}
+        {/* Content Area */}
+        <div className="content-area">
+          {filteredApplications.length === 0 ? (
+            <h2>No applications in this category</h2>
+          ) : (
+            <div className="application-card">
+              {/* Navigation Buttons */}
+              <div className="navigation-buttons">
+                <button
+                  onClick={() => setCurrentApplicationIndex((prev) => Math.max(prev - 1, 0))}
+                  disabled={currentApplicationIndex === 0}
+                >
+                  Previous
+                </button>
+                <button
+                  onClick={() =>
+                    setCurrentApplicationIndex((prev) =>
+                      Math.min(prev + 1, filteredApplications.length - 1)
+                    )
+                  }
+                  disabled={currentApplicationIndex === filteredApplications.length - 1}
+                >
+                  Next
+                </button>
+              </div>
 
-        {filteredApplications.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '20px' }}>
-            No applications of this type
-          </div>
-        ) : (
-          <table className="applications-table">
-          <thead>
-            <tr>
-              <th>Full Name</th>
-              <th>Email</th>
-              <th>Phone</th>
-              <th>Submitted</th>
-              <th>Membership Type</th>
-              <th>Interests</th>
-              <th>Status</th>
-              {activeTab === 'Pending' && <th>Actions</th>}
-            </tr>
-          </thead>
-          <tbody>
-            {filteredApplications.map((app, index) => (
-              <React.Fragment key={app.id}>
-                <tr className="application-row">
-                  <td>{app.full_name}</td>
-                  <td>{app.email}</td>
-                  <td>{app.phone}</td>
-                  <td>{new Date(app.created_at).toLocaleDateString()}</td>
-                  <td>{app.membership_type}</td>
-                  <td>
-                    {Array.isArray(app.interests)
-                      ? app.interests.join(', ')
-                      : app.interests}
-                  </td>
-                  <td>{app.accepted === null ? 'Pending' : app.accepted ? 'Accepted' : 'Rejected'}</td>
+              <h3>{currentApplication.full_name}</h3>
+              <div className="separator-ofu">Personal Information</div>
+              <p><strong>Email:</strong> {currentApplication.email}</p>
+              <p><strong>Phone:</strong> {currentApplication.phone || 'N/A'}</p>
+              <p><strong>Membership Type:</strong> {currentApplication.membership_type}</p>
+              <p><strong>Submitted:</strong> {new Date(currentApplication.created_at).toLocaleDateString()}</p>
+              <p><strong>Interests:</strong> {currentApplication.interests.join(', ')}</p>
+              <p><strong>Reason:</strong> {currentApplication.reason}</p>
+              <p><strong>Referral:</strong> {currentApplication.referral}</p>
+              <p><strong>Comments:</strong> {currentApplication.comments}</p>
 
-                  {/* Actions for Pending Tab */}
-                  {activeTab === 'Pending' && (
-                    <td>
-                      <button
-                        onClick={() => handleStatusChange(app.id, true)}
-                      >
-                        Accept
-                      </button>
-                      <button
-                        onClick={() => handleStatusChange(app.id, false)}
-                      >
-                        Reject
-                      </button>
-                    </td>
-                  )}
-                </tr>
-                <tr className="application-detail-row">
-                  <td colSpan="8">
-                    <strong>Reason:</strong> {app.reason}
-                  </td>
-                </tr>
-                <tr className="application-detail-row">
-                  <td colSpan="8">
-                    <strong>Referral:</strong> {app.referral}
-                  </td>
-                </tr>
-                <tr className="application-detail-row">
-                  <td colSpan="8">
-                    <strong>Comments:</strong> {app.comments}
-                  </td>
-                </tr>
+              {/* Properties */}
+              {currentApplication.membership_type === 'Travel Host' && currentApplication.properties?.length > 0 ? (
+                currentApplication.properties.some((property) => property === null) ? (
+                  <p>No property details available for this application.</p>
+                ) : (
+                  <>
+                    <div className="separator-ofu">Properties</div>
+                    <ul>
+                      {currentApplication.properties.map((property, index) => (
+                        <li key={index}>
+                          <p><strong>Address:</strong> {property.address || 'N/A'}</p>
+                          <p><strong>Type:</strong> {property.type || 'N/A'}</p>
+                          <p><strong>Description:</strong> {property.description || 'N/A'}</p>
+                          <p><strong>Availability:</strong> {property.availability || 'N/A'}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )
+              ) : (
+                currentApplication.membership_type === 'Travel Host' && (
+                  <p>No property details available for this application.</p>
+                )
+              )}
 
-                {/* Display properties for Travel Host applications */}
-      {app.membership_type === 'Travel Host' && app.properties && app.properties.length > 0 && (
-        <tr className="application-detail-row">
-          <td colSpan="8">
-            <strong>Properties:</strong>
-            <ul>
-              {app.properties.map((property, index) => (
-                <li key={index}>
-                  <p>
-                    <strong>Address:</strong> {property.address}
-                  </p>
-                  <p>
-                    <strong>Type:</strong> {property.type}
-                  </p>
-                  <p>
-                    <strong>Description:</strong> {property.description}
-                  </p>
-                  <p>
-                    <strong>Availability:</strong> {property.availability}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          </td>
-        </tr>)}
-              </React.Fragment>
-            ))}
-          </tbody>
-        </table>
-        )}
-
+              {/* Action Buttons */}
+              {activeTab === 'Pending' && (
+                <div className="action-buttons">
+                  <button onClick={() => handleStatusChange(currentApplication.id, true)}>Accept</button>
+                  <button onClick={() => handleStatusChange(currentApplication.id, false)}>Reject</button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </>
   );

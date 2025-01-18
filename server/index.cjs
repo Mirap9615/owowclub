@@ -680,22 +680,16 @@ app.post('/register', async (req, res) => {
 
 // application endpoint
 app.post('/request', async (req, res) => {
-  console.log('Received payload:', req.body);
   const { full_name, email, phone, reason, interests, availability, referral, comments, 
     membershipType, propertyAddress, propertyType, propertyDescription, propertyAvailability, } = req.body;
-  console.log('Step 2');
   // Check if email already exists
   const emailCheckQuery = 'SELECT * FROM membership_applications WHERE email = $1';
   const emailCheckResult = await pool.query(emailCheckQuery, [email]);
-  console.log('Step 3');
 
-  console.log('Step 4');
   if (emailCheckResult.rows.length > 0) {
     return res.status(400).json({ error: 'This email already has a pending application.'});
   }
-  console.log('Step 5');
 
-  console.log('Inserting application into membership_applications...');
   const query = 'INSERT INTO membership_applications (full_name, email, phone, reason, interests, availability, referral, comments, membership_type) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id';
   const values = [full_name, email, phone, reason, interests || '{}', availability, referral, comments, membershipType];
   console.log(values);
@@ -724,14 +718,40 @@ app.post('/request', async (req, res) => {
       console.log('Property details inserted successfully.');
     }
 
-    res.status(201).send('Application stored');
+    const emailParams = {
+      Source: 'no-reply@jessicatspace.com',
+      Destination: {
+        ToAddresses: [email],
+      },
+      Message: {
+        Subject: {
+          Data: 'Thank You for Your Application to OWL^2 Club',
+        },
+        Body: {
+          Html: {
+            Data: `
+              <p>Dear ${full_name},</p>
+              <p>Thank you for your interest in joining the OWL^2 Club. We are delighted to inform you that we have received your application.</p>
+              <p>Our team is currently reviewing your application and will update you regarding the status as soon as possible. If you have any questions or additional information to share, feel free to reply to this email.</p>
+              <p>We truly value your enthusiasm and look forward to welcoming you into our community.</p>
+              <p>Warm regards,</p>
+              <p>The OWL^2 Club Team</p>
+            `,
+          },
+        },
+      },
+    };
+
+    const command = new SendEmailCommand(emailParams);
+    await sesClient.send(command);
+
+    res.status(201).send('Application stored and confirmation email sent');
   } catch (err) {
     console.error(err);
     res.status(500).send('Error storing application');
   }
 });
 
-// get applications endpoint
 app.get('/api/applications', async (req, res) => {
   try {
     const query = `

@@ -511,11 +511,29 @@ app.get('/api/events/invite/:token', async (req, res) => {
 
 // create an event
 app.post('/api/events', async (req, res) => {
-  const { event_date, start_time, end_time, title, description, note, color, location, type, exclusivity } = req.body;
+  const {
+      event_date,
+      start_time,
+      end_time,
+      title,
+      description,
+      note,
+      color,
+      is_physical,
+      location,
+      zip_code,
+      city,
+      state,
+      country,
+      virtual_link,
+      type,
+      exclusivity,
+  } = req.body;
+
   const userId = req.session?.user?.user_id;
 
   if (!userId) {
-    return res.status(401).json({ error: 'Unauthorized: User not logged in' });
+      return res.status(401).json({ error: 'Unauthorized: User not logged in' });
   }
 
   try {
@@ -523,15 +541,51 @@ app.post('/api/events', async (req, res) => {
       const slug = await generateUniqueSlug(title);
 
       const result = await pool.query(
-        'INSERT INTO event (event_date, start_time, end_time, title, description, note, color, location, type, exclusivity, slug) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id',
-        [event_date, start_time, end_time, title, description, note, color, location, type, exclusivity, slug]
-      );    
-      const newId = result.rows[0].id; 
-
-      await pool.query(
-        'INSERT INTO event_user (event_id, user_id) VALUES ($1, $2)',
-        [newId, userId]
+          `INSERT INTO event (
+              event_date,
+              start_time,
+              end_time,
+              title,
+              description,
+              note,
+              color,
+              is_physical,
+              location,
+              zip_code,
+              city,
+              state,
+              country,
+              virtual_link,
+              type,
+              exclusivity,
+              slug
+          ) VALUES (
+              $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17
+          ) RETURNING id`,
+          [
+              event_date,
+              start_time,
+              end_time,
+              title,
+              description,
+              note,
+              color,
+              is_physical,
+              location,
+              zip_code,
+              city,
+              state,
+              country,
+              virtual_link,
+              type,
+              exclusivity,
+              slug,
+          ]
       );
+
+      const newId = result.rows[0].id;
+
+      await pool.query('INSERT INTO event_user (event_id, user_id) VALUES ($1, $2)', [newId, userId]);
 
       await pool.query('COMMIT');
       res.status(201).json({ id: newId });
@@ -545,39 +599,83 @@ app.post('/api/events', async (req, res) => {
 // update an event 
 app.put('/api/events/:id', async (req, res) => {
   const { id } = req.params;
-  const { date, start_time, end_time, title, description, note, color, location, type, exclusivity } = req.body;
+  const {
+      date,
+      start_time,
+      end_time,
+      title,
+      description,
+      note,
+      color,
+      type,
+      exclusivity,
+      is_physical,
+      location,
+      zip_code,
+      city,
+      state,
+      country,
+      virtual_link,
+  } = req.body;
 
   try {
-    let slug; 
+      let slug;
 
-    const existingEvent = await pool.query('SELECT title FROM event WHERE id = $1', [id]);
-    if (existingEvent.rows[0].title !== title) {
-      slug = await generateUniqueSlug(title);
-    }
+      // Generate a new slug only if the title has changed
+      const existingEvent = await pool.query('SELECT title FROM event WHERE id = $1', [id]);
+      if (existingEvent.rows[0].title !== title) {
+          slug = await generateUniqueSlug(title);
+      }
 
-    await pool.query(
-      `UPDATE event 
-       SET event_date = $1,
-           start_time = $2,
-           end_time = $3,
-           title = $4,
-           description = $5,
-           note = $6,
-           color = $7,
-           location = $8,
-           type = $9,
-           exclusivity = $10,
-           slug = COALESCE($11, slug)
-       WHERE id = $12`,
-      [date, start_time, end_time, title, description, note, color, location, type, exclusivity, slug, id]
-    );
+      await pool.query(
+          `UPDATE event
+           SET event_date = $1,
+               start_time = $2,
+               end_time = $3,
+               title = $4,
+               description = $5,
+               note = $6,
+               color = $7,
+               type = $8,
+               exclusivity = $9,
+               is_physical = $10,
+               location = $11,
+               zip_code = $12,
+               city = $13,
+               state = $14,
+               country = $15,
+               virtual_link = $16,
+               slug = COALESCE($17, slug)
+           WHERE id = $18`,
+          [
+              date,
+              start_time,
+              end_time,
+              title,
+              description,
+              note,
+              color,
+              type,
+              exclusivity,
+              is_physical,
+              location,
+              zip_code,
+              city,
+              state,
+              country,
+              virtual_link,
+              slug,
+              id,
+          ]
+      );
 
-    res.json({ message: `Event with ID ${id} updated successfully` });
+      res.json({ message: `Event with ID ${id} updated successfully` });
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+      console.error(err.message);
+      res.status(500).send('Server Error');
   }
 });
+
 
 // delete an event 
 app.delete('/api/events/:id', async (req, res) => {

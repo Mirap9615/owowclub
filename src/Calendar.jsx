@@ -8,8 +8,7 @@ import checkAuth from './CheckAuth.jsx';
 import { HexColorPicker } from 'react-colorful';
 import { format } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
-import EventsThreeTabbedModal from './EventsThreeTabbedModal.jsx';
-import EventsFourTabbedModal from './EventsFourTabbedModal.jsx';
+import EventModal from './EventModal.jsx';
 
 const findEventsForDate = (selectedDate, allEvents) => {
     return allEvents.filter(event => {
@@ -121,15 +120,21 @@ function Cal() {
 
   const handleEventCreate = async (formData) => {
     const finalFormData = {
-      title: formData.title.trim() || 'New Event',
-      type: formData.type || 'entertainment',
-      exclusivity: formData.exclusivity || 'open',
-      description: formData.description.trim() || 'default description',
-      event_date: formData.date || new Date().toISOString().split("T")[0],
-      start_time: formData.startTime || '16:00', 
-      end_time: formData.endTime || '21:00',
-      location: formData.location.trim() || 'unset',
-      color: formData.color || '#d3d3d3',
+        title: formData.title.trim() || 'New Event',
+        type: formData.type || 'entertainment',
+        exclusivity: formData.exclusivity || 'open',
+        description: formData.description.trim() || 'Default description',
+        event_date: formData.event_date || new Date().toISOString().split("T")[0],
+        start_time: formData.start_time || '16:00',
+        end_time: formData.end_time || '21:00',
+        is_physical: formData.is_physical,
+        location: formData.is_physical ? formData.location.trim() || 'Unset' : null,
+        zip_code: formData.is_physical ? formData.zip_code.trim() || '' : null,
+        city: formData.is_physical ? formData.city.trim() || '' : null,
+        state: formData.is_physical ? formData.state.trim() || '' : null,
+        country: formData.is_physical ? formData.country.trim() || '' : null,
+        virtual_link: !formData.is_physical ? formData.virtual_link.trim() || '' : null,
+        color: formData.color || '#d3d3d3',
     };
 
     try {
@@ -148,21 +153,27 @@ function Cal() {
             const endDateTime = new Date(`${finalFormData.event_date}T${finalFormData.end_time}`);
 
             const createdEvent = {
-                id: responseData.id, 
+                id: responseData.id,
                 startDateTime: startDateTime,
                 endDateTime: endDateTime,
                 title: finalFormData.title,
                 description: finalFormData.description,
                 note: finalFormData.note || '',
                 color: finalFormData.color,
+                is_physical: finalFormData.is_physical,
                 location: finalFormData.location,
+                zip_code: finalFormData.zip_code,
+                city: finalFormData.city,
+                state: finalFormData.state,
+                country: finalFormData.country,
+                virtual_link: finalFormData.virtual_link,
                 type: finalFormData.type,
                 exclusivity: finalFormData.exclusivity,
-                participants: formData.guests || [],
+                participants: formData.participants || [],
                 temp: false,
             };
 
-            setEvents(prevEvents => [...prevEvents, createdEvent]);
+            setEvents((prevEvents) => [...prevEvents, createdEvent]);
         } else {
             console.error('Failed to create event:', response.statusText);
         }
@@ -171,7 +182,7 @@ function Cal() {
     }
 
     handleCloseModal();
-  };
+};
 
   useEffect(() => {
     if (isPanelOpen) {
@@ -445,27 +456,13 @@ function Cal() {
         {isModalOpen && (
           <>
             <div className="backdrop backdrop-active" onClick={handleCloseModal}></div>
-            <EventsThreeTabbedModal 
-                onClose={handleCloseModal} 
-                onEventCreate={handleEventCreate}
+            <EventModal 
+              onClose={handleCloseModal}
+              mode="create"
+              onEventUpdate={handleEventCreate}
             />
           </>
         )}
-
-            {isPanelOpen && selectedEvent && (
-              <>
-                <div className="backdrop backdrop-active" onClick={handleBackdropClick}></div>
-                <EventsFourTabbedModal
-                    eventData={selectedEvent}
-                    onClose={handleClosePanel}
-                    onEventUpdate={handleEventUpdate}
-                    userDetails={userDetails}
-                    handleJoinEvent={handleJoinEvent}
-                    handleLeaveEvent={handleLeaveEvent}
-                    handleDelete={handleDelete}
-                />
-              </>
-            )}
 
         <input
           type="text"

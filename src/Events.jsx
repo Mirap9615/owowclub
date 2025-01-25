@@ -19,8 +19,7 @@ import './Cal.css';
 import checkAuth from './CheckAuth.jsx';
 import { format } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
-import EventsThreeTabbedModal from './EventsThreeTabbedModal.jsx';
-import EventsFourTabbedModal from './EventsFourTabbedModal.jsx';
+import EventModal from './EventModal.jsx';
 
 const findEventsForDate = (selectedDate, allEvents) => {
     return allEvents.filter(event => {
@@ -454,8 +453,10 @@ function Cal() {
         {isModalOpen && (
           <>
             <div className="backdrop backdrop-active" onClick={handleCloseModal}></div>
-            <EventsThreeTabbedModal 
+            <EventModal 
                 onClose={handleCloseModal} 
+                mode="edit"
+                eventData={selectedEvent}
                 onEventCreate={handleEventCreate}
             />
           </>

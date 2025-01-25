@@ -2,26 +2,40 @@ import React, { useState } from 'react';
 import './EventsModal.css';
 import { HexColorPicker } from 'react-colorful';
 
-const EventsFourTabbedModal = ({ onClose, eventData, onEventUpdate, handleDelete }) => {
+const EventModal = ({ onClose, mode, eventData, onEventUpdate }) => {
+    const isEditMode = mode === 'edit';
+
+    const initialFormData = isEditMode
+        ? {
+            ...eventData,
+            event_date: eventData?.startDateTime ? eventData.startDateTime.toISOString().split('T')[0] : '',
+            start_time: eventData?.startDateTime ? eventData.startDateTime.toTimeString().split(' ')[0].substring(0, 5) : '',
+            end_time: eventData?.endDateTime ? eventData.endDateTime.toTimeString().split(' ')[0].substring(0, 5) : '',
+        }
+        : {
+            title: '',
+            type: '',
+            exclusivity: '',
+            description: '',
+            event_date: '',
+            start_time: '',
+            end_time: '',
+            is_physical: true, 
+            location: '',
+            zip_code: '',
+            city: '',
+            state: '',
+            country: '',
+            virtual_link: '',
+            color: '',
+        };
+
     const [step, setStep] = useState(1);
-
-    const transformedEventData = {
-        ...eventData,
-        event_date: eventData.startDateTime ? eventData.startDateTime.toISOString().split('T')[0] : '',
-        start_time: eventData.startDateTime ? eventData.startDateTime.toTimeString().split(' ')[0].substring(0, 5) : '',
-        end_time: eventData.endDateTime ? eventData.endDateTime.toTimeString().split(' ')[0].substring(0, 5) : '',
-    };
-
-    console.log(transformedEventData);
-
-    const [formData, setFormData] = useState(transformedEventData);
-    const [originalData, setOriginalData] = useState(transformedEventData);
+    const [formData, setFormData] = useState(initialFormData);
     const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
 
     const handleNext = () => {
-        if (step < 4) {
-            setStep(step + 1);
-        }
+        if (step < 2) setStep(step + 1);
     };
 
     const handleBack = () => {
@@ -30,9 +44,9 @@ const EventsFourTabbedModal = ({ onClose, eventData, onEventUpdate, handleDelete
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setFormData((prevData) => ({
-            ...prevData,
-            [name]: value
+        setFormData((prev) => ({
+            ...prev,
+            [name]: name === 'is_physical' ? value === 'true' : value, 
         }));
     };
 
@@ -41,15 +55,80 @@ const EventsFourTabbedModal = ({ onClose, eventData, onEventUpdate, handleDelete
     };
 
     const handleSave = () => {
+        console.log('onEventUpdate is:', onEventUpdate);
+        console.log('formData:', formData);
         onEventUpdate(formData);
         onClose();
     };
 
-    const handleClose = () => {
-        setFormData({ ...originalData }); 
-        onClose();
+    const renderLocationSection = () => {
+        if (formData.is_physical) {
+            // physical
+            return (
+                <>
+                    <label>
+                        Address
+                        <input
+                            type="text"
+                            name="location"
+                            value={formData.location}
+                            onChange={handleInputChange}
+                        />
+                    </label>
+                    <label>
+                        Zip Code
+                        <input
+                            type="text"
+                            name="zip_code"
+                            value={formData.zip_code}
+                            onChange={handleInputChange}
+                        />
+                    </label>
+                    <label>
+                        City
+                        <input
+                            type="text"
+                            name="city"
+                            value={formData.city}
+                            onChange={handleInputChange}
+                        />
+                    </label>
+                    <label>
+                        State
+                        <input
+                            type="text"
+                            name="state"
+                            value={formData.state}
+                            onChange={handleInputChange}
+                        />
+                    </label>
+                    <label>
+                        Country
+                        <input
+                            type="text"
+                            name="country"
+                            value={formData.country}
+                            onChange={handleInputChange}
+                        />
+                    </label>
+                </>
+            );
+        } else {
+            // virtual
+            return (
+                <label>
+                    Virtual Link
+                    <input
+                        type="text"
+                        name="virtual_link"
+                        value={formData.virtual_link}
+                        onChange={handleInputChange}
+                    />
+                </label>
+            );
+        }
     };
-    
+
     const renderStep = () => {
         switch (step) {
             case 1:
@@ -73,6 +152,8 @@ const EventsFourTabbedModal = ({ onClose, eventData, onEventUpdate, handleDelete
                             >
                                 <option value="none">Select...</option>
                                 <option value="travel">Travel Adventure</option>
+                                <option value="tea-party">Tea Party</option>
+                                <option value="golf">Golf Practice</option>
                                 <option value="concert">Concert or Live Show</option>
                                 <option value="arts-crafts">Arts & Crafts Workshop</option>
                                 <option value="entertainment">General Entertainment</option>
@@ -134,12 +215,11 @@ const EventsFourTabbedModal = ({ onClose, eventData, onEventUpdate, handleDelete
                                 <div className="color-picker-popover">
                                     <HexColorPicker
                                         color={formData.color || '#d3d3d3'}
-                                        onChange={(color) => setFormData({ ...formData, color })}
+                                        onChange={(color) => setFormData((prev) => ({ ...prev, color }))}
                                     />
-                                    <div className="color-picker-buttons">
-                                        <button className="close-button" onClick={toggleColorPicker}>Close</button>
-                                        <button className="done-button" onClick={toggleColorPicker}>Done</button>
-                                    </div>
+                                    <button className="close-button" onClick={toggleColorPicker}>
+                                        Close
+                                    </button>
                                 </div>
                             )}
                         </div>
@@ -176,18 +256,22 @@ const EventsFourTabbedModal = ({ onClose, eventData, onEventUpdate, handleDelete
                                 onChange={handleInputChange}
                             />
                         </label>
-                        <label>
-                            Location
-                            <input
-                                type="text"
-                                name="location"
-                                placeholder="Address or virtual link"
-                                value={formData.location}
-                                onChange={handleInputChange}
-                            />
-                        </label>
+                        <div className="location-toggle">
+                            <label>
+                                Location Type
+                                <select
+                                    name="is_physical"
+                                    value={formData.is_physical}
+                                    onChange={handleInputChange}
+                                >
+                                    <option value="true">Physical</option>
+                                    <option value="false">Virtual</option>
+                                </select>
+                            </label>
+                            {renderLocationSection()}
+                        </div>
                     </div>
-                );    
+                );
             default:
                 return null;
         }
@@ -196,18 +280,22 @@ const EventsFourTabbedModal = ({ onClose, eventData, onEventUpdate, handleDelete
     return (
         <div className="event-modal">
             <div className="modal-header">
-                <h2>{formData.title || 'Event Details'}</h2>
+                <h2>{isEditMode ? 'Edit Event' : 'Create New Event'}</h2>
                 <div className="progress-bar">
-                    <div 
+                    <div
                         className={`progress-step ${step === 1 ? 'active' : ''}`}
                         onClick={() => setStep(1)}
-                    >Overview</div>
-                    <div 
+                    >
+                        Overview
+                    </div>
+                    <div
                         className={`progress-step ${step === 2 ? 'active' : ''}`}
                         onClick={() => setStep(2)}
-                    >Date & Location</div>
+                    >
+                        Date & Location
+                    </div>
                 </div>
-                <button className="close-button-modal" onClick={handleClose} aria-label="Close">
+                <button className="close-button-modal" onClick={onClose}>
                     &times;
                 </button>
             </div>
@@ -215,32 +303,19 @@ const EventsFourTabbedModal = ({ onClose, eventData, onEventUpdate, handleDelete
             <div className="modal-body">{renderStep()}</div>
 
             <div className="modal-footer">
-                <button
-                    onClick={handleBack}
-                    disabled={step === 1}
-                    className="button-red"
-                >
+                <button onClick={handleBack} disabled={step === 1}>
                     Back
                 </button>
-
-                <button
-                    onClick={handleNext}
-                    className={`button-red ${step === 2 ? 'disabled-button' : ''}`}
-                    disabled={step === 2}
-                >
+                <button onClick={handleNext} disabled={step === 2}>
                     Next
                 </button>
-
-                <button onClick={handleSave} className="button-blue">
-                    Save
+                <button onClick={handleSave}>
+                    {isEditMode ? 'Save Changes' : 'Create Event'}
                 </button>
-
-                <button onClick={onClose} className="button-gray">
-                    Cancel
-                </button>
+                <button onClick={onClose}>Cancel</button>
             </div>
         </div>
     );
 };
 
-export default EventsFourTabbedModal;
+export default EventModal;

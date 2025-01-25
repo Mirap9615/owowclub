@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import './Event.css'
 import Steamed from './Steamed.jsx';
 import bannerImage from './assets/banner1.jpeg';
-import EventsFourTabbedModal from './EventsFourTabbedModal.jsx';
+import EventModal from './EventModal.jsx';
 import ImageModal from './ImageModal.jsx';
 import InviteModal from './InviteModal.jsx';
 import Comments from './Comments.jsx';
@@ -40,6 +40,28 @@ const LeaveConfirmationModal = ({ isOpen, onClose, onConfirm }) => {
   );
 };
 
+const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, eventName }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-container">
+      <div className="modal-overlay" onClick={onClose}></div>
+      <div className="modal-content">
+        <h3>Are you sure you want to delete "{eventName}"?</h3>
+        <p>This action cannot be undone.</p>
+        <div className="modal-buttons">
+          <button onClick={onConfirm} className="delete-button">
+            Yes, Delete
+          </button>
+          <button onClick={onClose} className="cancel-button">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const EventPage = () => {
   const { id } = useParams();
   const [event, setEvent] = useState(null);
@@ -55,6 +77,7 @@ const EventPage = () => {
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [isJoinedModalOpen, setIsJoinedModalOpen] = useState(false);
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [pendingLeaveEventId, setPendingLeaveEventId] = useState(null);
 
   const navigate = useNavigate();
@@ -70,6 +93,35 @@ const EventPage = () => {
     type: '',
   });
 
+  const EVENT_TYPE_MAP = {
+    travel: "Travel Adventure",
+    "tea-party": "Tea Party",
+    golf: "Golf Practice",
+    concert: "Concert or Live Show",
+    "arts-crafts": "Arts & Crafts Workshop",
+    entertainment: "General Entertainment",
+    "cooking-food": "Cooking, Baking, or Food Tasting",
+    sports: "Sports or Physical Activity",
+    "hiking-camping": "Hiking or Camping Trip",
+    "book-club": "Book Club Meeting",
+    "yoga-meditation": "Yoga or Meditation Session",
+    picnic: "Picnic or Outdoor Gathering",
+    "movie-screening": "Movie Screening",
+    "charity-fundraising": "Charity or Fundraising Event",
+    "arcade-escape": "Arcade or Escape Room",
+    "wine-tasting": "Wine or Craft Beer Tasting",
+    karaoke: "Karaoke Night",
+    "volunteer-day": "Community Volunteer Day",
+    "fishing-trip": "Fishing Trip",
+    golfing: "Golfing Outing",
+    potluck: "Potluck Gathering",
+    "art-gallery": "Art Gallery Tour",
+    museum: "Museum Visit",
+    other: "Other",
+    custom: "Custom...",
+};
+
+
   const showLeaveModal = (eventId) => {
     setPendingLeaveEventId(eventId);
     setIsLeaveModalOpen(true); 
@@ -81,6 +133,20 @@ const EventPage = () => {
     }
     setIsLeaveModalOpen(false);
   };
+
+  const handleShowDeleteModal = () => {
+    setIsDeleteModalOpen(true);
+  };
+  
+  const handleCloseDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+  };
+  
+  const handleConfirmDelete = () => {
+    handleDelete(event.id); 
+    setIsDeleteModalOpen(false);
+  };
+  
 
   const sendConfirmationEmail = async (eventId, userId) => {
     try {
@@ -258,62 +324,65 @@ const EventPage = () => {
     toggleScrollability(true);
   };
 
-    const handleEventUpdate = async (updatedEventData) => {
-        try {
-          const commonAttributes = {
+  const handleEventUpdate = async (updatedEventData) => {
+    try {
+        const commonAttributes = {
             date: updatedEventData.event_date && updatedEventData.event_date.trim() !== "" 
                 ? updatedEventData.event_date 
-                : event.event_date, 
+                : event.event_date,
             start_time: updatedEventData.start_time && updatedEventData.start_time.trim() !== "" 
                 ? `${updatedEventData.start_time}:00` 
-                : event.start_time, 
+                : event.start_time,
             end_time: updatedEventData.end_time && updatedEventData.end_time.trim() !== "" 
                 ? `${updatedEventData.end_time}:00` 
-                : event.end_time, 
-                
+                : event.end_time,
             title: updatedEventData.title,
             description: updatedEventData.description,
             note: updatedEventData.note,
             color: updatedEventData.color,
-            location: updatedEventData.location,
             type: updatedEventData.type,
             exclusivity: updatedEventData.exclusivity,
-          };
+            is_physical: updatedEventData.is_physical,
+            location: updatedEventData.is_physical ? updatedEventData.location : null,
+            zip_code: updatedEventData.is_physical ? updatedEventData.zip_code : null,
+            city: updatedEventData.is_physical ? updatedEventData.city : null,
+            state: updatedEventData.is_physical ? updatedEventData.state : null,
+            country: updatedEventData.is_physical ? updatedEventData.country : null,
+            virtual_link: !updatedEventData.is_physical ? updatedEventData.virtual_link : null,
+        };
 
-          console.log(updatedEventData);
-      
-          const response = await fetch(`/api/events/${updatedEventData.id}`, {
+        const response = await fetch(`/api/events/${updatedEventData.id}`, {
             method: 'PUT',
             headers: {
-              'Content-Type': 'application/json',
+                'Content-Type': 'application/json',
             },
             body: JSON.stringify(commonAttributes),
-          });
-      
-          if (response.ok) {
+        });
+
+        if (response.ok) {
             const responseData = await response.json();
-      
+
             const startDateTime = new Date(`${updatedEventData.event_date}T${updatedEventData.start_time}`);
             const endDateTime = new Date(`${updatedEventData.event_date}T${updatedEventData.end_time}`);
-      
+
             setEvent({
-              ...commonAttributes,
-              id: updatedEventData.id,
-              startDateTime,
-              endDateTime,
-              participants: updatedEventData.participants || [],
-              temp: false,
+                ...commonAttributes,
+                id: updatedEventData.id,
+                startDateTime,
+                endDateTime,
+                participants: updatedEventData.participants || [],
+                temp: false,
             });
-      
+
             setIsPanelOpen(false);
             toggleScrollability(true);
-          } else {
+        } else {
             console.error('Failed to update event:', response.statusText);
-          }
-        } catch (error) {
-          console.error('Error updating event:', error);
         }
-      };
+    } catch (error) {
+        console.error('Error updating event:', error);
+    }
+};
 
       const handleDelete = async (eventId) => {
         try {
@@ -398,9 +467,10 @@ const EventPage = () => {
               style={{ display: modalVisible ? 'block' : 'none' }}
             />
             <div className="modal" style={{ display: modalVisible ? 'block' : 'none' }}>
-              <EventsFourTabbedModal
+              <EventModal
                 eventData={event}
                 onClose={handleClosePanel}
+                mode = "edit"
                 onEventUpdate={handleEventUpdate}
                 userDetails={userDetails}
                 handleJoinEvent={() => handleJoinEvent(event.id)}
@@ -444,24 +514,49 @@ const EventPage = () => {
       <div className="tab-content">
         {activeTab === "details" && (
           <div className="details-tab">
-            <p><strong>Date:</strong> {new Date(event.event_date).toLocaleDateString()}</p>
-            <p><strong>Time:</strong> {event.start_time} - {event.end_time}</p>
-            <p><strong>Location:</strong> {event.location}</p>
-            <p><strong>Type:</strong> {event.type}</p>
-            <p><strong>Exclusivity:</strong> {event.exclusivity}</p>
-            <p><strong>Description:</strong> {event.description}</p>
-            <button className="edit-button" onClick={handleEdit}>Edit Details</button>
-            {event.participants && event.participants.length > 0 && (
+          <p><strong>Date:</strong> {new Date(event.event_date).toLocaleDateString()}</p>
+          <p><strong>Time:</strong> {event.start_time} - {event.end_time}</p>
+          <p>
+              <strong>Type:</strong> {event.is_physical ? 'Physical' : 'Virtual'}
+          </p>
+          <p>
+              <strong>Location:</strong>
+              {event.is_physical ? (
+                  <>
+                      {event.location && <span>{event.location}, </span>}
+                      {event.city && <span>{event.city}, </span>}
+                      {event.state && <span>{event.state}, </span>}
+                      {event.zip_code && <span>{event.zip_code}, </span>}
+                      {event.country && <span>{event.country}</span>}
+                  </>
+              ) : (
+                  <a href={event.virtual_link} target="_blank" rel="noopener noreferrer">
+                      {event.virtual_link || 'No link provided'}
+                  </a>
+              )}
+          </p>
+          <p><strong>Category:</strong> {EVENT_TYPE_MAP[event.type] || event.type || "Unknown"}</p>
+          <p><strong>Exclusivity:</strong> {event.exclusivity}</p>
+          <p><strong>Description:</strong> {event.description}</p>
+          <button className="edit-button" onClick={handleEdit}>Edit Details</button>
+          <button className="delete-button" onClick={handleShowDeleteModal}>Delete Event</button>
+          <DeleteConfirmationModal
+            isOpen={isDeleteModalOpen}
+            onClose={handleCloseDeleteModal}
+            onConfirm={handleConfirmDelete}
+            eventName={event.title}
+          />
+          {event.participants && event.participants.length > 0 && (
               <div>
-                <h4>Participants</h4>
-                <ul>
-                  {event.participants.map(participant => (
-                    <li key={participant.user_id}>{participant.name}</li>
-                  ))}
-                </ul>
+                  <h4>Participants</h4>
+                  <ul>
+                      {event.participants.map(participant => (
+                          <li key={participant.user_id}>{participant.name}</li>
+                      ))}
+                  </ul>
               </div>
-            )}
-          </div>
+          )}
+      </div>      
         )}
 
         {activeTab === "comments" && (

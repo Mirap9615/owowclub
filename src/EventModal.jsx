@@ -5,12 +5,19 @@ import { HexColorPicker } from 'react-colorful';
 const EventModal = ({ onClose, mode, eventData, onEventUpdate }) => {
     const isEditMode = mode === 'edit';
 
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        if (isNaN(date)) return ''; 
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${year}-${month}-${day}`;
+    };
+
     const initialFormData = isEditMode
         ? {
             ...eventData,
-            event_date: eventData?.startDateTime ? eventData.startDateTime.toISOString().split('T')[0] : '',
-            start_time: eventData?.startDateTime ? eventData.startDateTime.toTimeString().split(' ')[0].substring(0, 5) : '',
-            end_time: eventData?.endDateTime ? eventData.endDateTime.toTimeString().split(' ')[0].substring(0, 5) : '',
+            event_date: eventData.event_date ? formatDate(eventData.event_date) : '',
         }
         : {
             title: '',

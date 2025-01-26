@@ -669,7 +669,10 @@ app.put('/api/events/:id', async (req, res) => {
           ]
       );
 
-      res.json({ message: `Event with ID ${id} updated successfully` });
+      const updatedEvent = await pool.query('SELECT * FROM event WHERE id = $1', [id]);
+
+      console.log(updatedEvent);
+      res.json(updatedEvent.rows[0]);
   } catch (err) {
       console.error(err.message);
       res.status(500).send('Server Error');

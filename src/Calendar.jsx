@@ -52,9 +52,16 @@ function Cal() {
                     type: event.type,
                     exclusivity: event.exclusivity,
                     slug: event.slug,
-                    participants: event.participants || []
+                    participants: event.participants || [],
+                    is_physical: event.is_physical,
+                    zip_code: event.zip_code,
+                    city: event.city,
+                    state: event.state,
+                    country: event.country,
+                    virtual_link: event.virtual_link,
                 };
             });
+            console.log(parsedEvents);
             setEvents(parsedEvents);
           } else {
               throw new Error('Failed to fetch events');
@@ -477,6 +484,7 @@ function Cal() {
             <tr>
               <th>Name</th>
               <th onClick={toggleSortDirection}>Date {sortDirection === 'asc' ? '↓' : '↑'}</th>
+              <th>Type</th>
               <th className="venue-column">Venue</th>
             </tr>
           </thead>
@@ -485,12 +493,19 @@ function Cal() {
             const formattedStart = format(new Date(event.startDateTime), 'MM/dd/yyyy');
             const formattedEnd = format(new Date(event.endDateTime), 'MM/dd/yyyy');
             const dateDisplay = formattedStart === formattedEnd ? formattedStart : `${formattedStart} to ${formattedEnd}`;
+            const typeDisplay = event.is_physical ? 'In-Person' : 'Virtual';
+            const venueDisplay = event.is_physical
+            ? `${event.location || 'Unset'}, ${event.city || ''}, ${event.state || ''}, ${event.country || ''} ${event.zip_code || ''}`.trim().replace(/,\s*$/, '')
+            : event.virtual_link
+              ? <a href={event.virtual_link} target="_blank" rel="noopener noreferrer">{event.virtual_link}</a>
+              : 'Online';
 
             return (
               <tr key={event.id} style={{ backgroundColor: event.color, color: '#ffffff' }}>
                 <td className="details-cell" onClick={() => Navigate(`/events/${event.slug}`)}>{event.title}</td>
                 <td>{dateDisplay}</td>
-                <td className="venue-cell">{event.location}</td>
+                <td>{typeDisplay}</td>
+                <td className="venue-cell">{venueDisplay}</td>
               </tr>
             );
           })}

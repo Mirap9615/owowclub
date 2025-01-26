@@ -66,6 +66,7 @@ function Cal() {
                 };
             });
             setEvents(parsedEvents);
+  
           } else {
               throw new Error('Failed to fetch events');
           }

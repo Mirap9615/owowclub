@@ -331,10 +331,10 @@ const EventPage = () => {
                 ? updatedEventData.event_date 
                 : event.event_date,
             start_time: updatedEventData.start_time && updatedEventData.start_time.trim() !== "" 
-                ? `${updatedEventData.start_time}:00` 
+                ? `${updatedEventData.start_time}` 
                 : event.start_time,
             end_time: updatedEventData.end_time && updatedEventData.end_time.trim() !== "" 
-                ? `${updatedEventData.end_time}:00` 
+                ? `${updatedEventData.end_time}` 
                 : event.end_time,
             title: updatedEventData.title,
             description: updatedEventData.description,
@@ -351,6 +351,8 @@ const EventPage = () => {
             virtual_link: !updatedEventData.is_physical ? updatedEventData.virtual_link : null,
         };
 
+        console.log(commonAttributes);
+
         const response = await fetch(`/api/events/${updatedEventData.id}`, {
             method: 'PUT',
             headers: {
@@ -360,28 +362,32 @@ const EventPage = () => {
         });
 
         if (response.ok) {
-            const responseData = await response.json();
+          const updatedEvent = await response.json();
 
-            const startDateTime = new Date(`${updatedEventData.event_date}T${updatedEventData.start_time}`);
-            const endDateTime = new Date(`${updatedEventData.event_date}T${updatedEventData.end_time}`);
-
-            setEvent({
-                ...commonAttributes,
-                id: updatedEventData.id,
-                startDateTime,
-                endDateTime,
-                participants: updatedEventData.participants || [],
-                temp: false,
-            });
-
-            setIsPanelOpen(false);
-            toggleScrollability(true);
+          console.log("UP: " + updatedEvent);
+          setEvent(updatedEvent);
+      
+          setIsPanelOpen(false);
+          toggleScrollability(true);
         } else {
             console.error('Failed to update event:', response.statusText);
         }
     } catch (error) {
         console.error('Error updating event:', error);
     }
+};
+
+const formatTime = (time) => {
+  console.log('formatTime called with:', time);
+  if (!time) {
+    console.warn('Invalid time value:', time);
+    return 'Invalid Time'; // Gracefully handle null/undefined
+  }
+  const [hours, minutes] = time.split(':');
+  const h = parseInt(hours, 10);
+  const period = h >= 12 ? 'PM' : 'AM';
+  const adjustedHour = h % 12 || 12;
+  return `${adjustedHour}:${minutes} ${period}`;
 };
 
       const handleDelete = async (eventId) => {
@@ -511,11 +517,14 @@ const EventPage = () => {
       </div>
 
       {/* Tab Content */}
-      <div className="tab-content">
-        {activeTab === "details" && (
-          <div className="details-tab">
-          <p><strong>Date:</strong> {new Date(event.event_date).toLocaleDateString()}</p>
-          <p><strong>Time:</strong> {event.start_time} - {event.end_time}</p>
+        <div className="tab-content">
+          {activeTab === "details" && (
+            <div className="details-tab">
+            <p><strong>Date:</strong> {new Date(event.event_date).toLocaleDateString()}</p>
+            <p>
+              <strong>Time:</strong>{" "}
+              {formatTime(event.start_time)} - {formatTime(event.end_time)}
+            </p>
           <p>
               <strong>Type:</strong> {event.is_physical ? 'Physical' : 'Virtual'}
           </p>

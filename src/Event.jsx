@@ -62,6 +62,18 @@ const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, eventName }) => {
   );
 }
 
+const formatDateRead = (isoDate) => {
+  if (!isoDate) return 'N/A'; 
+
+  const [year, month, day] = isoDate.split('-'); 
+  const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+
+  return `${monthNames[parseInt(month, 10) - 1]} ${parseInt(day, 10)}, ${year}`; 
+};
+
 const EventPage = () => {
   const { id } = useParams();
   const [event, setEvent] = useState(null);
@@ -520,7 +532,7 @@ const formatTime = (time) => {
         <div className="tab-content">
           {activeTab === "details" && (
             <div className="details-tab">
-            <p><strong>Date:</strong> {new Date(event.event_date).toLocaleDateString()}</p>
+            <p><strong>Date:</strong> {formatDateRead(event.event_date.split('T')[0])}</p>
             <p>
               <strong>Time:</strong>{" "}
               {formatTime(event.start_time)} - {formatTime(event.end_time)}

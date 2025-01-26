@@ -20,6 +20,7 @@ function Gallery() {
       try {
         const response = await fetch('/api/images');
         const imageData = await response.json();
+        console.log(imageData);
         setImages(imageData);
       } catch (error) {
         console.error('Error fetching images:', error);
@@ -121,18 +122,31 @@ const handleModalSaveChanges = async (updatedImage) => {
   }, []);
 
   const handleDeleteImages = useCallback(async () => {
-    const imagesToDelete = Object.keys(selectedImages).filter(key => selectedImages[key]);
+    // Filter selected images and map to their IDs
+    const imagesToDelete = Object.keys(selectedImages)
+      .filter((key) => selectedImages[key]) // Only selected images
+      .map((key) => images.find((image) => image.url === key)?.id) // Map to image IDs
+      .filter((id) => id); // Remove any null or undefined IDs
+  
+    if (imagesToDelete.length === 0) {
+      console.warn('No valid images selected for deletion.');
+      return; // Exit early if nothing to delete
+    }
+  
+    console.log('Images to delete:', imagesToDelete);
+  
     try {
       const response = await fetch('/api/delete-images', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ images: imagesToDelete })
+        body: JSON.stringify({ images: imagesToDelete }),
       });
-
+  
       if (response.ok) {
-        setImages(current => current.filter(image => !imagesToDelete.includes(image.url)));
+        // Update the images state to exclude deleted images
+        setImages((current) => current.filter((image) => !imagesToDelete.includes(image.id)));
         toggleImageEditMode();
       } else {
         console.error('Failed to delete image(s)');
@@ -140,8 +154,8 @@ const handleModalSaveChanges = async (updatedImage) => {
     } catch (error) {
       console.error('Error deleting images:', error);
     }
-  }, [selectedImages, toggleImageEditMode]);
-
+  }, [images, selectedImages, toggleImageEditMode]);
+  
   const groupedFilteredImages = useMemo(() => {
     const filtered = images.filter(image => {
       if (!searchQuery) return true;

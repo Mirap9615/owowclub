@@ -162,12 +162,16 @@ app.post('/upload-image', upload.single('image'), async (req, res) => {
   const user_id = req.session.user.user_id; 
   const imageId = uuid.v4();
   const key = `images/${imageId}.jpg`;
-  const name = "no name"
+  const {
+    eventId = null, // Optional: Associate directly with an event
+    associated_event_id = null, // Optional: Separate event association
+    name = "Untitled",
+    description = "An Image.",
+    title = "New Image",
+  } = req.body;
   const tags = []
-  const eventId = null
-  const title = "new image"
-  const description = "default description"
   const imageFile = req.file.buffer;
+
 
   try {
     const command = new PutObjectCommand({
@@ -180,17 +184,19 @@ app.post('/upload-image', upload.single('image'), async (req, res) => {
     await s3Client.send(command);
 
     const imageUrl = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
-    const insertQuery = `INSERT INTO images (image_id, user_id, event_id, name, tags, title, description, url)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    const insertQuery = `INSERT INTO images (image_id, user_id, event_id, name, tags, title, description, url, associated_event_id)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
     RETURNING *;`;
 
-    const result = await pool.query(insertQuery, [imageId, user_id, eventId, name, tags, title, description, imageUrl]);
+    const result = await pool.query(insertQuery, [imageId, user_id, eventId, name, tags, title, description, imageUrl, associated_event_id]);
     const newImage = result.rows[0];
 
     return res.json({
       url: newImage.url,
       title: newImage.title,
       description: newImage.description,
+      eventId: eventId || null,
+      associated_event_id: associated_event_id|| null,
       name: newImage.name,
       tags: newImage.tags,
       author: newImage.user_id,
@@ -203,25 +209,50 @@ app.post('/upload-image', upload.single('image'), async (req, res) => {
 });
 
 app.post('/api/delete-images', async (req, res) => {
-  const { images } = req.body;
+  const { images } = req.body; // These are image IDs now
+
   try {
-    await Promise.all(images.map(imageUrl => {
-      const key = new URL(imageUrl).pathname.substring(1);
+    // Log the received image IDs
+    console.log('Received image IDs for deletion:', images);
 
-      const command = new DeleteObjectCommand({
-        Bucket: process.env.AWS_BUCKET_NAME,
-        Key: key
-      });
+    // Fetch URLs for the given IDs from the database
+    const result = await pool.query('SELECT url FROM images WHERE image_id = ANY($1)', [images]);
+    const urls = result.rows.map((row) => row.url);
 
-      return s3Client.send(command);
-    }));
+    console.log('Fetched URLs for deletion:', urls);
+
+    // Extract the S3 keys from the URLs
+    const keys = urls.map((url) => {
+      if (!url) {
+        console.error('Invalid URL:', url);
+        throw new Error('Invalid URL');
+      }
+      return new URL(url).pathname.substring(1);
+    });
+
+    console.log('S3 keys to delete:', keys);
+
+    // Delete images from the S3 bucket
+    await Promise.all(
+      keys.map((key) => {
+        const command = new DeleteObjectCommand({
+          Bucket: process.env.AWS_BUCKET_NAME,
+          Key: key,
+        });
+        return s3Client.send(command);
+      })
+    );
+
+    // Delete the corresponding database entries
+    await pool.query('DELETE FROM images WHERE image_id = ANY($1)', [images]);
 
     res.send({ status: 'success' });
   } catch (error) {
-    console.error("Error deleting images:", error);
+    console.error('Error deleting images:', error);
     res.status(500).send({ status: 'error', message: error.message });
   }
 });
+
 
 app.put('/api/images/:id', async (req, res) => {
   const { id } = req.params; 

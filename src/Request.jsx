@@ -66,7 +66,7 @@ const Request = () => {
     }
 
     if (step === 2) {
-      if (!full_name || !email || !reason || interests.length === 0) {
+      if (!full_name || !email || !phone || !reason || interests.length === 0) {
         setError('Please fill out all required fields.');
         return;
       }
@@ -173,7 +173,7 @@ const Request = () => {
               />
             </div>
             <div className="input-group">
-              <label>Phone Number (Optional)</label>
+              <label>Phone Number</label>
               <input
                 type="tel"
                 value={phone}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import './Event.css'
 import Steamed from './Steamed.jsx';
@@ -91,6 +91,9 @@ const EventPage = () => {
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [pendingLeaveEventId, setPendingLeaveEventId] = useState(null);
+  const fileInputRef = useRef(null);
+  const eventRef = useRef(null);
+  
 
   const navigate = useNavigate();
 
@@ -245,6 +248,7 @@ const EventPage = () => {
         }
         const data = await response.json();
         console.log(data);
+        eventRef.current = data;
         setEvent(data);
       } catch (err) {
         console.error('Failed to fetch event:', err);
@@ -267,6 +271,7 @@ const EventPage = () => {
       try {
         const response = await fetch(`/api/images/event/${event.id}`); 
         const data = await response.json();
+        console.log(data);
         setEventImages(data);
       } catch (error) {
         console.error('Error fetching event images:', error);
@@ -279,6 +284,44 @@ const EventPage = () => {
     fetchEventImages();
   }, [activeTab, event?.id]);
 
+  const handleClickUpload = useCallback(() => {
+      fileInputRef.current?.click();
+    }, []);
+
+    const handleFileChange = async (event) => {
+      const currentEvent = eventRef.current;
+      
+      console.log('Event data:', currentEvent); // Check if event is properly populated
+      console.log('Event ID:', currentEvent?.id); // Validate event.id before use
+      const file = event.target.files[0];
+      if (!file) return;
+
+      console.log(currentEvent);
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('event_id', currentEvent.id); 
+      formData.append('associated_event_id', currentEvent.id);
+      console.log(currentEvent.id);
+  
+      try {
+          const response = await fetch('/upload-image', {
+              method: 'POST',
+              body: formData,
+          });
+  
+          if (response.ok) {
+              const newImage = await response.json();
+              setEventImages((prev) => [...prev, newImage]);
+              event.target.value = ''; // Clear file input
+          } else {
+              throw new Error('Upload failed');
+          }
+      } catch (error) {
+          console.error('Error uploading image:', error);
+      }
+  };
+  
+
   const renderImagesTab = () => {
     if (imagesLoading) {
       return <div className="images-loading">Loading images...</div>;
@@ -286,6 +329,18 @@ const EventPage = () => {
   
     return (
       <div className="images-tab">
+        <div className="image-controls">
+            <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept="image/*"
+                style={{ display: 'none' }}
+            />
+            <button className="upload-button" onClick={() => fileInputRef.current?.click()}>
+                Upload Image
+            </button>
+        </div>
         <div className="image-grid">
           {eventImages.length > 0 ? (
             eventImages.map((image) => (
@@ -501,7 +556,7 @@ const formatTime = (time) => {
         );
       };
 
-  if (loading) return <p>Loading...</p>;
+  if (loading || !event) return <p>Loading...</p>;
   if (error) return <p>{error}</p>;
 
     return (

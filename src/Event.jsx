@@ -291,8 +291,8 @@ const EventPage = () => {
     const handleFileChange = async (event) => {
       const currentEvent = eventRef.current;
       
-      console.log('Event data:', currentEvent); // Check if event is properly populated
-      console.log('Event ID:', currentEvent?.id); // Validate event.id before use
+      console.log('Event data:', currentEvent); 
+      console.log('Event ID:', currentEvent?.id); 
       const file = event.target.files[0];
       if (!file) return;
 

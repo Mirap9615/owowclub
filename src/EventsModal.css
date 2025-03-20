@@ -73,6 +73,8 @@ textarea {
     justify-content: space-between;
     padding: 15px 20px;
     background: #fff;
+    gap: 10px;
+    justify-content: center;
     border-top: 1px solid #e0e0e0;
 }
 
@@ -268,6 +270,16 @@ button:disabled {
     .modal-footer button {
         font-size: 0.8rem;
     }
+}
+
+.title-modal {
+    display: block;
+    font-size: 1.17em;
+    margin-block-end: 1em;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+    font-weight: bold;
+    unicode-bidi: isolate;
 }
 
 @media (prefers-color-scheme: dark) {

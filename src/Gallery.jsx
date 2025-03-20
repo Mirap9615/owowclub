@@ -14,6 +14,9 @@ function Gallery() {
 
   const [editImageMode, setEditImageMode] = useState(false);
   const [selectedImages, setSelectedImages] = useState({});
+
+  const [events, setEvents] = useState([]);
+  const [selectedEvent, setSelectedEvent] = useState('');
   
   useEffect(() => {
     const fetchImages = async () => {
@@ -29,6 +32,21 @@ function Gallery() {
 
     fetchImages();
   }, []);
+
+useEffect(() => {
+  const fetchEvents = async () => {
+    try {
+      const response = await fetch('/api/events');
+      const eventData = await response.json();
+      setEvents(eventData);
+    } catch (error) {
+      console.error('Error fetching events:', error);
+    }
+  };
+
+  fetchEvents();
+}, []);
+
 
   const handleImageClick = useCallback((image) => {
     setCurrentImage(image);
@@ -158,21 +176,21 @@ const handleModalSaveChanges = async (updatedImage) => {
   
   const groupedFilteredImages = useMemo(() => {
     const filtered = images.filter(image => {
-      if (!searchQuery) return true;
-      return image.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+      const matchesSearch = !searchQuery || image.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+      const matchesEvent = !selectedEvent || image.associated_event_id == selectedEvent;
+      return matchesSearch && matchesEvent;
     });
   
     const sortedImages = filtered.sort((a, b) => new Date(b.upload_date) - new Date(a.upload_date));
   
     return sortedImages.reduce((acc, image) => {
-      const date = new Date(image.upload_date).toLocaleDateString(); // Format date as MM/DD/YYYY
-      if (!acc[date]) {
-        acc[date] = [];
-      }
+      const date = new Date(image.upload_date).toLocaleDateString();
+      if (!acc[date]) acc[date] = [];
       acc[date].push(image);
       return acc;
     }, {});
-  }, [images, searchQuery]);
+  }, [images, searchQuery, selectedEvent]);
+  
 
   const handleAddComment = useCallback(async (commentText) => {
     if (!currentImage) return;
@@ -237,6 +255,15 @@ const handleModalSaveChanges = async (updatedImage) => {
             value={searchQuery} 
             onChange={(e) => setSearchQuery(e.target.value)}
           />
+        </div>
+
+        <div className="filter-bar">
+          <select value={selectedEvent} onChange={(e) => setSelectedEvent(e.target.value)}>
+            <option value="">All Events</option>
+            {events.map(event => (
+              <option key={event.id} value={event.id}>{event.title}</option>
+            ))}
+          </select>
         </div>
   
         <div className="gallery">

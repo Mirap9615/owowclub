@@ -27,6 +27,13 @@ const findEventsForDate = (selectedDate, allEvents) => {
 function Cal() {
   const [value, onChange] = useState(new Date());
   const [events, setEvents] = useState([]);
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [userDetails, setUserDetails] = useState({
+    name: '',
+    user_id: '',
+    type: '',
+  });
 
   const fetchEvents = async () => {
     const Url = '/api/events';
@@ -71,44 +78,9 @@ function Cal() {
       }
     };
 
-
-    function toggleScrollability(desiredState) {
-        const body = document.body;
-        if ( desiredState ) {
-            body.classList.remove('body-no-scroll');
-        } else  {
-            body.classList.add('body-no-scroll');
-        }
-    }
-
   useEffect(() => {
         fetchEvents();
     }, []);
-
-  const [isPanelOpen, setIsPanelOpen] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState(null);
-
-  const triggerEditMode = (setEditMode) => {
-    setEditMode(true);
-  };
-
-  const handleEventSelect = (event) => {
-    toggleScrollability(false);
-    setSelectedEvent(event);
-    setIsPanelOpen(true);
-  };
-
-  const handleClosePanel = () => {
-    setIsPanelOpen(false);
-
-    if (selectedEvent && selectedEvent.temp) {
-        setEvents(prevEvents => prevEvents.filter(event => event.id !== selectedEvent.id));
-    }
-
-    setSelectedEvent(null); 
-    toggleScrollability(true);
-    };
-
 
   useEffect(() => {
     if (selectedEvent) {
@@ -199,7 +171,6 @@ function Cal() {
     }
   }, [isPanelOpen]);
 
-  // Sorting and Searching
   const [filter, setFilter] = useState('');
   const [sortDirection, setSortDirection] = useState('asc');
   const [displayedEvents, setDisplayedEvents] = useState([]);
@@ -219,36 +190,10 @@ function Cal() {
 
       setDisplayedEvents(filteredEvents);
   }, [sortDirection, filter, events]);
-  
-  const toggleSortDirection = () => {
-    setSortDirection(prevDirection => prevDirection === 'asc' ? 'desc' : 'asc');
-  };
 
   const handleSearchChange = (e) => {
     setFilter(e.target.value);
   };
-
-  const handleColorChange = (given_color, eventId) => {
-    setEvents(prevEvents => prevEvents.map(event =>
-        event.id === eventId ? { ...event, color: given_color } : event
-    ));
-  };
-
-  useEffect(() => {
-    const originalDisplay = document.body.style.display;
-    document.body.style.display = 'block';
-    toggleScrollability(true);
-    return () => {
-      document.body.style.display = originalDisplay;
-      toggleScrollability(true);
-    };
-  }, []);
-
-  const [userDetails, setUserDetails] = useState({
-    name: '',
-    user_id: '',
-    type: '',
-  });
 
     useEffect(() => {
       const fetchUserDetails = async () => {
@@ -266,187 +211,6 @@ function Cal() {
 
       fetchUserDetails();
     }, []);
-
-    const tileClassName = ({ date, view }) => {
-      if (view === 'month') {
-        const dayEvents = events.filter(event => {
-          const startDate = new Date(event.startDateTime);
-          const endDate = new Date(event.endDateTime);
-          endDate.setHours(23, 59, 59, 999);  
-    
-          const checkDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    
-          startDate.setHours(0, 0, 0, 0);
-    
-          return checkDate >= startDate && checkDate <= endDate;
-        });
-    
-        if (dayEvents.length > 0) {
-          dayEvents.sort((a, b) => new Date(a.startDateTime) - new Date(b.startDateTime));
-          return `highlight-${dayEvents[0].id}`;
-        }
-      }
-      return null;
-    };
-  
-  const updateTileStyles = () => {
-    const styleElement = document.getElementById('dynamic-styles');
-    const styleRules = events.map(event =>
-      `.react-calendar .highlight-${event.id} { background-color: ${event.color}; color: #fff; }`
-    ).join("\n");
-  
-    if (styleElement) {
-      styleElement.textContent = styleRules; 
-    } else {
-      const newStyleElement = document.createElement('style');
-      newStyleElement.id = 'dynamic-styles';
-      newStyleElement.textContent = styleRules;
-      document.head.appendChild(newStyleElement);
-    }
-  };
-  
-  useEffect(() => {
-    updateTileStyles();
-  }, [events]);
-
-  const handleDayClick = (value) => {
-    const eventsForDay = findEventsForDate(value, events);
-    if (eventsForDay.length > 0) {
-      const selectedEvent = eventsForDay.sort((a, b) => new Date(a.startDateTime) - new Date(b.startDateTime))[0];
-      handleEventSelect(selectedEvent);
-    }
-    else {
-        handleClosePanel();
-    }
-  };
-
-  const handleDelete = async (eventId) => {
-      try {
-          const response = await fetch(`/api/events/${eventId}`, {
-              method: 'DELETE',
-              headers: {
-                  'Content-Type': 'application/json'
-              }
-          });
-
-          if (!response.ok) {
-              throw new Error('Failed to delete event');
-          }
-
-          setEvents(currentEvents => currentEvents.filter(event => event.id !== eventId));
-      } catch (error) {
-          console.error('Error deleting event:', error);
-      }
-  };
-
-  const handleBackdropClick = () => {
-    handleClosePanel();
-  };
-
-  const handleEventUpdate = async (updatedEventData) => {
-    try {
-      const commonAttributes = {
-        date: updatedEventData.event_date,
-        start_time: updatedEventData.start_time + ":00",
-        end_time: updatedEventData.end_time + ":00",
-        title: updatedEventData.title,
-        description: updatedEventData.description,
-        note: updatedEventData.note,
-        color: updatedEventData.color,
-        location: updatedEventData.location,
-        type: updatedEventData.type,
-        exclusivity: updatedEventData.exclusivity,
-      };
-  
-      const response = await fetch(`/api/events/${updatedEventData.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(commonAttributes),
-      });
-  
-      if (response.ok) {
-        const responseData = await response.json();
-  
-        const startDateTime = new Date(`${updatedEventData.event_date}T${updatedEventData.start_time}`);
-        const endDateTime = new Date(`${updatedEventData.event_date}T${updatedEventData.end_time}`);
-  
-        const updatedEvent = {
-          ...commonAttributes,
-          id: updatedEventData.id,
-          startDateTime,
-          endDateTime,
-          participants: updatedEventData.participants || [],
-          temp: false,
-        };
-  
-        setEvents(prevEvents =>
-          prevEvents.map(event =>
-            event.id === updatedEvent.id ? updatedEvent : event
-          )
-        );
-  
-        setIsPanelOpen(false);
-        toggleScrollability(true);
-      } else {
-        console.error('Failed to update event:', response.statusText);
-      }
-    } catch (error) {
-      console.error('Error updating event:', error);
-    }
-  };
-
-  const handleJoinEvent = async (eventId) => {
-    try {
-      const response = await fetch(`/api/events/${eventId}/join`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include', 
-      });
-  
-      if (response.ok) {
-        const updatedParticipants = [...eventData.participants, { user_id: userDetails.user_id, name: userDetails.name }];
-        setEventData((prevData) => ({
-        ...prevData,
-        participants: updatedParticipants,
-        }));
-        fetchEvents(); 
-      } else {
-        throw new Error('Failed to join event');
-      }
-    } catch (error) {
-      console.error('Error joining event:', error);
-    }
-  };
-
-  const handleLeaveEvent = async (eventId) => {
-    try {
-      const response = await fetch(`/api/events/${eventId}/leave`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include', 
-      });
-  
-      if (response.ok) {
-        const updatedParticipants = eventData.participants.filter((participant) => participant.user_id !== userDetails.user_id);
-        setEventData((prevData) => ({
-          ...prevData,
-          participants: updatedParticipants,
-        }));
-        fetchEvents(); 
-      } else {
-        throw new Error('Failed to leave event');
-      }
-    } catch (error) {
-      console.error('Error leave event:', error);
-    }
-  };
-  
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const Navigate = useNavigate();
@@ -478,39 +242,52 @@ function Cal() {
           onChange={handleSearchChange}
           placeholder="Search events"
         />
-        
-        <table className="table upcoming-events">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th onClick={toggleSortDirection}>Date {sortDirection === 'asc' ? '↓' : '↑'}</th>
-              <th>Type</th>
-              <th className="venue-column">Venue</th>
-            </tr>
-          </thead>
-          <tbody>
-          {displayedEvents.map(event => {
-            const formattedStart = format(new Date(event.startDateTime), 'MM/dd/yyyy');
-            const formattedEnd = format(new Date(event.endDateTime), 'MM/dd/yyyy');
-            const dateDisplay = formattedStart === formattedEnd ? formattedStart : `${formattedStart} to ${formattedEnd}`;
-            const typeDisplay = event.is_physical ? 'In-Person' : 'Virtual';
-            const venueDisplay = event.is_physical
-            ? `${event.location || 'Unset'}, ${event.city || ''}, ${event.state || ''}, ${event.country || ''} ${event.zip_code || ''}`.trim().replace(/,\s*$/, '')
-            : event.virtual_link
-              ? <a href={event.virtual_link} target="_blank" rel="noopener noreferrer">{event.virtual_link}</a>
-              : 'Online';
 
+        <div className="events-grid">
+          {displayedEvents.map(event => {
+            const formattedStart = format(new Date(event.startDateTime), 'MMM dd, yyyy');
+            const formattedEnd = format(new Date(event.endDateTime), 'MMM dd, yyyy');
+            const dateDisplay = formattedStart === formattedEnd ? formattedStart : `${formattedStart} to ${formattedEnd}`;
+            
+            const typeDisplay = event.is_physical ? 'In-Person' : 'Virtual';
+
+            const venueDisplay = event.is_physical
+              ? `${event.location || 'Unset'}, ${event.city || ''}, ${event.state || ''}, ${event.country || ''} ${event.zip_code || ''}`.trim().replace(/,\s*$/, '')
+              : event.virtual_link
+                ? <a href={event.virtual_link} target="_blank" rel="noopener noreferrer">{event.virtual_link}</a>
+                : 'Online Event';
+
+            const backgroundStyle = event.image_url 
+            ? { backgroundImage: `url(${event.image_url})` }
+            : { backgroundColor: event.color };
+                
             return (
-              <tr key={event.id} style={{ backgroundColor: event.color, color: '#ffffff' }}>
-                <td className="details-cell" onClick={() => Navigate(`/events/${event.slug}`)}>{event.title}</td>
-                <td>{dateDisplay}</td>
-                <td>{typeDisplay}</td>
-                <td className="venue-cell">{venueDisplay}</td>
-              </tr>
+              <div 
+                key={event.id} 
+                className="event-card"
+                onClick={() => Navigate(`/events/${event.slug}`)}
+              >
+                <div className="event-image" style={backgroundStyle}></div>
+
+                <div className="event-info">
+                  <h3 className="event-title">{event.title}</h3>
+
+                  <p className="event-meta">
+                    <span className="event-type">{typeDisplay}</span> | <span className="event-date">{dateDisplay}</span>
+                  </p>
+
+                  <p className="event-venue">{venueDisplay}</p>
+
+                  {event.description && (
+                    <p className="event-description">{event.description.length > 120 ? `${event.description.substring(0, 120)}...` : event.description}</p>
+                  )}
+                </div>
+              </div>
             );
           })}
-        </tbody>
-        </table>
+        </div>
+
+
       </div>
       </div>
     </>

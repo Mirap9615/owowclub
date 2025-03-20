@@ -198,7 +198,6 @@ const EventModal = ({ onClose, mode, eventData, onEventUpdate }) => {
             case 1:
                 return (
                     <div className="step-content">
-                        <h3>Overview</h3>
                         <label>
                             Event Title
                             <input

@@ -516,6 +516,27 @@ function Cal() {
           })}
         </tbody>
         </table>
+
+        <div className="events-grid">
+          {displayedEvents.map(event => (
+            <div 
+              key={event.id} 
+              className="event-card"
+              onClick={() => handleEventSelect(event)}
+            >
+              <div 
+                className="event-image"
+                style={{ backgroundImage: `url(${event.image_url || '/default-event.jpg'})` }}
+              ></div>
+              <div className="event-info">
+                <h3 className="event-title">{event.title}</h3>
+                <p className="event-details">
+                  {event.location} | {format(new Date(event.startDateTime), 'MMM dd, yyyy')}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
       </div>
     </>

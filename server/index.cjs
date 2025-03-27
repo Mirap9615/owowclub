@@ -312,10 +312,10 @@ app.patch('/api/applications/:id/status', async (req, res) => {
         return res.status(400).send('User already exists.');
       }
 
-      const registrationLink = `https://jessicatspace.com/register/${registrationToken}`;
+      const registrationLink = `https://owl2club.com/register/${registrationToken}`;
 
       const emailParams = {
-        Source: 'no-reply@jessicatspace.com',
+        Source: 'no-reply@owl2club.com',
         Destination: {
           ToAddresses: [application.email],
         },
@@ -342,7 +342,7 @@ app.patch('/api/applications/:id/status', async (req, res) => {
     } else {
 
       const emailParams = {
-        Source: 'no-reply@jessicatspace.com',
+        Source: 'no-reply@owl2club.com',
         Destination: {
           ToAddresses: [application.email],
         },
@@ -851,7 +851,7 @@ app.post('/request', async (req, res) => {
     }
 
     const emailParams = {
-      Source: 'no-reply@jessicatspace.com',
+      Source: 'no-reply@owl2club.com',
       Destination: {
         ToAddresses: [email],
       },
@@ -973,9 +973,9 @@ app.post('/forgot-password', async (req, res) => {
     const updateQuery = 'UPDATE users SET reset_token = $1, reset_token_expiry = $2 WHERE user_id = $3';
     await pool.query(updateQuery, [resetToken, resetTokenExpiry, user_id_password_reset]);
 
-    const resetLink = `https://jessicatspace.com/reset-password/${resetToken}`;
+    const resetLink = `https://owl2club.com/reset-password/${resetToken}`;
     const emailParams = {
-      Source: 'no-reply@jessicatspace.com',
+      Source: 'no-reply@owl2club.com',
       Destination: {
         ToAddresses: [email],
       },
@@ -1194,9 +1194,9 @@ app.post('/api/events/invite', async (req, res) => {
       );
       
       // Send email invitation
-      const inviteLink = `https://jessicatspace.com/events/invite/${inviteToken}`;
+      const inviteLink = `https://owl2club.com/events/invite/${inviteToken}`;
       const emailParams = {
-        Source: 'no-reply@jessicatspace.com',
+        Source: 'no-reply@owl2club.com',
         Destination: { 
           ToAddresses: [user.email] 
         },
@@ -1449,7 +1449,7 @@ app.post('/api/events/send-confirmation', async (req, res) => {
 
     // Send confirmation email
     const emailParams = {
-      Source: 'no-reply@jessicatspace.com',
+      Source: 'no-reply@owl2club.com',
       Destination: { 
         ToAddresses: [user.email] 
       },
@@ -1511,6 +1511,98 @@ app.post('/api/validate-code', async (req, res) => {
   } catch (err) {
       console.error('Error validating code:', err.message);
       res.status(500).json({ error: 'Server error. Please try again later.' });
+  }
+});
+
+app.post('/api/admin/send-email', async (req, res) => {
+  const { subject, body, recipientGroup } = req.body; 
+
+  console.log('Email sent:', { subject, recipientGroup, body });
+
+  if (!subject || !body || !recipientGroup) {
+    return res.status(400).json({ message: 'Missing required fields' });
+  }
+
+  try {
+    let recipients = [];
+
+    switch (recipientGroup) {
+      case 'founding':
+        recipients = (await pool.query(
+          'SELECT email, name FROM users WHERE type = $1 AND email IS NOT NULL',
+          ['Founding']
+        )).rows;
+        break;
+
+      case 'standard':
+        recipients = (await pool.query(
+          'SELECT email, name FROM users WHERE LOWER(type) = $1 AND email IS NOT NULL',
+          ['standard']
+        )).rows;
+        break;
+
+      case 'travel':
+        recipients = (await pool.query(
+          'SELECT email, name FROM users WHERE type = $1 AND email IS NOT NULL',
+          ['Travel Host']
+        )).rows;
+        break;
+
+      case 'admins':
+        recipients = (await pool.query(
+          'SELECT email, name FROM users WHERE admin = true AND email IS NOT NULL'
+        )).rows;
+        break;
+
+      case 'all':
+        recipients = (await pool.query(
+          'SELECT email, name FROM users WHERE email IS NOT NULL'
+        )).rows;
+        break;
+
+      case 'testing':
+        recipients = [{ email: 'wc6972z2@gmail.com', name: 'Testing Team (You)' }];
+        break;
+
+      default:
+        return res.status(400).json({ message: 'Invalid recipient group' });
+    }
+
+    for (const { email, name } of recipients) {
+      console.log("Email sending to... " + email)
+      
+      const emailParams = {
+        Source: 'no-reply@owl2club.com',
+        Destination: {
+          ToAddresses: [email],
+        },
+        Message: {
+          Subject: {
+            Data: subject,
+          },
+          Body: {
+            Html: {
+              Data: `
+                <p>Dear ${name || 'OWL^2 Member'},</p>
+                ${body}
+              `,
+            },
+          },
+        },
+      };
+
+      try {
+        const command = new SendEmailCommand(emailParams);
+        await sesClient.send(command);
+      } catch (err) {
+        console.error(`Error sending to ${email}:`, err);
+      }
+    }
+
+    res.status(200).json({ message: 'Emails sent.' });
+  } catch (err) {
+    console.error('Error processing email send:', err);
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 

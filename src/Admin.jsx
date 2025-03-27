@@ -38,6 +38,7 @@ const Admin = () => {
             <div className="admin-links">
             <a href="/applications" className="admin-link">View Applications</a>
             <a href="/users" className="admin-link">View Users</a>
+            <a href="/mail" className="admin-link">Send Message</a>
             </div>
         </div>   
     </>

@@ -6,6 +6,7 @@ import bannerImage from './assets/banner1.jpeg';
 import EventModal from './EventModal.jsx';
 import ImageModal from './ImageModal.jsx';
 import InviteModal from './InviteModal.jsx';
+import EventMailer from './EventMailer.jsx';
 import Comments from './Comments.jsx';
 import { createPortal } from 'react-dom';
 
@@ -91,6 +92,7 @@ const EventPage = () => {
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [pendingLeaveEventId, setPendingLeaveEventId] = useState(null);
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const fileInputRef = useRef(null);
   const eventRef = useRef(null);
   
@@ -573,6 +575,13 @@ const formatTime = (time) => {
           <h1 className="event-title">{event.title}</h1>
         </div>
 
+        {isEmailModalOpen && (
+          <EventMailer
+            event={event}
+            onClose={() => setIsEmailModalOpen(false)}
+          />
+        )}
+
       {renderModal()}
 
       {/* Tabs Navigation */}
@@ -616,6 +625,8 @@ const formatTime = (time) => {
           <p><strong>Description:</strong> {event.description}</p>
           <button className="edit-button" onClick={handleEdit}>Edit Details</button>
           <button className="delete-button" onClick={handleShowDeleteModal}>Delete Event</button>
+          <button className="email-button" onClick={() => setIsEmailModalOpen(true)}>Draft Announcement Email</button>
+
           <DeleteConfirmationModal
             isOpen={isDeleteModalOpen}
             onClose={handleCloseDeleteModal}

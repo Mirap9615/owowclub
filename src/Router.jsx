@@ -24,6 +24,7 @@ import ActivitiesMember from './ActivitiesMember.jsx'
 import Users from './Users.jsx'
 import EventPage from './Event.jsx'
 import EventInviteHandler from './EventInviteHandler.jsx';
+import Mail from './Mail.jsx'
 
 function AppRouter() {
   return (
@@ -56,6 +57,7 @@ function AppRouter() {
         <Route path="/admin" element={<ProtectedRoute element={Admin} />} />
         <Route path="/applications" element={<ProtectedRoute element={Applications} />} />
         <Route path="/users" element={<ProtectedRoute element={Users} />} />
+        <Route path="/mail" element={<ProtectedRoute element={Mail} />} />
 
         <Route path="/logout" element={<Logout />} />
         <Route path="*" element={<NotFound />} />

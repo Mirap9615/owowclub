@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './mail.css'; 
+import './Mail.css'; 
 import './EventMailer.css'
 
 const recipientGroupLabels = {

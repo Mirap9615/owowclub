@@ -1,7 +1,9 @@
 :root {
-  font-family: Myriad Pro, Helvetica, Georgia, Inter, system-ui, Avenir, Arial, sans-serif;
+  font-family: "source-sans-pro", sans-serif, Myriad Pro, Helvetica, Georgia, Inter, system-ui, Avenir, Arial, sans-serif;
   line-height: 1.5;
-  font-weight: 400;
+  font-weight: 500;
+
+  letter-spacing: 0.03em;
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
@@ -39,7 +41,6 @@ button {
   padding: 0.6em 1.2em;
   font-size: 1em;
   font-weight: 500;
-  font-family: inherit;
   cursor: pointer;
   transition: border-color 0.25s;
 }

@@ -96,7 +96,6 @@
         background-color: transparent;
         outline: none;
         color: black;
-        font-family: Georgia, serif;
         font-weight: lighter;
     }
     
@@ -222,7 +221,6 @@
     width: 100%;
     height: auto;              
     resize: none;              
-    font-family: inherit;
     font-size: inherit;
     color: inherit;
     overflow: hidden;          

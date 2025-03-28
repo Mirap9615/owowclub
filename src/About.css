@@ -2,7 +2,6 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  font-family: inherit;
   color: rgb(0, 41, 0);
   width: 100vw;
   min-height: 100vh;

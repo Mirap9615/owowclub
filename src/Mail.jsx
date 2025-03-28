@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './mail.css';
+import './Mail.css';
 
 const Mail = () => {
   const [subject, setSubject] = useState('');

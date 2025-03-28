@@ -1561,8 +1561,11 @@ app.post('/api/admin/send-email', async (req, res) => {
         break;
 
       case 'testing':
-        recipients = [{ email: 'wc6972z2@gmail.com', name: 'Testing Team (You)' }];
-        break;
+        recipients = [
+          { email: 'wc6972z2@gmail.com', name: 'Testing Team (You)' },
+          { email: 'jessicatangtang@gmail.com', name: 'Testing Team (Jessica)' }
+        ];
+        break;        
 
       default:
         return res.status(400).json({ message: 'Invalid recipient group' });

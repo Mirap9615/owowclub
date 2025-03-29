@@ -9,6 +9,7 @@ const recipientGroupLabels = {
   travel: 'Travel Hosts',
   admins: 'Admins',
   testing: 'Testing Team',
+  selected: 'Selected Members',
 };
 
 const EventMailer = ({ event, onClose }) => {
@@ -18,6 +19,8 @@ const EventMailer = ({ event, onClose }) => {
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [allMembers, setAllMembers] = useState([]);
+  const [selectedMemberIds, setSelectedMemberIds] = useState([]);
 
   function formatUtcDateTime(dateStr, timeStr) {
     const [year, month, day] = dateStr.split('T')[0].split('-');
@@ -50,9 +53,9 @@ const EventMailer = ({ event, onClose }) => {
 
         <p><strong>Location:</strong> ${dynamicLocation}</p>
         <p><strong>Time:</strong> ${formatTime(event.start_time)} - ${formatTime(event.end_time)}</p>
-        <p><strong>Exclusivity:</strong> ${event.exclusivity}</p>
+        <p><strong>This event is </strong> ${event.exclusivity}.</p>
 
-        <p><strong>Description:</strong></p>
+        <p><strong></strong></p>
         <p>${dynamicDescription.replace(/\n/g, '<br/>')}</p>
         <p>
           <a href="${googleCalLink}" target="_blank" rel="noopener noreferrer">
@@ -62,6 +65,15 @@ const EventMailer = ({ event, onClose }) => {
       `);
     }
   }, [event]);  
+
+  useEffect(() => {
+    if (recipientGroup === 'selected') {
+      fetch('/api/admin/get-members')
+        .then(res => res.json())
+        .then(data => setAllMembers(data))
+        .catch(err => console.error('Failed to load members', err));
+    }
+  }, [recipientGroup]);
 
   const formatTime = (timeStr) => {
     if (!timeStr) return '';
@@ -87,7 +99,7 @@ const EventMailer = ({ event, onClose }) => {
       const response = await fetch('/api/admin/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subject, body, recipientGroup }),
+        body: JSON.stringify({ subject, body, recipientGroup, selectedMemberIds }),
       });
 
       if (response.ok) {
@@ -125,6 +137,32 @@ const EventMailer = ({ event, onClose }) => {
                 ))}
               </select>
             </div>
+
+            {recipientGroup === 'selected' && (
+                <div className="member-checklist">
+                    <label>Select Members:</label>
+                    <div className="member-checkboxes">
+                    {allMembers.map(member => (
+                        <label key={member.user_id} className="member-checkbox-item">
+                        <input
+                            type="checkbox"
+                            value={member.user_id}
+                            checked={selectedMemberIds.includes(member.user_id)}
+                            onChange={(e) => {
+                            const id = member.user_id;
+                            setSelectedMemberIds(prev =>
+                                e.target.checked
+                                ? [...prev, id]
+                                : prev.filter(x => x !== id)
+                            );
+                            }}
+                        />
+                        {member.name} ({member.email})
+                        </label>
+                    ))}
+                    </div>
+                </div>
+            )}
 
             {errorMessage && <p className="error">{errorMessage}</p>}
             {successMessage && <p className="success">{successMessage}</p>}

@@ -1515,7 +1515,7 @@ app.post('/api/validate-code', async (req, res) => {
 });
 
 app.post('/api/admin/send-email', async (req, res) => {
-  const { subject, body, recipientGroup } = req.body; 
+  const { subject, body, recipientGroup, selectedMemberIds } = req.body; 
 
   console.log('Email sent:', { subject, recipientGroup, body });
 
@@ -1565,11 +1565,24 @@ app.post('/api/admin/send-email', async (req, res) => {
           { email: 'wc6972z2@gmail.com', name: 'Testing Team (You)' },
           { email: 'jessicatangtang@gmail.com', name: 'Testing Team (Jessica)' }
         ];
-        break;        
+        break;   
+        
+      case 'selected':
+        if (!Array.isArray(selectedMemberIds) || selectedMemberIds.length === 0) {
+          return res.status(400).json({ message: 'No members selected.' });
+        }
+        const { rows } = await pool.query(
+          'SELECT email, name FROM users WHERE user_id = ANY($1) AND email IS NOT NULL',
+          [selectedMemberIds]
+        );
+        recipients = rows;
+        break;
 
       default:
         return res.status(400).json({ message: 'Invalid recipient group' });
     }
+
+    console.log(recipients);
 
     for (const { email, name } of recipients) {
       console.log("Email sending to... " + email)
@@ -1608,6 +1621,19 @@ app.post('/api/admin/send-email', async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
+app.get('/api/admin/get-members', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT user_id, name, email FROM users WHERE email IS NOT NULL ORDER BY name ASC'
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error('Error fetching members:', err);
+    res.status(500).json({ message: 'Failed to retrieve members' });
+  }
+});
+
 
 app.listen(port, () => {
   console.log(`Server listening on ${port}`);

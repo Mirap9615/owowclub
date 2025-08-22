@@ -88,7 +88,11 @@ const Settings = () => {
 
   return (
     <>
-      <Steamed />
+      <header className="top-bar-home">
+          <Steamed />
+          <h1>OWL<sup>2</sup> Club</h1>
+        </header>
+        
       <div className="centerer">
         <div className="settings-container">
           <h2>Settings</h2>

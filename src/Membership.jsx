@@ -72,7 +72,10 @@ const MembershipColumn = ({ title, benefits, additionalBenefits, titleColor, ben
 const Membership = () => {
   return (
     <>
-      <><Steamed /></>
+      <header className="top-bar-home">
+          <Steamed />
+          <h1>OWL<sup>2</sup> Club</h1>
+      </header>
       <div className="page-three-container">
         <img src={MembershipImage} alt="Membership" className="membership-image" />
         <div className="memberships-container">

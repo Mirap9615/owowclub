@@ -228,82 +228,95 @@ const handleModalSaveChanges = async (updatedImage) => {
   return (
     <>
       <div className="home">
-      <Steamed />
-      <div className="main">
-        <div className="top-bar">
-          <h1 className="gallery-title">Image Gallery</h1>
-          <div className="button-group">
-            {editImageMode ? (
-              <>
-                <button onClick={handleDeleteImages}>Confirm Deletion</button>
-                <button onClick={toggleImageEditMode}>Cancel</button>
-              </>
+        <header className="top-bar-home">
+          <Steamed />
+          <h1>OWL<sup>2</sup> Club</h1>
+        </header>
+
+        <div className="main">
+          {/* --- MODIFICATION START: New Unified & Centered Header --- */}
+          <div className="gallery-header">
+            <h1 className="gallery-title">Image Gallery</h1>
+            <div className="header-actions">
+              {editImageMode ? (
+                <>
+                  <button 
+                    onClick={handleDeleteImages} 
+                    disabled={!Object.values(selectedImages).some(v => v)}
+                    className="button-danger" 
+                  >
+                    Delete Selected
+                  </button>
+                  <button onClick={toggleImageEditMode}>Cancel</button>
+                </>
+              ) : (
+                <>
+                  <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" style={{ display: 'none' }} />
+                  <button onClick={handleClickUpload}>Upload Image</button>
+                  <button onClick={toggleImageEditMode}>Manage Images</button>
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className="controls-container">
+            <div className="search-bar">
+              <input 
+                type="text" 
+                placeholder="Search by tags..." 
+                value={searchQuery} 
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <div className="filter-bar">
+              <select value={selectedEvent} onChange={(e) => setSelectedEvent(e.target.value)}>
+                <option value="">All Events</option>
+                {events.map(event => (
+                  <option key={event.id} value={event.id}>{event.title}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+    
+          <div className="gallery">
+            {Object.keys(groupedFilteredImages).length > 0 ? (
+              Object.entries(groupedFilteredImages).map(([date, imagesByDate]) => (
+                <div key={date} className="date-group">
+                  <h2 className="date-marker">{date}</h2>
+                  <div className="image-row">
+                    {imagesByDate.map((image) => (
+                      <ImageItem 
+                        key={image.url}
+                        image={image}
+                        editImageMode={editImageMode}
+                        selectedImages={selectedImages}
+                        handleSelectImage={handleSelectImage}
+                        handleImageClick={handleImageClick}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))
             ) : (
-              <>
-                <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" style={{ display: 'none' }} />
-                <button onClick={handleClickUpload}>Upload Image</button>
-                <button onClick={toggleImageEditMode}>Delete Images</button>
-              </>
+              <div className="gallery-no-images">No images to display</div>
             )}
           </div>
-        </div>
 
-        <div className="search-bar">
-          <input 
-            type="text" 
-            placeholder="Search by tags..." 
-            value={searchQuery} 
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-
-        <div className="filter-bar">
-          <select value={selectedEvent} onChange={(e) => setSelectedEvent(e.target.value)}>
-            <option value="">All Events</option>
-            {events.map(event => (
-              <option key={event.id} value={event.id}>{event.title}</option>
-            ))}
-          </select>
-        </div>
-  
-        <div className="gallery">
-          {Object.keys(groupedFilteredImages).length > 0 ? (
-            Object.entries(groupedFilteredImages).map(([date, imagesByDate]) => (
-              <div key={date} className="date-group">
-                <h2 className="date-marker">{date}</h2>
-                <div className="image-row">
-                  {imagesByDate.map((image) => (
-                    <ImageItem 
-                      key={image.url}
-                      image={image}
-                      editImageMode={editImageMode}
-                      selectedImages={selectedImages}
-                      handleSelectImage={handleSelectImage}
-                      handleImageClick={handleImageClick}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="gallery-no-images">No images to display</div>
+          {currentImage && (
+            <ImageModal
+              isOpen={isModalOpen}
+              closeModal={closeModal}
+              currentImage={currentImage}
+              onSave={handleModalSaveChanges}
+            />
           )}
         </div>
-
-        {currentImage && (
-          <ImageModal
-            isOpen={isModalOpen}
-            closeModal={closeModal}
-            currentImage={currentImage}
-            onSave={handleModalSaveChanges}
-          />
-        )}
-      </div>
       </div>
     </>
   );
 }
 
+    
 const ImageItem = React.memo(({ image, editImageMode, selectedImages, handleSelectImage, handleImageClick }) => (
   <div
     className={`image ${editImageMode ? 'edit-mode' : ''}`}

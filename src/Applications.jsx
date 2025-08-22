@@ -79,7 +79,11 @@ const Applications = () => {
 
   return (
     <>
-      <Steamed />
+      <header className="top-bar-home">
+          <Steamed />
+          <h1>OWL<sup>2</sup> Club</h1>
+      </header>
+
       <div className="applications-container">
         <h2>Membership Applications</h2>
 

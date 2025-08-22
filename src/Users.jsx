@@ -70,7 +70,9 @@ const Users = () => {
   return (
     <div className="home-users-panel">
         <>
-        <Steamed />
+        <header className="top-bar-home">
+          <Steamed />
+        </header>
         <div className="users-table">
             <h1>User Management</h1>
             <table border="1" cellPadding="10">

@@ -1,5 +1,6 @@
 .mail-layout {
     display: flex;
+    margin-top: 125px;
     height: 100%;
     min-height: 100vh;
   }

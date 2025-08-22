@@ -1,14 +1,132 @@
 .main {
     margin-left: 50px; 
+    margin-top: 70px;
 }
 
-.top-bar {
-    align-items: center;
-    justify-content: space-between; 
-    margin-left: 50px;
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    margin-bottom: 20px;
+.gallery-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 0;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.gallery-title {
+  margin: 0 0 15px 0; /* Space out title from buttons */
+  padding: 0;
+  text-align: center;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* We can simplify the CSS selector */
+.header-actions button {
+    border: 1px solid #ccc;
+    padding: 8px 16px;
+    cursor: pointer;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.header-actions button:hover {
+    background-color: #f0f0f0;
+    border-color: #aaa;
+}
+
+.header-actions button:disabled {
+  background-color: #f5f5f5;
+  color: #aaa;
+  cursor: not-allowed;
+  border-color: #ddd;
+}
+
+/* NEW: Style for the delete button to make it stand out */
+.header-actions .button-danger {
+  background-color: #fbebee;
+  border-color: #f44336;
+  color: #f44336;
+}
+.header-actions .button-danger:hover {
+  background-color: #f44336;
+  color: white;
+}
+
+/* --- FIX: Controls Container Layout --- */
+.controls-container {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 0 40px; /* Add padding for smaller screens */
+  max-width: 800px; /* Give it a max width to prevent it from becoming too wide */
+  flex-wrap: wrap; 
+}
+
+/* --- FIX: Search Bar and Filter Sizing & Focus --- */
+.search-bar {
+  flex-grow: 1; /* Allow it to take up available space */
+  max-width: 400px; /* But not too much */
+  border: 1px solid #ccc;
+  border-radius: 8px; /* Match other elements */
+  background-color: #fff;
+  transition: all 0.2s ease;
+  display: flex;
+}
+
+.search-bar input {
+  padding: 10px 15px; /* Put padding on the input, not the container */
+  width: 100%;
+  border: none;
+  background-color: transparent;
+  outline: none;
+  font-size: 16px;
+}
+
+/* This creates a clean, professional highlight on the entire search bar */
+.search-bar:focus-within {
+  border-color: rgb(69, 122, 214);
+  box-shadow: 0 0 0 3px rgba(69, 122, 214, 0.2);
+}
+
+.filter-bar select {
+  width: 250px; 
+  padding: 10px 15px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+}
+
+/* Consistent focus style for the dropdown */
+.filter-bar select:focus {
+  border-color: rgb(69, 122, 214);
+  box-shadow: 0 0 0 3px rgba(69, 122, 214, 0.2);
+}
+
+/* --- REMOVE all .fab-upload-button styles --- */
+
+
+/* And remove the old padding from main */
+.main {
+    margin-left: 50px; 
+    /* padding-bottom: 100px;  <-- This can be removed */
+}
+
+/* --- DARK MODE ADJUSTMENTS --- */
+@media (prefers-color-scheme: dark) {
+    .gallery-header { border-bottom-color: #444; }
+    .header-actions button { background-color: #313132; color: #f0f0f0; border-color: #555; }
+    .header-actions button:hover { background-color: #414142; border-color: #777; }
+    .header-actions button:disabled { background-color: #2a2a2a; color: #666; border-color: #444; }
+    .header-actions .button-danger { background-color: #442c2e; border-color: #e57373; color: #e57373; }
+    .header-actions .button-danger:hover { background-color: #f44336; color: white; }
+    .search-bar, .filter-bar select { background-color: #2a2a2a; border-color: #555; color: #f0f0f0; }
+    .search-bar:focus-within, .filter-bar select:focus { border-color: #5899f1; box-shadow: 0 0 0 3px rgba(88, 153, 241, 0.25); }
 }
 
 .gallery-title {

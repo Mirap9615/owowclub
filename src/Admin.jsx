@@ -32,7 +32,10 @@ const Admin = () => {
 
     return (
     <>
-        <Steamed />
+        <header className="top-bar-home">
+          <Steamed />
+          <h1>OWL<sup>2</sup> Club</h1>
+        </header>
         <div className="admin-container">
             <h2>Welcome to the Admin Dashboard, {username}!</h2>
             <div className="admin-links">

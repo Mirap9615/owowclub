@@ -358,7 +358,8 @@ const EventPage = () => {
                 {/*image.name && (
                   <div className="image-caption">
                     {image.name}
-                  </div>
+                  </div> 
+                  https://www.universitywomensclub.com/our-home-in-mayfair/
                 )*/}
               </div>
             ))
@@ -563,7 +564,10 @@ const formatTime = (time) => {
 
     return (
       <div className="event-page">
-        <Steamed />
+        <header className="top-bar-home">
+          <Steamed />
+          <h1>OWL<sup>2</sup> Club</h1>
+        </header>
 
         {/* Banner Image */}
         <div className="banner" style={{ backgroundImage: `url(${event.bannerImage || bannerImage})` }}>

@@ -343,7 +343,10 @@ const Request = () => {
 
   return (
     <>
-      <Steamed />
+      <header className="top-bar-home">
+          <Steamed />
+          <h1>OWL<sup>2</sup> Club</h1>
+      </header>
       <div className="centerer-er">
         <div className="standard-container">
           <h2>Club Application</h2>

@@ -2,7 +2,8 @@
     display: flex;               
     flex-direction: column;          
     padding: 50px 0;                  
-    text-align: center;              
+    text-align: center; 
+    margin-top: 20px;             
 }
 
 .users-table table {
@@ -14,7 +15,6 @@
     .users-table .h1 {
       font-size: 1.75rem;
       font-weight: normal;
-      margin: 10px 0;
     }
   }
 

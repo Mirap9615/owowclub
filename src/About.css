@@ -1,3 +1,7 @@
+.home-about {
+  margin-top: 70px;
+}
+
 .page-container {
   position: relative;
   display: flex;
@@ -49,7 +53,7 @@
   .club-name {
     font-size: 54px;
     font-weight: bold;
-    color: #800020;
+    color: #333333;
   }
   
   .tagline {
@@ -82,7 +86,7 @@
   }
 
   .highlighted-letter {
-    color: #800020; 
+    color: #333333; 
     font-weight: bold;
   }
 

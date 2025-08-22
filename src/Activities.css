@@ -15,7 +15,7 @@
   
   .main-title {
     font-size: 40px; 
-    color: #800020; 
+    color: #333333; 
     margin-bottom: 30px;
   }
   
@@ -47,7 +47,7 @@
   .activity-title {
     font-size: 25px; 
     font-weight: bold;
-    border-bottom: 3px solid #800020;
+    border-bottom: 3px solid #333333;
     display: inline-block;
     margin-bottom: 20px;
   }

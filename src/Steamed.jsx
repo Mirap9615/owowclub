@@ -51,18 +51,21 @@ const Steamed = () => {
             </button>
         </div>
         <div className={`menu ${isOpen ? 'menu-active' : ''}`}>
-            <a href="/home">Home</a>
-
             {isLoggedIn ? (
                 <>
-                    <a href="/calendar">Events</a>
-                    <a href="/gallery">Gallery</a>
-                    <a href="/settings">Settings</a>
-                    <a href="#" onClick={handleLogout}>Logout</a>
-                    <div className="logged-in-info">Logged in as {username}</div>
+                    <div className="another-section">
+                      <div className="section-label">Members' Section</div>
+                      <a href="/home">Home</a>
+                      <a href="/calendar">Events</a>
+                      <a href="/gallery">Gallery</a>
+                      <a href="/settings">Settings</a>
+                      <a href="#" onClick={handleLogout}>Logout</a>
+                      <div className="logged-in-info">Logged in as {username}</div>
+                    </div>
+                    
 
                     <div className="another-section">
-                        <div className="section-label">Infographics</div>
+                        <div className="section-label">Info Section</div>
                         <a href="/about">About</a>
                         <a href="/membership">Membership</a>
                     </div>
@@ -78,6 +81,7 @@ const Steamed = () => {
                 </>
             ) : (
                 <>
+                    <a href="/home">Home</a>
                     <a href="/about">About</a>
                     <a href="/membership">Membership</a>
                     <a href="/activities">Activities</a> 

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Steamed from './Steamed.jsx'
 import './Mail.css';
 
 const Mail = () => {
@@ -43,7 +44,12 @@ const Mail = () => {
   };
 
   return (
-    <div className="mail-layout">
+    <>
+      <header className="top-bar-home">
+          <Steamed />
+          <h1>OWL<sup>2</sup> Club</h1>
+      </header>
+      <div className="mail-layout">
       <div className="mail-input-panel">
       <div className="form-group">
         <label>Send Communications To:</label>
@@ -120,6 +126,7 @@ const Mail = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

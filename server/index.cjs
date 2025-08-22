@@ -906,7 +906,7 @@ app.get('/api/applications', async (req, res) => {
 // login endpoint
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
-  const query = 'SELECT * FROM users WHERE email = $1';
+  const query = 'SELECT * FROM users WHERE LOWER(email) = LOWER($1)';
   
   try {
     const result = await pool.query(query, [email]);

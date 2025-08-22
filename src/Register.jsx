@@ -79,7 +79,12 @@ const Register = () => {
   }
 
   return (
-    <div className="register-container">
+    <>
+      <header className="top-bar-home">
+          <Steamed />
+          <h1>OWL<sup>2</sup> Club</h1>
+      </header>
+      <div className="register-container">
       <h2>Create Your Account</h2>
       {errorMessage && <p className="error">{errorMessage}</p>}
       <form onSubmit={handleSubmit}>
@@ -130,6 +135,7 @@ const Register = () => {
         <button type="submit">Create Account</button>
       </form>
     </div>
+    </>
   );
 };
 

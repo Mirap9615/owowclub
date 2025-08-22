@@ -11,17 +11,19 @@
       margin-bottom: 2vh;
   }
 
-  .centerer {
-    margin-top: 30px;
-  }
+.centerer {
+  min-height: calc(100vh - 70px); 
+  display: flex;
+  justify-content: center; 
+  align-items: center; 
+  padding-bottom: 10vh; 
+}
 
   @media (min-width: 769px) {
     .centerer {
-        min-height: 100vh; 
+        min-height: calc(100vh - 70px); 
         display: flex;
         justify-content: center; 
         align-items: center; 
-        margin: 0;
-        padding: 0;
   }
 }

@@ -10,8 +10,11 @@ const About = () => {
 
   return (
     <>
+      <header className="top-bar-home">
+            <Steamed />
+            <h1>OWL<sup>2</sup> Club</h1>
+        </header>
       <div className="home-about">
-      <Steamed />
       <div className="page-container">
         <div className = "text-container">
             <h1 className="club-name">O'WOW<br/>CLUB</h1>

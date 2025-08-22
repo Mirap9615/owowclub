@@ -218,9 +218,14 @@ function Cal() {
   return (
     <>
       <div className="home">
-      <Steamed />
+      <header className="top-bar-home">
+          <Steamed />
+          <h1>OWL<sup>2</sup> Club</h1>
+        </header>
       <br></br>
       <div className="container">
+        <h1>Events</h1>
+        
         {userDetails.type !== 'Standard' && (
             <button onClick={handleCreateEvent}>Create Event</button>
         )}

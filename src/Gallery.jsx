@@ -232,51 +232,57 @@ const handleModalSaveChanges = async (updatedImage) => {
           <Steamed />
           <h1>OWL<sup>2</sup> Club</h1>
         </header>
+          <div className="main">
+            <div className="gallery-page-header">
+                <div className="header-main-row">
+                  <h1 className="gallery-title">Image Gallery</h1>
+                  <div className="header-actions">
+                    {editImageMode ? (
+                      <>
+                        <button
+                          onClick={handleDeleteImages}
+                          disabled={!Object.values(selectedImages).some(v => v)}
+                          className="button-danger"
+                        >
+                          Delete Selected
+                        </button>
+                        <button onClick={toggleImageEditMode} className="button-secondary">Cancel</button>
+                      </>
+                    ) : (
+                      <>
+                        {/* We are turning the buttons into more subtle links */}
+                        <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" style={{ display: 'none' }} />
+                        <button onClick={handleClickUpload} className="header-action-link">
+                          &#43; Upload Image
+                        </button>
+                        <button onClick={toggleImageEditMode} className="header-action-link">
+                          &#9881; Manage Images
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
 
-        <div className="main">
-          {/* --- MODIFICATION START: New Unified & Centered Header --- */}
-          <div className="gallery-header">
-            <h1 className="gallery-title">Image Gallery</h1>
-            <div className="header-actions">
-              {editImageMode ? (
-                <>
-                  <button 
-                    onClick={handleDeleteImages} 
-                    disabled={!Object.values(selectedImages).some(v => v)}
-                    className="button-danger" 
-                  >
-                    Delete Selected
-                  </button>
-                  <button onClick={toggleImageEditMode}>Cancel</button>
-                </>
-              ) : (
-                <>
-                  <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" style={{ display: 'none' }} />
-                  <button onClick={handleClickUpload}>Upload Image</button>
-                  <button onClick={toggleImageEditMode}>Manage Images</button>
-                </>
-              )}
-            </div>
-          </div>
-
-          <div className="controls-container">
-            <div className="search-bar">
-              <input 
-                type="text" 
-                placeholder="Search by tags..." 
-                value={searchQuery} 
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            <div className="filter-bar">
-              <select value={selectedEvent} onChange={(e) => setSelectedEvent(e.target.value)}>
-                <option value="">All Events</option>
-                {events.map(event => (
-                  <option key={event.id} value={event.id}>{event.title}</option>
-                ))}
-              </select>
-            </div>
-          </div>
+                <div className="controls-row">
+                  <div className="search-bar">
+                    <input 
+                      type="text" 
+                      placeholder="Search by tags..." 
+                      value={searchQuery} 
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </div>
+                  <div className="filter-bar">
+                    <span>Show... </span>
+                    <select value={selectedEvent} onChange={(e) => setSelectedEvent(e.target.value)}>
+                      <option value="">All Topics</option>
+                      {events.map(event => (
+                        <option key={event.id} value={event.id}>{event.title}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
     
           <div className="gallery">
             {Object.keys(groupedFilteredImages).length > 0 ? (

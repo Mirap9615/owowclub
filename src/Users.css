@@ -1,0 +1,23 @@
+.users-table {
+    display: flex;               
+    flex-direction: column;          
+    padding: 50px 0;                  
+    text-align: center; 
+    margin-top: 20px;             
+}
+
+.users-table table {
+    margin-top: 20px;           
+    border-collapse: collapse;      
+}
+
+@media (max-width: 768px) {
+    .users-table .h1 {
+      font-size: 1.75rem;
+      font-weight: normal;
+    }
+  }
+
+.home-users-panel .hamburger-menu-container {
+    background-color: unset;
+}

@@ -1,0 +1,202 @@
+.image-modal {
+    background-color: #f9f9f9; 
+    border-radius: 8px;
+    padding: 20px;
+    max-width: 80vw;
+    margin: auto;
+    position: fixed;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    max-height: 90vh;
+    z-index: 2501;
+  }
+  
+  .modal-overlay {
+    background-color: rgba(0, 0, 0, 0.5); 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2500;
+  }
+  
+  .modal-section-doubler {
+    flex-direction: column;
+  }
+  
+  .modal-section label {
+    font-weight: bold;
+    display: block;
+  }
+
+  .modal-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+  
+  .modal-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+  
+  .modal-buttons button {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: rgb(69, 122, 214);
+    color: white;
+    transition: background-color 0.3s ease;
+  }
+  
+  .modal-buttons button:hover {
+    background-color: #0056b3;
+  }
+  
+  .centered-blue-button {
+    background-color: rgb(197, 197, 197);
+    color: white;
+    border: none; 
+    padding: 5px 10px;
+    cursor: pointer; 
+    transition: background-color 0.3s ease;
+    font-size: 14px;
+    margin-left: auto;
+    margin-right: auto;
+    width: fit-content;
+    margin-bottom: 10px;
+  }
+
+  .modal-tags {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    gap: 10px;
+    text-align: left;
+  }
+
+  .modal-tags strong {
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+  .image-author {
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+    text-align: left;
+    width: 100%;
+    margin-left: 0; 
+}
+
+.modal-tabs {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+    border-bottom: 1px solid #ccc;
+  }
+  
+  .tab-button {
+    padding: 10px 20px;
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    color: #555;
+  }
+  
+  .tab-button.active {
+    font-weight: bold;
+    color: #000;
+    border-bottom: 2px solid #000;
+  }
+  
+  .tab-button:hover {
+    color: #000;
+  }
+  
+  .modal-tab-content {
+    padding: 20px;
+  }
+  
+  .comments-tab, .metadata-tab {
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  
+  .comments-tab {
+    padding-top: 10px;
+  }
+  
+  .metadata-tab {
+    padding-top: 10px;
+  }
+
+  .tag-modal {
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    max-width: 600px;
+    margin: auto;
+    position: fixed;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    z-index: 5000; /* Higher than the image modal */
+  }
+  
+  /* Tag modal overlay */
+  .tag-modal-overlay {
+    background-color: rgba(0, 0, 0, 0.5); /* Transparent overlay */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 3000; /* Slightly below the tag modal */
+  }
+  
+  /* Buttons inside the tag modal */
+  .tag-modal button {
+    margin-top: 10px;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: #007bff;
+    color: white;
+    transition: background-color 0.3s ease;
+  }
+  
+  .tag-modal button:hover {
+    background-color: #0056b3;
+  }
+  
+  .tag-modal input {
+    margin-top: 10px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 100%;
+  }
+
+  .description-subtitle {
+    display: block;
+    font-size: 12px;
+    color: #666; 
+    margin-top: -8px; 
+    margin-bottom: 8px;
+  }
+
+  .large-text {
+    display: block;
+    font-size: 1.17em;
+    margin-top: 12px;
+    margin-bottom: 5px;
+    font-weight: bold;
+    unicode-bidi: isolate;
+  }

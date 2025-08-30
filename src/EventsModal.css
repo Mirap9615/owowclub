@@ -1,0 +1,308 @@
+.event-modal {
+    max-width: 100%;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    z-index: 1001;
+}
+
+.modal-header {
+    padding: 20px;
+    text-align: center;
+    position: relative;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.progress-bar {
+    display: flex;
+    justify-content: space-between;
+    /*align-items: flex-end;*/
+    align-items: center; /* Center items vertically */
+    gap: 10px; /* Add consistent spacing between items */
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    padding: 10px; /* Optional: Add padding for better visuals */
+}
+
+.progress-step {
+    text-align: center;
+    border-bottom: 4px solid blue;
+    transition: all 0.3s ease-in-out;
+}
+
+.progress-step.active {
+    border-color: black;
+    font-weight: bold;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.step-content label {
+    display: block;
+    margin-bottom: 15px;
+    font-size: 0.9rem;
+}
+
+.step-content label input,
+.step-content label select,
+.step-content label textarea {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 0.9rem;
+}
+
+textarea {
+    height: 100px;
+    resize: none;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px 20px;
+    background: #fff;
+    gap: 10px;
+    justify-content: center;
+    border-top: 1px solid #e0e0e0;
+}
+
+.modal-footer button {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out;
+}
+
+.modal-footer button:disabled {
+    background: #e0e0e0;
+    color: #999;
+    cursor: not-allowed;
+}
+
+.modal-footer button:not(:disabled) {
+    background: #457ad6;
+    color: #fff;
+}
+
+.modal-footer button:not(:disabled):hover {
+    background: #365ea7;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border: 1px solid #457ad6;
+    box-shadow: 0 0 5px rgba(69, 122, 214, 0.5);
+}
+
+.step-content {
+    transition: translateY(0);
+    transition: transform 0.4s ease-in-out;
+}
+
+.step-content.active {
+    transform: translateY(0);
+}
+
+input[type="text"][placeholder="Search for users..."] {
+    background: url('search-icon.svg') no-repeat left 10px center;
+}
+
+.close-button-modal {
+    padding: 5px 10px;
+    font-size: .9rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color .3s ease;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    color: white;
+}
+
+.button-red {
+    background-color: #f44336; 
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out;
+}
+
+.button-red:hover {
+    background-color: #d32f2f;
+}
+
+.button-blue {
+    background-color: #457ad6;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out;
+}
+
+.button-blue:hover {
+    background-color: #365ea7;
+}
+
+.disabled-button {
+    background-color: #e0e0e0; 
+    color: #999;
+    cursor: not-allowed;
+}
+
+button:disabled {
+    background-color: #e0e0e0; 
+    color: #999;
+}
+
+.color-picker-section {
+    margin-top: 20px;
+    position: relative;
+}
+
+.color-picker-container {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.color-preview {
+    width: 30px;
+    height: 30px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    margin-right: 10px;
+}
+
+.pick-color-button {
+    padding: 5px 10px;
+    font-size: 0.9rem;
+    color: #fff;
+    background-color: #457ad6;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.pick-color-button:hover {
+    background-color: #365ea7; 
+}
+
+.color-picker-popover {
+    position: absolute;
+    top: -150%;
+    left: 0;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    z-index: 1100; 
+    width: max-content;
+}
+
+.color-picker-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.close-button,
+.done-button {
+    padding: 5px 10px;
+    font-size: 0.9rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.close-button {
+    background-color: #f44336; 
+    color: #fff;
+}
+
+.close-button:hover {
+    background-color: #d32f2f;
+}
+
+.done-button {
+    background-color: #4caf50; 
+    color: #fff;
+    margin-left: 10px;
+}
+
+.done-button:hover {
+    background-color: #388e3c;
+}
+
+@media screen and (max-width: 768px) {
+    .event-modal {
+        width: 90%;
+    }
+
+    .modal-header h2 {
+        font-size: 1.2rem;
+    }
+
+    .modal-footer button {
+        font-size: 0.8rem;
+    }
+}
+
+.title-modal {
+    display: block;
+    font-size: 1.17em;
+    margin-block-end: 1em;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+    font-weight: bold;
+    unicode-bidi: isolate;
+}
+
+@media (prefers-color-scheme: dark) {
+    .event-modal {
+        background: black;
+    }
+    .modal-footer {
+        background: gainsboro;
+    }
+    .progress-step.active {
+        border-color: white;
+    }
+    .progress-step {
+        border-color: gray;
+    }
+    .progress-step {
+        flex: none; /* Reset equal distribution */
+        max-width: 100%; /* Allow full width if necessary */
+    }
+    .progress-bar {
+        gap: 5px; /* Reduce spacing on smaller screens */
+        flex-direction: column; /* Stack steps vertically if needed */
+    }
+}
+
+
+

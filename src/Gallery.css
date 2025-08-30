@@ -1,0 +1,741 @@
+.main {
+    margin-top: 70px;
+}
+
+/* Replace your old .gallery CSS rule with this one */
+
+.gallery {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 0 40px; /* Symmetric padding */
+  max-width: 100%;
+  box-sizing: border-box;
+  background: linear-gradient(135deg, #f5e6d3 0%, #C0906D 100%);
+}
+
+
+.gallery-page-header {
+  background-color: #f8f9fa; 
+  background-image: linear-gradient(rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.3)), url('./assets/clubwood.png');
+  background-size: cover;
+  background-position: center;
+  padding: 2rem 3rem;   
+  border-bottom: 1px solid black;
+}
+
+.header-main-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  margin-top: 20px;
+}
+
+.gallery-title {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 2.5rem;
+  color: #212529;
+  margin: 0;
+}
+
+
+.header-actions {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.header-action-link {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  padding: 0;
+  transition: color 0.2s ease;
+}
+
+.header-action-link:hover {
+  color: #0056b3;
+}
+
+.header-actions .button-danger, .header-actions .button-secondary {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.header-actions .button-secondary {
+  background-color: #6c757d;
+  color: white;
+  border: 1px solid #6c757d;
+}
+
+.controls-row {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+
+.search-bar {
+  flex-grow: 1; 
+  max-width: 400px; 
+  border: 1px solid #ccc;
+  border-radius: 8px; 
+  background-color: #fff;
+  transition: all 0.2s ease;
+  display: flex;
+}
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filter-bar span {
+  font-size: 0.9rem;
+  color: black;
+}
+
+.search-bar input, .filter-bar select {
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  padding: 0.6rem 0.8rem;
+  font-size: 1rem;
+  background-color: #fff;
+}
+
+.gallery-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 0;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.gallery-title {
+  margin: 0 0 15px 0; /* Space out title from buttons */
+  padding: 0;
+  text-align: center;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.header-actions button {
+    border: 1px solid #ccc;
+    padding: 8px 16px;
+    cursor: pointer;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.header-actions button:hover {
+    background-color: #f0f0f0;
+    border-color: #aaa;
+}
+
+.header-actions button:disabled {
+  background-color: #f5f5f5;
+  color: #aaa;
+  cursor: not-allowed;
+  border-color: #ddd;
+}
+
+/* NEW: Style for the delete button to make it stand out */
+.header-actions .button-danger {
+  background-color: #fbebee;
+  border-color: #f44336;
+  color: #f44336;
+}
+.header-actions .button-danger:hover {
+  background-color: #f44336;
+  color: white;
+}
+
+/* --- FIX: Controls Container Layout --- */
+.controls-container {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 0 40px; /* Add padding for smaller screens */
+  max-width: 800px; /* Give it a max width to prevent it from becoming too wide */
+  flex-wrap: wrap; 
+}
+
+.search-bar input {
+  padding: 10px 15px; /* Put padding on the input, not the container */
+  width: 100%;
+  border: none;
+  background-color: transparent;
+  outline: none;
+  font-size: 16px;
+}
+
+/* This creates a clean, professional highlight on the entire search bar */
+.search-bar:focus-within {
+  border-color: rgb(69, 122, 214);
+  box-shadow: 0 0 0 3px rgba(69, 122, 214, 0.2);
+}
+
+.filter-bar select {
+  width: 250px; 
+  padding: 10px 15px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+}
+
+/* Consistent focus style for the dropdown */
+.filter-bar select:focus {
+  border-color: rgb(69, 122, 214);
+  box-shadow: 0 0 0 3px rgba(69, 122, 214, 0.2);
+}
+
+/* --- DARK MODE ADJUSTMENTS --- */
+@media (prefers-color-scheme: dark) {
+    .gallery-header { border-bottom-color: #444; }
+    .header-actions button { background-color: #313132; color: #f0f0f0; border-color: #555; }
+    .header-actions button:hover { background-color: #414142; border-color: #777; }
+    .header-actions button:disabled { background-color: #2a2a2a; color: #666; border-color: #444; }
+    .header-actions .button-danger { background-color: #442c2e; border-color: #e57373; color: #e57373; }
+    .header-actions .button-danger:hover { background-color: #f44336; color: white; }
+    .search-bar, .filter-bar select { background-color: #2a2a2a; border-color: #555; color: #f0f0f0; }
+    .search-bar:focus-within, .filter-bar select:focus { border-color: #5899f1; box-shadow: 0 0 0 3px rgba(88, 153, 241, 0.25); }
+}
+
+.gallery-title {
+    flex-grow: 1; 
+    text-align: center; 
+    grid-column: 2 / 3;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px; 
+    z-index: 500;
+    grid-column: 3 / 4;
+    margin-left: 40px;
+}
+
+.home .menu {
+  z-index: 1122;
+}
+
+.button-group button {
+    border: 1px solid #ccc;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.button-group button:hover {
+    background-color: rgb(69, 122, 214);
+}
+
+.gallery.empty {
+    display: unset;
+}
+
+.image img {
+    max-height: 400px; 
+    width: auto;
+    height: auto;
+}
+
+.gallery-no-images {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 200px;
+    font-size: 20px;
+    color: #666;
+}
+
+.image img {
+    cursor: pointer; 
+    transition: transform 0.2s; 
+}
+
+.image img:hover {
+    transform: scale(1.05); 
+}
+
+.edit-mode img:hover {
+    transform: none; 
+}
+
+.image {
+    position: relative;
+}
+
+.select-overlay {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 30px; 
+    height: 30px;
+    background-color: rgba(255, 255, 255, 0.7); 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    cursor: pointer;
+    color: green;
+  }
+  
+
+@media (max-width: 800px) {
+    .gallery-title {
+      margin-bottom: 10px; 
+      text-align: center;
+      font-size: 40px;
+    }
+
+    .gallery {
+        padding: 0; 
+        align-items: center;    
+        flex-direction: column;
+        display: flex;
+    }
+
+    .image img {
+        width: 95%;
+        height: auto;
+        max-height: 100%;
+    }
+
+    .top-bar {
+        flex-direction: column; 
+        align-items: center; 
+        margin-left: 0;
+        display: flex;
+        justify-content: center;
+        grid-template-columns: none;
+    }
+
+    .button-group {
+        width: 100%; 
+        display: flex; 
+        justify-content: center; 
+        gap: 10px;
+        margin-left: 0;
+    }
+
+    .header-actions button {
+      border: 1px solid black;
+      background-color: transparent;
+    }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .gallery-page-header {
+    background-color: #2c2c2e;
+    border-bottom-color: #444;
+  }
+  .gallery-title {
+    color: #f5f5f5;
+  }
+  .header-action-link {
+    color: #58a6ff;
+  }
+  .header-action-link:hover {
+    color: #80bfff;
+  }
+  .filter-bar span {
+    color: #a0a0a0;
+  }
+  .search-bar input, .filter-bar select {
+    background-color: #3a3a3c;
+    border-color: #555;
+    color: #f5f5f5;
+  }
+
+    .button-group button {
+        background-color: #313132; 
+        color: #f0f0f0;
+        border: none;
+    }
+
+    .button-group button:hover {
+        background-color: #313132;
+        color: white;
+    }
+
+}
+
+.image-modal {
+    background-color: #f9f9f9; 
+    border-radius: 8px;
+    padding: 20px;
+    max-width: 80vw;
+    margin: auto;
+    position: fixed;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    max-height: 90vh;
+    z-index: 2501;
+  }
+  
+  .modal-overlay {
+    background-color: rgba(0, 0, 0, 0.5); 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2500;
+  }
+  
+  .modal-section-doubler {
+    flex-direction: column;
+  }
+  
+  .modal-section label {
+    font-weight: bold;
+    display: block;
+  }
+
+  .modal-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+  
+  .modal-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+  
+  .modal-buttons button {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: rgb(69, 122, 214);
+    color: white;
+    transition: background-color 0.3s ease;
+  }
+  
+  .modal-buttons button:hover {
+    background-color: #0056b3;
+  }
+
+  .centered-blue-button {
+    background-color: rgb(197, 197, 197);
+    color: white;
+    border: none; 
+    padding: 5px 10px;
+    cursor: pointer; 
+    transition: background-color 0.3s ease;
+    font-size: 14px;
+    margin-left: auto;
+    margin-right: auto;
+    width: fit-content;
+    margin-bottom: 10px;
+  }
+
+  .modal-tags {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    gap: 10px;
+    text-align: left;
+  }
+
+  .modal-tags strong {
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+  .image-author {
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+    text-align: left;
+    width: 100%;
+    margin-left: 0; 
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  background-color: #f0f0f0; 
+  border-radius: 25px;
+  padding: 10px 20px; 
+  width: 300px; 
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
+}
+
+.search-bar input {
+  border: none;
+  background-color: transparent; 
+  width: 100%; 
+  outline: none;
+  font-size: 16px;
+  padding: 0; 
+  margin-left: 10px;
+}
+
+.search-bar input::placeholder {
+  color: #888;
+}
+
+.search-icon {
+  color: #888;
+  font-size: 18px; 
+}
+
+.date-group {
+  width: 100%;            
+  margin-bottom: 2rem;   
+  margin-left: 1rem;   
+}
+
+.date-marker {
+  font-size: 1.3rem;
+  font-weight: bold;
+  margin-bottom: 1rem;     
+  border-bottom: 1px solid black;
+  padding-bottom: 0.5rem;
+  text-align: left;
+  color: #333;
+}
+
+.image-row {
+  display: flex;
+  flex-wrap: wrap;     
+  gap: 1rem;           
+}
+
+.filter-bar select {
+  padding: 10px 15px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 2px solid #ccc;
+  background-color: #f9f9f9;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.filter-bar select:hover {
+  border-color: #888;
+  background-color: #fff;
+}
+
+.filter-bar select:focus {
+  border-color: #6a5acd;
+  box-shadow: 0 0 5px rgba(106, 90, 205, 0.5);
+}
+
+@media (max-width: 768px) {
+  .gallery-page-header {
+    padding: 1rem;
+    background-size: cover;
+  }
+
+  .header-main-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .date-group {
+    margin-left: 0rem;
+  }
+
+  .gallery-title {
+    font-size: 1.8rem;
+    text-align: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .header-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  .header-action-link {
+    background: white;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease;
+  }
+
+  .header-action-link:hover {
+    transform: scale(1.1);
+  }
+
+  /* Hide button text on mobile, show only icons */
+  .header-action-link {
+    font-size: 0; /* Hide text */
+  }
+
+  .header-action-link::before {
+    font-size: 1.5rem;
+  }
+
+  /* Add icon content for buttons */
+  .header-action-link:nth-child(2)::before {
+    content: "➕"; /* Upload icon */
+  }
+
+  .header-action-link:nth-child(3)::before {
+    content: "⚙️"; /* Manage icon */
+  }
+
+  /* Stack search and filter controls vertically */
+  .controls-row {
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+  }
+
+  /* Full-width search bar */
+  .search-bar {
+    width: 80%;
+    max-width: 90%;
+    flex-grow: 1;
+    border-radius: 25px;
+    padding: 0.5rem 1rem;
+  }
+
+  .search-bar input {
+    width: 100%;
+    padding: 0.5rem;
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+
+  /* Full-width filter bar */
+  .filter-bar {
+    width: 100%;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .filter-bar select {
+    flex: 1;
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+
+  .filter-bar span {
+    white-space: nowrap;
+    font-size: 0.9rem;
+  }
+
+  /* Fix gallery padding on mobile */
+  .gallery {
+    padding: 0 0.5rem;
+    gap: 0.5rem;
+  }
+
+  /* Stack images vertically on mobile */
+  .image-row {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .image {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .image img {
+    width: 100%;
+    height: auto;
+    max-height: none;
+    object-fit: cover;
+  }
+
+  /* Date markers on mobile */
+  .date-marker {
+    font-size: 1.1rem;
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Ensure main content doesn't overflow */
+  .main {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+    box-sizing: border-box;
+  }
+
+  /* When in edit mode on mobile */
+  .edit-mode .header-actions {
+    flex-direction: row;
+    justify-content: space-around;
+    width: 100%;
+  }
+
+  .header-actions .button-danger,
+  .header-actions .button-secondary {
+    flex: 1;
+    max-width: 150px;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+  }
+}
+
+body {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+}
+
+@media (prefers-color-scheme: dark) {
+  .header-action-link {
+    background: #3a3a3c;
+    border-color: #555;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  }
+  
+  .header-action-link::after {
+    color: #f5f5f5;
+  }
+
+  .image-modal {
+    background-color: #292727;
+  }
+
+  .search-bar {
+    background-color: rgb(78, 78, 78);
+    color: white;
+  }
+
+  .search-bar input::placeholder {
+    color: lightgray; 
+  }
+
+  .comment-section button, .button-group button {
+    background-color: rgb(83, 80, 80);
+  }
+
+  .date-marker {
+    color: white;
+  }
+}

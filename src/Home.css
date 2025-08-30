@@ -1,0 +1,191 @@
+/* --- FONT & COLOR SETUP (and global styles) --- */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Montserrat:wght@300;400;500&display=swap');
+
+:root {
+  --font-serif: 'Cormorant Garamond', serif;
+  --font-sans: 'Montserrat', sans-serif;
+  --color-primary: #471a25;
+  --color-text: #333;
+  --color-light-text: #f5f5ff;
+  --color-background: #ffffff;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--color-text);
+  background-color: var(--color-background);
+  margin: 0;
+}
+
+.home-page-wrapper {
+  padding-top: 70px;
+}
+
+/* ==========================================================================
+   IMAGE BLOCK STYLING (THE FIX IS HERE)
+   ========================================================================== */
+
+.section-image-block {
+  /* 1. Make this the stacking anchor for its children */
+  position: relative; 
+  width: 100%;
+  min-height: 70vh;
+  color: var(--color-light-text);
+  overflow: hidden; /* Important: Prevents video from spilling out */
+  
+  /* We remove display:flex. Let children position themselves absolutely. */
+  background-size: cover;
+  background-position: center;
+}
+
+.hero-wrapper .section-image-block {
+  min-height: calc(100vh - 70px);
+}
+
+/* 2. Make ALL children stack on top of each other */
+.section-overlay,
+.section-video,
+.section-image-title-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.section-overlay {
+  background-color: rgba(0, 0, 0, 0.40);
+  z-index: 1;
+}
+
+.section-video {
+  /* 3. Make the video cover the container perfectly */
+  object-fit: cover;
+  z-index: 0; /* Sits behind the overlay */
+}
+
+.section-image-title-content {
+  /* 4. Use flexbox on the title itself to center its content */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  
+  font-family: var(--font-serif);
+  font-size: 3.5rem;
+  font-weight: 600;
+  text-shadow: 1px 1px 4px rgba(0,0,0,0.5);
+  padding: 1rem;
+  z-index: 2; /* Sits on top of everything */
+}
+
+.hero-logo {
+  display: block;
+  max-width: 180px;
+  margin-bottom: 2rem;
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5));
+}
+
+
+/* ==========================================================================
+   TEXT BLOCK STYLING (Remains the same)
+   ========================================================================== */
+
+.section-text-block {
+  background-color: var(--color-background);
+  padding: 6rem 2rem;
+  display: flex;
+  justify-content: center;
+}
+.text-content-wrapper {
+  max-width: 700px;
+  text-align: center;
+}
+.text-content-wrapper h2 {
+  font-family: var(--font-serif);
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 1.5rem;
+}
+.text-content-wrapper p {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: #555;
+  margin: 0 auto 2rem auto;
+  max-width: 600px;
+}
+.text-content-wrapper ul {
+  list-style: none; padding: 0; margin: 0 auto 2.5rem auto; text-align: center; columns: 2; max-width: 400px; gap: 2rem;
+}
+.text-content-wrapper ul li {
+  margin-bottom: 0.75rem; font-size: 1rem;
+}
+.text-content-wrapper button {
+  font-family: var(--font-sans); background-color: transparent; color: var(--color-primary); border: 2px solid var(--color-primary); padding: 12px 30px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: all 0.3s ease;
+}
+.text-content-wrapper button:hover {
+  background-color: var(--color-primary); color: var(--color-light-text);
+}
+
+
+/* ==========================================================================
+   FOOTER & RESPONSIVE STYLES (Remain the same)
+   ========================================================================== */
+   
+.site-footer {
+  background-color: #f8f9fa; padding: 2rem; font-family: var(--font-sans); color: #6c757d; border-top: 1px solid #e9ecef;
+}
+.footer-content-wrapper {
+  max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem;
+}
+.footer-brand h4 {
+  font-family: var(--font-serif); font-size: 1.5rem; color: var(--color-primary); margin: 0; font-weight: 600;
+}
+.footer-links {
+  display: flex; gap: 2rem; margin: 0;
+}
+.footer-links a {
+  color: #6c757d; text-decoration: none; font-size: 0.9rem; transition: color 0.2s ease;
+}
+.footer-links a:hover {
+  color: var(--color-primary); text-decoration: underline;
+}
+.footer-copyright p {
+  margin: 0; font-size: 0.9rem; text-align: right;
+}
+
+@media (max-width: 768px) {
+  .section-image-title-content { font-size: 2.5rem; }
+  .section-text-block { padding: 4rem 1.5rem; }
+  .text-content-wrapper h2 { font-size: 1.5rem; }
+  .text-content-wrapper p { font-size: 1rem; }
+  .text-content-wrapper ul { columns: 1; }
+  .footer-content-wrapper { flex-direction: column; align-items: center; gap: 1.5rem; }
+  .footer-brand, .footer-copyright p { text-align: center; }
+  .footer-links { gap: 1.5rem; }
+}
+
+
+/* ==========================================================================
+   TOP BAR STYLES (Copied from previous step, assumed correct)
+   ========================================================================== */
+
+.top-bar-home {
+  display: grid; align-items: center; justify-content: flex-start; box-sizing: border-box; background-color: #990000; color: white; padding: 15px; width: 100%; position: fixed; top: 0; left: 0; z-index: 100; height: 70px; grid-template-columns: 1fr auto 1fr; padding: 0 15px;
+}
+.top-bar-home > *:first-child {
+  grid-column: 1 / 2; justify-self: start;
+}
+.top-bar-home h1 {
+  grid-column: 2 / 3; font-size: 24px; font-weight: 600; margin: 0; flex-grow: 1; text-align: center;
+}
+@media (prefers-color-scheme: dark) {
+  .top-bar-home { background-color: rgba(40, 40, 40, 0.8); }
+  .top-bar-home h1 { color: #f5f5f5; }
+}
+@media (max-width: 768px) {
+  .top-bar-home h1 { font-size: 20px; }
+  .top-bar-home { padding: 0; }
+}

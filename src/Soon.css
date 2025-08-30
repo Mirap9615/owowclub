@@ -1,0 +1,12 @@
+.declaration {
+    display: flex;
+    flex-direction: column;
+    justify-content: center; 
+    align-items: center;    
+    height: 100vh;      
+    font-size: 3.2em;    
+    line-height: 1.1;
+    color: black;
+    text-align: center;  
+    margin: 0;         
+}

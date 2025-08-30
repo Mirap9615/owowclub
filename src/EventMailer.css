@@ -1,0 +1,83 @@
+.modal-mail-layout {
+    max-height: 80vh;
+    overflow-y: auto;
+    flex-direction: row;
+    gap: 1rem;
+  }
+  
+.event-mailer-modal {
+max-width: 1000px;
+width: 95%;
+max-height: 90vh;
+overflow: hidden;
+}
+
+.event-mailer-header {
+display: flex;
+justify-content: center;
+align-items: center;
+margin-bottom: 1rem;
+}
+
+.close-button {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: red;
+    cursor: pointer;
+    }
+
+.event-mailer-form-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  .event-mailer-form-group label {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    width: 100%;
+    text-align: center;
+  }
+  
+  .event-mailer-input {
+    width: 110%;
+    max-width: 600px;
+    padding: 0.75rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .event-mailer-subject-group input {
+    height: auto;
+  }
+  
+  .event-mailer-body-group textarea {
+    min-height: 150px;
+    line-height: 1.4;
+    resize: vertical;
+  }
+  
+
+  @media (max-width: 768px) {
+    .modal-mail-layout {
+      flex-direction: column;
+      gap: 0rem;
+    }
+  
+    .mail-input-panel,
+    .mail-preview-panel {
+      width: 100%;
+    }
+  
+    .event-mailer-input {
+      max-width: none;
+    }
+  
+    .event-mailer-preview-panel .preview-box {
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+  }

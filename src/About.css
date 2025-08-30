@@ -1,0 +1,109 @@
+.home-about {
+  margin-top: 70px;
+}
+
+.page-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  color: rgb(0, 41, 0);
+  width: 100vw;
+  min-height: 100vh;
+  overflow: hidden; 
+}
+
+.page-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url('./assets/pg1bg.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-attachment: fixed;
+  z-index: -1;
+}
+
+@media (max-width: 767px) {
+  .page-container {
+    background-attachment: scroll;
+    background-image: url('./assets/pg1bg.png');
+    background-size: auto;
+    background-position: bottom center;
+    background-repeat: no-repeat;
+    max-height:unset;
+  }
+}
+
+@media (min-width:1250px) {
+  .page-container {
+    background-attachment: scroll;
+    background-image: url('./assets/pg1bg.png');
+    background-size: auto;
+    background-position: bottom center;
+    background-repeat: no-repeat;
+    max-height:unset;
+  }
+}
+
+  
+  .club-name {
+    font-size: 54px;
+    font-weight: bold;
+    color: #333333;
+  }
+  
+  .tagline {
+    font-size: 25px;
+    font-style: italic;
+    margin-bottom: 30px;
+  }
+  
+  .section-title {
+    font-size: 35px;
+    font-weight: bold;
+    margin: 20px 0 10px;
+    background-color: transparent;
+    text-align: left;
+  }
+  
+  .list {
+    list-style: none;
+    padding-left: 0;
+  }
+  
+  .list li {
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 5px;
+  }
+
+  .text-container {
+    padding-left: clamp(1px, 20vw, 300px);
+  }
+
+  .highlighted-letter {
+    color: #333333; 
+    font-weight: bold;
+  }
+
+  @media (prefers-color-scheme: dark) { 
+    .text-container {
+      margin-top: 80px;
+    }
+  }
+
+    .text-container {
+      margin-top: 0px;
+    }
+
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%; 
+}

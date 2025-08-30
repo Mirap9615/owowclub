@@ -1,0 +1,203 @@
+    /* Steamed.css */
+    .hamburger-menu-container {
+        display: flex; /* It contains the button */
+        align-items: center;
+        background-color: transparent; /* Will be on top of .top-bar-home's background */
+        z-index: 1050; /* Button itself */
+        font-size: initial; /* Reset, let button define its own font context if needed */
+        /* transform: translateX(0); REMOVED - button doesn't move when menu opens */
+        /* transition: transform 0.3s ease; REMOVED */
+        /* width: 100%; REMOVED */
+    }
+    
+    .hamburger-button {
+        background: transparent;
+        border: none; /* Remove default border */
+        padding: 5px 8px; /* CRITICAL: Control padding for size and hover area */
+        font-size: inherit; /* Inherit from a sensible parent or set explicitly */
+        color: white; /* Default icon/text color (light mode) - will be overridden by dark mode */
+        cursor: pointer;
+        display: flex;
+        flex-direction: column; /* Stack icon and text */
+        align-items: center; /* Center them horizontally */
+        line-height: 1.1; /* Tighter line height for stacked items */
+    }
+
+    .hamburger-button:hover,
+    .hamburger-button:focus,
+    .hamburger-button.active {
+        background: transparent !important; /* Ensure no background on hover */
+        outline: none !important;
+        border: none !important; /* Ensure no border on hover */
+        color: #8bd6ae; /* Match title color on hover (light mode) */
+    }
+
+    .hamburger-button .burger {
+        font-size: 24px; /* Adjust icon size */
+        display: block;
+    }
+
+    .hamburger-button .menu-text {
+        font-size: 10px; /* Smaller "Menu" text */
+        display: block;
+        margin-top: 5px; /* Tiny space between icon and text */
+    }
+
+    /* Menu Panel itself */
+    .menu {
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100vh;
+        width: clamp(195px, 250px, 35vw);
+        background-color: white;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        z-index: 1120; /* Higher than button and backdrop */
+        overflow-y: auto; /* Allow scrolling if content exceeds height */
+        border-right: 1px solid #ccc; /* Softer border */
+        text-align: center;
+    }
+
+    .menu a {
+        display: block;
+        padding: 12px 15px; /* Adjust padding */
+        text-decoration: none; /* Remove underline by default */
+        color: #333; /* Dark text for links */
+        white-space: nowrap;
+        border: none;
+        transition: background-color 0.2s ease;
+    }
+
+    .menu a:hover {
+        background-color: #f0f0f0; /* Subtle hover for menu items */
+        color: #333333; /* Accent color on hover */
+    }
+
+    .menu.menu-active { /* Corrected class name for transform */
+        transform: translateX(0);
+    }
+
+    .backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black backdrop */
+        z-index: 1010; /* Below menu panel, above page content */
+        display: none;
+    }
+
+    .backdrop-active {
+        display: block;
+    }
+
+    /* Sections within the menu */
+    .another-section {
+        margin-top: 30px; /* Reduced margin */
+        padding-top: 15px;
+        border-top: 1px solid #eee; /* Separator for sections */
+    }
+
+    .section-label, .logged-in-info {
+        font-size: 0.85em; /* Slightly larger */
+        color: #777; /* Lighter grey */
+        margin-bottom: 8px; /* Space below label */
+        padding: 0 10px;
+        text-align: center; /* Align section labels left for clarity */
+    }
+    .logged-in-info {
+        text-align: center; /* Keep logged in info centered or left as preferred */
+        margin-top: 20px;
+        padding-bottom: 10px;
+    }
+
+
+    /* === MOBILE STYLES for Steamed.css === */
+    @media (max-width: 768px) {
+        .hamburger-menu-container {
+            /* On mobile, this container BECOMES the top bar */
+            position: relative; /* Takes space in document flow */
+            width: 100%;
+            padding: 0; /* Bar spans full width */
+            display: flex;
+            justify-content: flex-start; /* Align button to the left */
+            min-height: 55px; /* Mobile bar height */
+            align-items: center;
+            z-index: 1050; /* Ensure it's above page content if not fixed */
+            /* transform and transition removed, not needed for container on mobile */
+        }
+
+        .hamburger-menu-container .hamburger-button {
+            padding: 0 15px; /* Padding for the button itself inside the mobile bar */
+            flex-direction: row; /* Icon and text side-by-side */
+            align-items: center;
+        }
+
+        .hamburger-menu-container .hamburger-button .burger {
+            font-size: 22px; /* Adjust for mobile bar */
+            margin-right: 6px; /* Space between icon and text */
+        }
+
+        .hamburger-menu-container .hamburger-button .menu-text {
+            font-size: 14px; /* Adjust for mobile bar */
+        }
+
+        .menu {
+            width: clamp(250px, 63vw, 320px);
+        }
+    }
+
+
+    /* === DARK MODE STYLES for Steamed.css === */
+    @media (prefers-color-scheme: dark) {
+        /* Desktop hamburger button (inside dark .top-bar-home) */
+        .hamburger-button {
+            color: #e0e0e0; /* Light color for icon/text on dark top bar */
+        }
+        .hamburger-button:hover,
+        .hamburger-button:focus,
+        .hamburger-button.active {
+            color: #e8c1c9; /* Lighter maroon/pink for hover */
+        }
+
+        /* Mobile hamburger container (becomes the bar) */
+        @media (max-width: 768px) {
+            .hamburger-menu-container {
+                background-color: #282c2c; /* Darker bar for mobile dark mode */
+                border-bottom: 1px solid #333;
+            }
+            .hamburger-menu-container .hamburger-button {
+                color: #e0e0e0; /* Light text/icon for dark mobile bar */
+            }
+            .hamburger-menu-container .hamburger-button:hover,
+            .hamburger-menu-container .hamburger-button:focus,
+            .hamburger-menu-container .hamburger-button.active {
+                color: #bbb;
+            }
+        }
+
+        /* Menu Panel Dark Mode */
+        .menu {
+            background-color: #282c2c; /* Dark background for menu panel */
+            border-right: 1px solid #444;
+        }
+
+        .menu a {
+            color: #e0e0e0; /* Light text for links */
+        }
+
+        .menu a:hover {
+            background-color: #383c3c; /* Slightly lighter dark for hover */
+            color: #e8c1c9; /* Accent color on hover */
+        }
+
+        .another-section {
+            border-top: 1px solid #444; /* Darker separator */
+        }
+
+        .section-label, .logged-in-info {
+            color: #aaa; /* Lighter grey for dark mode */
+        }
+    }

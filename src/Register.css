@@ -1,0 +1,100 @@
+.register-container {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 2rem;
+    background-color: #ffffff;
+    border-radius: 10px;
+  }
+  
+  .register-container h2 {
+    font-size: 1.8rem;
+    color: #333;
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  .register-container .error {
+    color: #d9534f;
+    text-align: center;
+    margin-bottom: 1rem;
+    font-weight: bold;
+  }
+  
+  .register-container .form-group {
+    margin-bottom: 1.5rem;
+  }
+  
+  .register-container label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #555;
+  }
+  
+  .register-container input[type="text"],
+  .register-container input[type="email"],
+  .register-container input[type="password"],
+  .register-container select {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  
+  .register-container input:focus,
+  .register-container select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    outline: none;
+  }
+  
+  .register-container select {
+    appearance: none;
+    background: #fff url('data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="gray" class="bi bi-chevron-down" viewBox="0 0 16 16"%3E%3Cpath fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"%3E%3C/path%3E%3C/svg%3E') no-repeat right 0.75rem center;
+    background-size: 1rem;
+  }
+  
+  .register-container button[type="submit"] {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #fff;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .register-container button[type="submit"]:hover {
+    background-color: #0056b3;
+  }
+  
+  .register-container button[type="submit"]:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+  }
+  
+  .register-container input[type="email"][disabled] {
+    background-color: #f9f9f9;
+    cursor: not-allowed;
+  }
+  
+  @media (max-width: 600px) {
+    .register-container {
+      padding: 1.5rem;
+    }
+  
+    .register-container h2 {
+      font-size: 1.5rem;
+    }
+  
+    .register-container button[type="submit"] {
+      font-size: 1rem;
+    }
+  }
+  

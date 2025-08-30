@@ -1,0 +1,260 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-bottom: 2vh;
+}
+  
+  .title {
+    margin-top: 5vh;
+    font-size: 24px;
+    text-align: center; 
+  }
+  
+  .calendar {
+    margin-bottom: 10vh;
+  }
+  
+  .upcoming-events {
+    width: 80%; 
+    margin-bottom: 8vh;
+  }
+  
+  .table {
+    width: 60%; 
+    border-collapse: collapse;
+    margin: 0 auto;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: left;
+  }
+  
+  .table th {
+    background-color: #f4f4f4;
+  }
+
+  .search-bar {
+    padding: 8px;
+    border: 1px solid #ccc;
+    width: 50%; 
+    margin: 20px auto; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+  }
+
+  .react-calendar .highlight {
+    color: #fff; 
+    opacity: 0.8; 
+    background-color: var(--event-color, #fff); 
+  }
+  
+  .details-cell {
+    cursor: pointer;
+    text-decoration: underline;
+  }
+
+  .side-panel {
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    right: 0;
+    top: 0;
+    height: 100vh;
+    background-color: white;
+    box-shadow: -2px 0 8px rgba(0,0,0,0.1);
+    padding: 20px;
+    box-sizing: border-box;
+    z-index: 1051;
+    overflow-y: auto;
+    transition: width 0.3s;
+  }
+
+  .card-title {
+    margin-top: 5vh;
+    font-size: 34px;
+    text-align: left; 
+    font-weight: bold;
+  }
+
+    .card-datg {
+        display: flex;
+        align-items: center;
+        font-size: 0; 
+        gap: 0; 
+    }
+    
+    .card-date, .card-date-span {
+        font-size: 15px;  
+        white-space: nowrap;
+        margin: 0; 
+        padding: 0;  
+        border: none;  
+        background-color: transparent;
+        outline: none;
+        color: black;
+        font-weight: lighter;
+    }
+    
+    .card-date-span {
+        display: inline;  
+        margin: 0 5px; 
+    }
+
+    span {
+        white-space: nowrap; 
+    }
+  
+  .card-edit {
+    bottom: 20px; 
+  }
+  
+  .card-part, .desc-lead, .note-lead {
+    margin-top: 2vh;
+    font-weight: bold;
+  }
+
+  .card-join {
+    margin-top: 2vh;
+  }
+
+  .card-ccol {
+    margin-top: 2vh;
+    margin-bottom: 1vh;
+  }
+  
+  .edit-n-close { 
+    display: flex;
+    position: static;
+    bottom: 20px; 
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 2vh;
+    left: 0px;
+  }
+  
+  .card-close {
+    left: auto; 
+    right: 20px; 
+  }
+
+  .body-no-scroll {
+    overflow: hidden; 
+  }
+
+  [contentEditable="true"] {
+    border: 1px solid #ccc;
+    background-color: #f9f9f9;
+    padding: 5px;
+    border-radius: 4px;
+  }
+  
+  .hex-color-picker {
+    min-height: 200px; 
+    width: 100%;
+  }
+
+  .color-picker-container {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .card-edit, .card-delete, .card-close {
+    flex: 0 0 30%; 
+    text-align: center;
+  }
+  
+  .edit-n-close > *:not(:nth-child(2)) {
+    flex: 0 0 30%; 
+  }
+  
+  .edit-n-close > *:nth-child(2):empty {
+    flex: 0 0 30%;  
+    visibility: hidden;  
+  }
+
+  .resize-handle {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;  
+    cursor: ew-resize;  
+    background-color: #ccc; 
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal {
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    z-index: 1001;
+}
+
+@media (width >= 750px) {
+    .container {
+        margin-top: 8vh;
+    }
+  }
+
+.textarea-plain {
+    border: none;
+    outline: none;
+    background-color: transparent;
+    width: 100%;
+    height: auto;              
+    resize: none;              
+    font-size: inherit;
+    color: inherit;
+    overflow: hidden;          
+}
+
+@media (max-width: 750px) { 
+    .card-datg {
+        flex-direction: column; 
+        align-items: flex-start; 
+    }
+    .edit-n-close {
+        margin-bottom:14vh;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+  .react-calendar {
+      background-color: #333;  
+      color: white;         
+  }
+  .react-calendar__tile {
+      background-color: #444;  
+      color: white;           
+  }
+  .react-calendar__tile:enabled:hover,
+  .react-calendar__tile:enabled:focus {
+      background-color: #555; 
+  }
+  .react-calendar__navigation button {
+      color: white;           
+  }
+
+  .table.upcoming-events th {
+    background-color: #333;  
+    color: white; 
+}
+}

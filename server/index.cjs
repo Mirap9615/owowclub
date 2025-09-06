@@ -70,6 +70,12 @@ const sesClient = new SESClient({
 
 const bucketName = process.env.AWS_BUCKET_NAME;
 
+// 
+
+// IMAGE BASED 
+
+// 
+
 app.get('/api/images/event/:eventId', async (req, res) => {
   const { eventId } = req.params;
 
@@ -280,6 +286,220 @@ app.put('/api/images/:id', async (req, res) => {
     res.status(500).json({ error: 'Error updating image.' });
   }
 })
+
+// 
+
+// MEDIA BASED
+
+// 
+
+// A helper function to determine media type from mimetype
+const getMediaType = (mimetype) => {
+  if (mimetype.startsWith('image/')) return 'image';
+  if (mimetype.startsWith('video/')) return 'video';
+  return 'unknown';
+};
+
+// --- GET All Media ---
+app.get('/api/media', async (req, res) => {
+  try {
+    // Note: Listing ALL objects can be slow and expensive. 
+    // It's better to query your database directly.
+    const query = `
+      SELECT 
+        m.*,
+        e.title AS event_title,
+        u.name AS user_name
+      FROM media m
+      LEFT JOIN event e ON m.associated_event_id = e.id
+      LEFT JOIN users u ON m.user_id = u.user_id
+      ORDER BY m.upload_date DESC
+    `;
+    const mediaData = await pool.query(query);
+
+    const allMedia = mediaData.rows.map(item => ({
+      id: item.media_id,
+      url: item.url,
+      title: item.title,
+      description: item.description,
+      name: item.name,
+      tags: item.tags,
+      author: item.user_id,
+      author_name: item.user_name,
+      upload_date: item.upload_date,
+      associated_event_id: item.associated_event_id,
+      event_name: item.event_title || null,
+      media_type: item.media_type, 
+      thumbnail_url: item.thumbnail_url, 
+    }));
+
+    res.json(allMedia);
+  } catch (err) {
+    console.error("Failed to retrieve media:", err);
+    res.status(500).send("Failed to retrieve media");
+  }
+});
+
+
+// --- GET Media by Event ID ---
+app.get('/api/media/event/:eventId', async (req, res) => {
+  const { eventId } = req.params;
+  try {
+    const query = `
+      SELECT 
+        m.*,
+        e.title AS event_title,
+        u.name AS user_name
+      FROM media m
+      LEFT JOIN event e ON m.associated_event_id = e.id
+      LEFT JOIN users u ON m.user_id = u.user_id
+      WHERE m.associated_event_id = $1
+      ORDER BY m.upload_date DESC
+    `;
+    const mediaData = await pool.query(query, [eventId]);
+
+    const eventMedia = mediaData.rows.map(item => ({
+      id: item.media_id,
+      url: item.url,
+      title: item.title,
+      description: item.description,
+      name: item.name,
+      tags: item.tags,
+      author: item.user_id,
+      author_name: item.user_name,
+      upload_date: item.upload_date,
+      associated_event_id: item.associated_event_id,
+      event_name: item.event_title || null,
+      media_type: item.media_type,
+      thumbnail_url: item.thumbnail_url, 
+    }));
+
+    res.json(eventMedia);
+  } catch (err) {
+    console.error('Error fetching event media:', err);
+    res.status(500).json({ error: 'Failed to fetch event media' });
+  }
+});
+
+app.post('/upload-media', upload.single('media'), async (req, res) => {
+  console.log("Called");
+  if (!req.session.user) {
+    return res.status(403).send('Not authenticated');
+  }
+
+  const user_id = req.session.user.user_id;
+  const { name = "Untitled", description = "A new media file.", title = "New Media", associated_event_id = null } = req.body;
+  const tags = []; // Default empty tags
+
+  const mediaType = getMediaType(req.file.mimetype);
+  if (mediaType === 'unknown') {
+    return res.status(400).send('Unsupported file type.');
+  }
+
+  // Use separate folders in S3 for better organization
+  const folder = mediaType === 'image' ? 'images' : 'videos';
+  const mediaId = uuid.v4();
+  const fileExtension = req.file.originalname.split('.').pop();
+  const key = `${folder}/${mediaId}.${fileExtension}`;
+
+  try {
+    const command = new PutObjectCommand({
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: key,
+      Body: req.file.buffer,
+      ContentType: req.file.mimetype,
+    });
+    await s3Client.send(command);
+
+    const mediaUrl = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
+    
+    const insertQuery = `
+      INSERT INTO media (media_id, user_id, name, tags, title, description, url, associated_event_id, media_type)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      RETURNING *;
+    `;
+    const result = await pool.query(insertQuery, [mediaId, user_id, name, tags, title, description, mediaUrl, associated_event_id, mediaType]);
+    const newItem = result.rows[0];
+
+    res.json({
+      id: newItem.media_id,
+      url: newItem.url,
+      title: newItem.title,
+      description: newItem.description,
+      name: newItem.name,
+      tags: newItem.tags,
+      author: newItem.user_id,
+      upload_date: newItem.upload_date,
+      associated_event_id: newItem.associated_event_id,
+      media_type: newItem.media_type,
+    });
+  } catch (err) {
+    console.error("Upload failed:", err);
+    res.status(500).send('Server error during upload');
+  }
+});
+
+
+// --- DELETE Media ---
+app.post('/api/delete-media', async (req, res) => {
+  const { media } = req.body; // Expects an array of media_ids
+  if (!media || media.length === 0) {
+    return res.status(400).send({ status: 'error', message: 'No media IDs provided.' });
+  }
+
+  try {
+    const result = await pool.query('SELECT url FROM media WHERE media_id = ANY($1)', [media]);
+    const urls = result.rows.map(row => row.url);
+    const keys = urls.map(url => new URL(url).pathname.substring(1));
+
+    if (keys.length > 0) {
+      const deleteCommands = keys.map(key => new DeleteObjectCommand({
+        Bucket: process.env.AWS_BUCKET_NAME,
+        Key: key,
+      }));
+      await Promise.all(deleteCommands.map(command => s3Client.send(command)));
+    }
+
+    await pool.query('DELETE FROM media WHERE media_id = ANY($1)', [media]);
+
+    res.send({ status: 'success' });
+  } catch (error) {
+    console.error('Error deleting media:', error);
+    res.status(500).send({ status: 'error', message: error.message });
+  }
+});
+
+
+// --- UPDATE Media Metadata ---
+app.put('/api/media/:id', async (req, res) => {
+  const { id } = req.params;
+  const { name, description, tags, associatedEventId } = req.body;
+
+  try {
+    const query = `
+      UPDATE media 
+      SET name = $1, description = $2, tags = $3, associated_event_id = $4
+      WHERE media_id = $5
+      RETURNING *;
+    `;
+    const eventId = associatedEventId === '' ? null : associatedEventId;
+    const result = await pool.query(query, [name, description, tags, eventId, id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Media not found.' });
+    }
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error updating media:', err);
+    res.status(500).json({ error: 'Error updating media.' });
+  }
+});
+
+// 
+
+// MEDIA BASED END
+
+// 
 
 // Endpoint to update application status and send invitation if accepted
 app.patch('/api/applications/:id/status', async (req, res) => {

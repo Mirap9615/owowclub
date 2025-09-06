@@ -1,125 +1,112 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import Steamed from './Steamed.jsx';
-import './Gallery.css';  
-import ImageModal from './ImageModal.jsx'
-import TagEditor from './TagEditor.jsx';
+import './Gallery.css';
+import MediaModal from './MediaModal.jsx'; // Make sure you have created/renamed this component
 
 function Gallery() {
-  const [images, setImages] = useState([]);
-  const [currentImage, setCurrentImage] = useState(null);
+  // --- STATE ---
+  const [media, setMedia] = useState([]);
+  const [currentMedia, setCurrentMedia] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const fileInputRef = useRef(null);
-
   const [searchQuery, setSearchQuery] = useState('');
-
-  const [editImageMode, setEditImageMode] = useState(false);
-  const [selectedImages, setSelectedImages] = useState({});
-
+  const [editMode, setEditMode] = useState(false);
+  const [selectedMedia, setSelectedMedia] = useState({});
   const [events, setEvents] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState('');
-  
+
+  // --- DATA FETCHING ---
   useEffect(() => {
-    const fetchImages = async () => {
+    const fetchMedia = async () => {
       try {
-        const response = await fetch('/api/images');
-        const imageData = await response.json();
-        console.log(imageData);
-        setImages(imageData);
+        const response = await fetch('/api/media');
+        const mediaData = await response.json();
+        console.log(mediaData);
+        setMedia(mediaData);
       } catch (error) {
-        console.error('Error fetching images:', error);
+        console.error('Error fetching media:', error);
       }
     };
-
-    fetchImages();
+    fetchMedia();
   }, []);
 
-useEffect(() => {
-  const fetchEvents = async () => {
-    try {
-      const response = await fetch('/api/events');
-      const eventData = await response.json();
-      setEvents(eventData);
-    } catch (error) {
-      console.error('Error fetching events:', error);
-    }
-  };
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const response = await fetch('/api/events');
+        const eventData = await response.json();
+        setEvents(eventData);
+      } catch (error) {
+        console.error('Error fetching events:', error);
+      }
+    };
+    fetchEvents();
+  }, []);
 
-  fetchEvents();
-}, []);
-
-
-  const handleImageClick = useCallback((image) => {
-    setCurrentImage(image);
+  // --- HANDLERS ---
+  const handleMediaClick = useCallback((mediaItem) => {
+    setCurrentMedia(mediaItem);
     setIsModalOpen(true);
-
-    const imageId = image.id;
-    history.pushState({ modalOpen: true, imageId }, '', `?image=${imageId}`);
+    history.pushState({ modalOpen: true, mediaId: mediaItem.id }, '', `?media=${mediaItem.id}`);
   }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const imageId = params.get('image');
+    const mediaId = params.get('media');
 
-    if (imageId && images.length > 0) {
-        // Find the image by its unique ID
-        const image = images.find((img) => img.id === imageId);
-
-        if (image) {
-            setCurrentImage(image); 
+    if (mediaId && media.length > 0) {
+        const mediaItem = media.find((item) => item.id === mediaId);
+        if (mediaItem) {
+            setCurrentMedia(mediaItem); 
             setIsModalOpen(true);  
         }
     }
-}, [images]);
+  }, [media]);
 
-const handleModalSaveChanges = async (updatedImage) => {
-  try {
-    const response = await fetch(`/api/images/${updatedImage.id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(updatedImage),
-    });
+  const handleModalSaveChanges = async (updatedMedia) => {
+    try {
+      const response = await fetch(`/api/media/${updatedMedia.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedMedia),
+      });
 
-    console.log(response);
-    console.log(updatedImage);
-
-    if (response.ok) {
-      setImages(prevImages =>
-        prevImages.map(img =>
-          img.id === updatedImage.id ? updatedImage : img
-        )
-      );
-    } else {
-      console.error('Failed to save changes');
+      if (response.ok) {
+        setMedia(prevMedia =>
+          prevMedia.map(item =>
+            item.id === updatedMedia.id ? updatedMedia : item
+          )
+        );
+      } else {
+        console.error('Failed to save changes');
+      }
+    } catch (error) {
+      console.error('Error saving changes:', error);
     }
-  } catch (error) {
-    console.error('Error saving changes:', error);
-  }
-};
+  };
 
   const handleFileChange = useCallback(async (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
     const formData = new FormData();
-    formData.append('image', file);
+    formData.append('media', file);
 
     try {
-      const response = await fetch('/upload-image', {
+      const response = await fetch('/upload-media', {
         method: 'POST',
         body: formData,
       });
 
       if (response.ok) {
-        const newImage = await response.json();
-        setImages(prev => [...prev, newImage]);
+        const newMediaItem = await response.json();
+        setMedia(prev => [...prev, newMediaItem]);
         event.target.value = '';
       } else {
         throw new Error('Upload failed');
       }
     } catch (error) {
-      console.error('Error uploading image:', error);
+      console.error('Error uploading media:', error);
     }
   }, []);
 
@@ -127,101 +114,76 @@ const handleModalSaveChanges = async (updatedImage) => {
     fileInputRef.current?.click();
   }, []);
 
-  const toggleImageEditMode = useCallback(() => {
-    setEditImageMode(prev => !prev);
-    setSelectedImages({});
+  const toggleEditMode = useCallback(() => {
+    setEditMode(prev => !prev);
+    setSelectedMedia({});
   }, []);
 
-  const handleSelectImage = useCallback((imageId) => {
-    setSelectedImages(prev => ({
+  const handleSelectMedia = useCallback((mediaUrl) => {
+    setSelectedMedia(prev => ({
       ...prev,
-      [imageId]: !prev[imageId]
+      [mediaUrl]: !prev[mediaUrl]
     }));
   }, []);
 
-  const handleDeleteImages = useCallback(async () => {
-    // Filter selected images and map to their IDs
-    const imagesToDelete = Object.keys(selectedImages)
-      .filter((key) => selectedImages[key]) // Only selected images
-      .map((key) => images.find((image) => image.url === key)?.id) // Map to image IDs
-      .filter((id) => id); // Remove any null or undefined IDs
+  const handleDeleteMedia = useCallback(async () => {
+    const mediaToDelete = Object.keys(selectedMedia)
+      .filter(key => selectedMedia[key])
+      .map(url => media.find(item => item.url === url)?.id)
+      .filter(id => id);
   
-    if (imagesToDelete.length === 0) {
-      console.warn('No valid images selected for deletion.');
+    if (mediaToDelete.length === 0) {
+      console.warn('No valid media selected for deletion.');
       return;   
     }
   
-    console.log('Images to delete:', imagesToDelete);
-  
     try {
-      const response = await fetch('/api/delete-images', {
+      const response = await fetch('/api/delete-media', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ images: imagesToDelete }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ media: mediaToDelete }),
       });
   
       if (response.ok) {
-        // Update the images state to exclude deleted images
-        setImages((current) => current.filter((image) => !imagesToDelete.includes(image.id)));
-        toggleImageEditMode();
+        setMedia(current => current.filter(item => !mediaToDelete.includes(item.id)));
+        toggleEditMode();
       } else {
-        console.error('Failed to delete image(s)');
+        console.error('Failed to delete media item(s)');
       }
     } catch (error) {
-      console.error('Error deleting images:', error);
+      console.error('Error deleting media:', error);
     }
-  }, [images, selectedImages, toggleImageEditMode]);
+  }, [media, selectedMedia, toggleEditMode]);
   
-  const groupedFilteredImages = useMemo(() => {
-    const filtered = images.filter(image => {
-      const matchesSearch = !searchQuery || image.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-      const matchesEvent = !selectedEvent || image.associated_event_id == selectedEvent;
+  const groupedFilteredMedia = useMemo(() => {
+    const filtered = media.filter(item => {
+      const matchesSearch = !searchQuery || (item.tags && item.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())));
+      const matchesEvent = !selectedEvent || item.associated_event_id == selectedEvent;
       return matchesSearch && matchesEvent;
     });
   
-    const sortedImages = filtered.sort((a, b) => new Date(b.upload_date) - new Date(a.upload_date));
+    const sortedMedia = filtered.sort((a, b) => new Date(b.upload_date) - new Date(a.upload_date));
   
-    return sortedImages.reduce((acc, image) => {
-      const date = new Date(image.upload_date).toLocaleDateString();
+    return sortedMedia.reduce((acc, item) => {
+      const date = new Date(item.upload_date).toLocaleDateString();
       if (!acc[date]) acc[date] = [];
-      acc[date].push(image);
+      acc[date].push(item);
       return acc;
     }, {});
-  }, [images, searchQuery, selectedEvent]);
-  
+  }, [media, searchQuery, selectedEvent]);
 
   const handleAddComment = useCallback(async (commentText) => {
-    if (!currentImage) return;
-
+    if (!currentMedia) return;
     try {
-      const response = await fetch(`/api/images/${currentImage.id}/comments`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ text: commentText }),
-      });
-
-      if (response.ok) {
-        const newComment = await response.json();
-        setCurrentImage(prev => ({
-          ...prev,
-          comments: [...(prev?.comments || []), newComment]
-        }));
-      } else {
-        console.error('Failed to add comment');
-      }
+      const response = await fetch(`/api/media/${currentMedia.id}/comments`, { /* ... */ });
     } catch (error) {
       console.error('Error adding comment:', error);
     }
-  }, [currentImage]);
+  }, [currentMedia]);
 
   const closeModal = useCallback(() => {
     setIsModalOpen(false);
-    setCurrentImage(null);
-
+    setCurrentMedia(null);
     history.pushState(null, '', window.location.pathname);
   }, []);
 
@@ -232,87 +194,70 @@ const handleModalSaveChanges = async (updatedImage) => {
           <Steamed />
           <h1>OWL<sup>2</sup> Club</h1>
         </header>
-          <div className="main">
-            <div className="gallery-page-header">
-                <div className="header-main-row">
-                  <h1 className="gallery-title">Media Gallery</h1>
-                  <div className="header-actions">
-                    {editImageMode ? (
-                      <>
-                        <button
-                          onClick={handleDeleteImages}
-                          disabled={!Object.values(selectedImages).some(v => v)}
-                          className="button-danger"
-                        >
-                          Delete Selected
-                        </button>
-                        <button onClick={toggleImageEditMode} className="button-secondary">Cancel</button>
-                      </>
-                    ) : (
-                      <>
-                        {/* We are turning the buttons into more subtle links */}
-                        <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" style={{ display: 'none' }} />
-                        <button onClick={handleClickUpload} className="header-action-link">
-                          &#43; Upload Media
-                        </button>
-                        <button onClick={toggleImageEditMode} className="header-action-link">
-                          &#9881; Manage Media
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                <div className="controls-row">
-                  <div className="search-bar">
-                    <input 
-                      type="text" 
-                      placeholder="Search by tags..." 
-                      value={searchQuery} 
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                  </div>
-                  <div className="filter-bar">
-                    <span>Show... </span>
-                    <select value={selectedEvent} onChange={(e) => setSelectedEvent(e.target.value)}>
-                      <option value="">All Events</option>
-                      {events.map(event => (
-                        <option key={event.id} value={event.id}>{event.title}</option>
-                      ))}
-                    </select>
-                  </div>
+        <div className="main">
+          <div className="gallery-page-header">
+              <div className="header-main-row">
+                <h1 className="gallery-title">Media Gallery</h1>
+                <div className="header-actions">
+                  {editMode ? (
+                    <>
+                      <button onClick={handleDeleteMedia} disabled={!Object.values(selectedMedia).some(v => v)} className="button-danger">
+                        Delete Selected
+                      </button>
+                      <button onClick={toggleEditMode} className="button-secondary">Cancel</button>
+                    </>
+                  ) : (
+                    <>
+                      <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*,video/*" style={{ display: 'none' }} />
+                      <button onClick={handleClickUpload} className="header-action-link">&#43; Upload Media</button>
+                      <button onClick={toggleEditMode} className="header-action-link">&#9881; Manage Media</button>
+                    </>
+                  )}
                 </div>
               </div>
-    
+              <div className="controls-row">
+                <div className="search-bar">
+                  <input type="text" placeholder="Search by tags..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+                </div>
+                <div className="filter-bar">
+                  <span>Show... </span>
+                  <select value={selectedEvent} onChange={(e) => setSelectedEvent(e.target.value)}>
+                    <option value="">All Events</option>
+                    {events.map(event => (<option key={event.id} value={event.id}>{event.title}</option>))}
+                  </select>
+                </div>
+              </div>
+            </div>
+  
           <div className="gallery">
-            {Object.keys(groupedFilteredImages).length > 0 ? (
-              Object.entries(groupedFilteredImages).map(([date, imagesByDate]) => (
+            {Object.keys(groupedFilteredMedia).length > 0 ? (
+              Object.entries(groupedFilteredMedia).map(([date, mediaByDate]) => (
                 <div key={date} className="date-group">
                   <h2 className="date-marker">{date}</h2>
-                  <div className="image-row">
-                    {imagesByDate.map((image) => (
-                      <ImageItem 
-                        key={image.url}
-                        image={image}
-                        editImageMode={editImageMode}
-                        selectedImages={selectedImages}
-                        handleSelectImage={handleSelectImage}
-                        handleImageClick={handleImageClick}
+                  <div className="media-row">
+                    {mediaByDate.map((item) => (
+                      <MediaItem 
+                        key={item.url}
+                        media={item}
+                        editMode={editMode}
+                        selectedMedia={selectedMedia}
+                        handleSelectMedia={handleSelectMedia}
+                        handleMediaClick={handleMediaClick}
                       />
                     ))}
                   </div>
                 </div>
               ))
             ) : (
-              <div className="gallery-no-images">No images to display</div>
+              <div className="gallery-no-items">No media to display</div>
             )}
           </div>
 
-          {currentImage && (
-            <ImageModal
+          {currentMedia && (
+            <MediaModal
               isOpen={isModalOpen}
               closeModal={closeModal}
-              currentImage={currentImage}
+              currentMedia={currentMedia}
               onSave={handleModalSaveChanges}
             />
           )}
@@ -322,28 +267,32 @@ const handleModalSaveChanges = async (updatedImage) => {
   );
 }
 
-    
-const ImageItem = React.memo(({ image, editImageMode, selectedImages, handleSelectImage, handleImageClick }) => (
+const MediaItem = React.memo(({ media, editMode, selectedMedia, handleSelectMedia, handleMediaClick }) => (
   <div
-    className={`image ${editImageMode ? 'edit-mode' : ''}`}
-    onClick={(e) => {
-      if (editImageMode) {
+      className={`media-item ${editMode ? 'edit-mode' : ''} ${media.media_type === 'video' ? 'is-video' : ''}`}    onClick={(e) => {
+      if (editMode) {
         e.stopPropagation();
-        handleSelectImage(image.url);
+        handleSelectMedia(media.url);
       } else {
-        handleImageClick(image);
+        handleMediaClick(media);
       }
     }}
   >
-    {editImageMode && (
-      <div className="select-overlay" onClick={(e) => {
-        e.stopPropagation();
-        handleSelectImage(image.url);
-      }}>
-        {selectedImages[image.url] ? '✓' : 'O'}
+    {editMode && (
+      <div className="select-overlay" onClick={(e) => { e.stopPropagation(); handleSelectMedia(media.url); }}>
+        {selectedMedia[media.url] ? '✓' : 'O'}
       </div>
     )}
-    <img src={image.url} alt={image.name || ''} loading="lazy" />
+    
+    {media.media_type === 'video' ? (
+      media.thumbnail_url ? (
+        <img src={media.thumbnail_url} alt={media.name || ''} loading="lazy" className="media-thumbnail" />
+      ) : (
+        <video src={media.url} muted playsInline className="media-thumbnail" />
+      )
+    ) : (
+      <img src={media.url} alt={media.name || ''} loading="lazy" className="media-thumbnail" />
+    )}
   </div>
 ));
 

@@ -1,0 +1,178 @@
+import React, { useState, useEffect } from 'react';
+import './MediaModal.css'; // Don't forget to rename your CSS file too
+import Modal from 'react-modal';
+import Comments from './Comments.jsx';
+import FsLightbox from 'fslightbox-react';
+
+// This helper function is great, let's keep it.
+const formatDate = (isoDate) => {
+  if (!isoDate) return 'unknown date';
+  return new Date(isoDate).toLocaleDateString('en-US', {
+    year: 'numeric', month: 'long', day: 'numeric'
+  });
+};
+
+const MediaModal = React.memo(({
+  isOpen,
+  closeModal,
+  currentMedia, // Renamed from currentImage
+  onSave,
+}) => {
+  // --- STATE ---
+  const [editFields, setEditFields] = useState({ description: '', tags: [], event: null });
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const [availableEvents, setAvailableEvents] = useState([]);
+  const [lightboxToggler, setLightboxToggler] = useState(false);
+
+  const title = 'Detailed Media View';
+
+  // --- EFFECTS ---
+  useEffect(() => {
+    // Populate edit fields when new media is selected
+    if (currentMedia) {
+      setEditFields({
+        description: currentMedia.description || '',
+        tags: currentMedia.tags || [],
+        event: currentMedia.associated_event_id || null,
+      });
+      // Reset editing state when media changes
+      setIsEditingDescription(false);
+    }
+  }, [currentMedia]);
+
+  useEffect(() => {
+    // Fetch events when the modal opens
+    const fetchEvents = async () => {
+      try {
+        const response = await fetch('/api/events');
+        setAvailableEvents(await response.json());
+      } catch (error) {
+        console.error('Error fetching events:', error);
+      }
+    };
+
+    if (isOpen) {
+      fetchEvents();
+    }
+  }, [isOpen]);
+
+  // --- HANDLERS ---
+  const handleEventSelection = (eventId) => {
+    setEditFields((prev) => ({
+      ...prev,
+      event: eventId || null,
+    }));
+  };
+
+  const saveChanges = () => {
+    // Use the generic 'media' naming convention for the saved object
+    onSave({ ...currentMedia, ...editFields, associatedEventId: editFields.event });
+    closeModal();
+  };
+
+  // Determine media type for Lightbox
+  const lightboxType = currentMedia?.media_type === 'video' ? 'video' : 'image';
+
+  // Guard against rendering when currentMedia is null (can happen briefly on close)
+  if (!currentMedia) {
+    return null;
+  }
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onRequestClose={closeModal}
+      contentLabel={title}
+      className="media-modal"
+      overlayClassName="modal-overlay"
+    >
+      {/* --- HEADER (Fixed at the top) --- */}
+      <div className="modal-header">
+        <h2>{currentMedia.name || 'Media Details'}</h2>
+      </div>
+
+      {/* --- SCROLLABLE CONTENT WRAPPER --- */}
+      {/* This is the key part that will now scroll correctly */}
+      <div className="modal-content-wrapper">
+        
+        {/* --- Media Display (Image/Video) --- */}
+        <div className="media-display-container">
+          {currentMedia.media_type === 'video' ? (
+            
+            <video src={currentMedia.url} controls autoPlay className="modal-media" />
+          ) : (
+            <img src={currentMedia.url} alt={currentMedia.name} className="modal-media" />
+          )}
+        </div>
+        
+        <div className="media-author">
+          Uploaded by {currentMedia.author_name || 'Unknown'} on {formatDate(currentMedia.upload_date)}
+        </div>
+
+        {/* --- Description Editing --- */}
+        <div className="modal-section">
+          <label className="large-text">Description</label>
+          {isEditingDescription ? (
+            <div className="edit-description-wrapper">
+              <textarea
+                value={editFields.description}
+                onChange={(e) => setEditFields((prev) => ({ ...prev, description: e.target.value }))}
+                rows="4"
+              />
+              {/* Note: A smaller, more integrated button might be better UX */}
+              <button onClick={() => setIsEditingDescription(false)} className="button-secondary" style={{ marginTop: '0.5rem' }}>
+                Save Description
+              </button>
+            </div>
+          ) : (
+            <p className="small-text" onDoubleClick={() => setIsEditingDescription(true)}>
+              {editFields.description || 'No description provided. Double-click to edit.'}
+            </p>
+          )}
+        </div>
+
+        {/* --- Event Association --- */}
+        <div className="modal-section">
+          <label className="large-text">Associated Event</label>
+          <select
+            value={editFields.event || ''}
+            onChange={(e) => handleEventSelection(e.target.value)}
+          >
+            <option value="">(None)</option>
+            {availableEvents.map((event) => (
+              <option key={event.id} value={event.id}>
+                {event.title}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* --- Comments Section --- */}
+        <div className="modal-section">
+          <Comments commentableId={currentMedia.id} />
+        </div>
+
+      </div>
+      {/* --- END OF SCROLLABLE CONTENT WRAPPER --- */}
+
+      
+      {/* --- FOOTER (Fixed at the bottom) --- */}
+      <div className="modal-buttons">
+        <button onClick={saveChanges} className="button-primary">Save & Close</button>
+        <button onClick={() => setLightboxToggler(!lightboxToggler)} className="button-secondary">
+          Fullscreen
+        </button>
+        <button onClick={closeModal} className="button-tertiary">Cancel</button>
+      </div>
+
+      {/* --- Lightbox for Fullscreen View (remains outside the visual flow) --- */}
+      <FsLightbox
+        toggler={lightboxToggler}
+        sources={[currentMedia.url]}
+        types={[lightboxType]}
+      />
+    </Modal>
+  );
+});
+
+export default MediaModal;

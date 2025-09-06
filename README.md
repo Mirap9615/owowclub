@@ -11,3 +11,4 @@ Inspiration:
 https://www.universitywomensclub.com/membership/why-join/
 
     
+- Need to update code to reflect change from images table to media table 

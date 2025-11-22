@@ -64,15 +64,15 @@ const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, eventName }) => {
 }
 
 const formatDateRead = (isoDate) => {
-  if (!isoDate) return 'N/A'; 
+  if (!isoDate) return 'N/A';
 
-  const [year, month, day] = isoDate.split('-'); 
+  const [year, month, day] = isoDate.split('-');
   const monthNames = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
 
-  return `${monthNames[parseInt(month, 10) - 1]} ${parseInt(day, 10)}, ${year}`; 
+  return `${monthNames[parseInt(month, 10) - 1]} ${parseInt(day, 10)}, ${year}`;
 };
 
 const EventPage = () => {
@@ -80,7 +80,7 @@ const EventPage = () => {
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState("details"); 
+  const [activeTab, setActiveTab] = useState("details");
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [eventImages, setEventImages] = useState([]);
@@ -95,7 +95,7 @@ const EventPage = () => {
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const fileInputRef = useRef(null);
   const eventRef = useRef(null);
-  
+
 
   const navigate = useNavigate();
 
@@ -136,14 +136,14 @@ const EventPage = () => {
     museum: "Museum Visit",
     other: "Other",
     custom: "Custom...",
-};
+  };
 
 
   const showLeaveModal = (eventId) => {
     setPendingLeaveEventId(eventId);
-    setIsLeaveModalOpen(true); 
+    setIsLeaveModalOpen(true);
   };
-  
+
   const confirmLeaveEvent = () => {
     if (pendingLeaveEventId) {
       handleLeaveEvent(pendingLeaveEventId);
@@ -154,16 +154,16 @@ const EventPage = () => {
   const handleShowDeleteModal = () => {
     setIsDeleteModalOpen(true);
   };
-  
+
   const handleCloseDeleteModal = () => {
     setIsDeleteModalOpen(false);
   };
-  
+
   const handleConfirmDelete = () => {
-    handleDelete(event.id); 
+    handleDelete(event.id);
     setIsDeleteModalOpen(false);
   };
-  
+
 
   const sendConfirmationEmail = async (eventId, userId) => {
     try {
@@ -174,7 +174,7 @@ const EventPage = () => {
         },
         body: JSON.stringify({ eventId, userId }),
       });
-  
+
       if (response.ok) {
         console.log('Confirmation email sent successfully');
       } else {
@@ -187,17 +187,17 @@ const EventPage = () => {
 
   const handleModalSaveChanges = async (updatedImage) => {
     try {
-      const response = await fetch(`/api/images/${updatedImage.id}`, {
+      const response = await fetch(`/api/media/${updatedImage.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(updatedImage),
       });
-  
+
       console.log(response);
       console.log(updatedImage);
-  
+
       if (response.ok) {
         setEventImages(prevImages =>
           prevImages.map(img =>
@@ -212,29 +212,29 @@ const EventPage = () => {
     }
   };
 
-    useEffect(() => {
-      const fetchUserDetails = async () => {
-        try {
-          const response = await fetch('/user-details', {
-            method: 'GET',
-            credentials: 'include',
-          });
-          const data = await response.json();
-          setUserDetails(data);
-        } catch (error) {
-          console.error('Error fetching user details:', error);
-        }
-      };
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      try {
+        const response = await fetch('/user-details', {
+          method: 'GET',
+          credentials: 'include',
+        });
+        const data = await response.json();
+        setUserDetails(data);
+      } catch (error) {
+        console.error('Error fetching user details:', error);
+      }
+    };
 
-      fetchUserDetails();
-    }, []);
+    fetchUserDetails();
+  }, []);
 
   function toggleScrollability(desiredState) {
     const body = document.body;
-    if ( desiredState ) {
-        body.classList.remove('body-no-scroll');
-    } else  {
-        body.classList.add('body-no-scroll');
+    if (desiredState) {
+      body.classList.remove('body-no-scroll');
+    } else {
+      body.classList.add('body-no-scroll');
     }
   }
 
@@ -268,10 +268,10 @@ const EventPage = () => {
       if (activeTab !== "images" || !event?.id) {
         return;
       }
-  
+
       setImagesLoading(true);
       try {
-        const response = await fetch(`/api/images/event/${event.id}`); 
+        const response = await fetch(`/api/media/event/${event.id}`);
         const data = await response.json();
         console.log(data);
         setEventImages(data);
@@ -282,78 +282,78 @@ const EventPage = () => {
         setImagesLoading(false);
       }
     };
-  
+
     fetchEventImages();
   }, [activeTab, event?.id]);
 
   const handleClickUpload = useCallback(() => {
-      fileInputRef.current?.click();
-    }, []);
+    fileInputRef.current?.click();
+  }, []);
 
-    const handleFileChange = async (event) => {
-      const currentEvent = eventRef.current;
-      
-      console.log('Event data:', currentEvent); 
-      console.log('Event ID:', currentEvent?.id); 
-      const file = event.target.files[0];
-      if (!file) return;
+  const handleFileChange = async (event) => {
+    const currentEvent = eventRef.current;
 
-      console.log(currentEvent);
-      const formData = new FormData();
-      formData.append('image', file);
-      formData.append('event_id', currentEvent.id); 
-      formData.append('associated_event_id', currentEvent.id);
-      console.log(currentEvent.id);
-  
-      try {
-          const response = await fetch('/upload-image', {
-              method: 'POST',
-              body: formData,
-          });
-  
-          if (response.ok) {
-              const newImage = await response.json();
-              setEventImages((prev) => [...prev, newImage]);
-              event.target.value = ''; // Clear file input
-          } else {
-              throw new Error('Upload failed');
-          }
-      } catch (error) {
-          console.error('Error uploading image:', error);
+    console.log('Event data:', currentEvent);
+    console.log('Event ID:', currentEvent?.id);
+    const file = event.target.files[0];
+    if (!file) return;
+
+    console.log(currentEvent);
+    const formData = new FormData();
+    formData.append('media', file);
+    formData.append('event_id', currentEvent.id);
+    formData.append('associated_event_id', currentEvent.id);
+    console.log(currentEvent.id);
+
+    try {
+      const response = await fetch('/upload-media', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const newImage = await response.json();
+        setEventImages((prev) => [...prev, newImage]);
+        event.target.value = ''; // Clear file input
+      } else {
+        throw new Error('Upload failed');
       }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+    }
   };
-  
+
 
   const renderImagesTab = () => {
     if (imagesLoading) {
       return <div className="images-loading">Loading images...</div>;
     }
-  
+
     return (
       <div className="images-tab">
         <div className="image-controls">
-            <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                accept="image/*"
-                style={{ display: 'none' }}
-            />
-            <button className="upload-button" onClick={() => fileInputRef.current?.click()}>
-                Upload Image
-            </button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            accept="image/*"
+            style={{ display: 'none' }}
+          />
+          <button className="upload-button" onClick={() => fileInputRef.current?.click()}>
+            Upload Image
+          </button>
         </div>
         <div className="image-grid">
           {eventImages.length > 0 ? (
             eventImages.map((image) => (
-              <div 
-                key={image.image_id} 
+              <div
+                key={image.image_id}
                 className="image-card"
                 onClick={() => handleImageClick(image)}
                 style={{ cursor: 'pointer' }}
               >
-                <img 
-                  src={image.url} 
+                <img
+                  src={image.url}
                 />
                 {/*image.name && (
                   <div className="image-caption">
@@ -369,7 +369,7 @@ const EventPage = () => {
             </div>
           )}
         </div>
-  
+
         {currentImage && (
           <ImageModal
             isOpen={isModalOpen}
@@ -396,195 +396,196 @@ const EventPage = () => {
 
   const handleEventUpdate = async (updatedEventData) => {
     try {
-        const commonAttributes = {
-            date: updatedEventData.event_date && updatedEventData.event_date.trim() !== "" 
-                ? updatedEventData.event_date 
-                : event.event_date,
-            start_time: updatedEventData.start_time && updatedEventData.start_time.trim() !== "" 
-                ? `${updatedEventData.start_time}` 
-                : event.start_time,
-            end_time: updatedEventData.end_time && updatedEventData.end_time.trim() !== "" 
-                ? `${updatedEventData.end_time}` 
-                : event.end_time,
-            title: updatedEventData.title,
-            description: updatedEventData.description,
-            note: updatedEventData.note,
-            color: updatedEventData.color,
-            type: updatedEventData.type,
-            exclusivity: updatedEventData.exclusivity,
-            is_physical: updatedEventData.is_physical,
-            location: updatedEventData.is_physical ? updatedEventData.location : null,
-            zip_code: updatedEventData.is_physical ? updatedEventData.zip_code : null,
-            city: updatedEventData.is_physical ? updatedEventData.city : null,
-            state: updatedEventData.is_physical ? updatedEventData.state : null,
-            country: updatedEventData.is_physical ? updatedEventData.country : null,
-            virtual_link: !updatedEventData.is_physical ? updatedEventData.virtual_link : null,
-        };
+      const commonAttributes = {
+        date: updatedEventData.event_date && updatedEventData.event_date.trim() !== ""
+          ? updatedEventData.event_date
+          : event.event_date,
+        start_time: updatedEventData.start_time && updatedEventData.start_time.trim() !== ""
+          ? `${updatedEventData.start_time}`
+          : event.start_time,
+        end_time: updatedEventData.end_time && updatedEventData.end_time.trim() !== ""
+          ? `${updatedEventData.end_time}`
+          : event.end_time,
+        title: updatedEventData.title,
+        description: updatedEventData.description,
+        note: updatedEventData.note,
+        color: updatedEventData.color,
+        type: updatedEventData.type,
+        exclusivity: updatedEventData.exclusivity,
+        is_physical: updatedEventData.is_physical,
+        location: updatedEventData.is_physical ? updatedEventData.location : null,
+        zip_code: updatedEventData.is_physical ? updatedEventData.zip_code : null,
+        city: updatedEventData.is_physical ? updatedEventData.city : null,
+        state: updatedEventData.is_physical ? updatedEventData.state : null,
+        country: updatedEventData.is_physical ? updatedEventData.country : null,
+        virtual_link: !updatedEventData.is_physical ? updatedEventData.virtual_link : null,
+        cover_image_url: updatedEventData.cover_image_url,
+      };
 
-        console.log(commonAttributes);
+      console.log(commonAttributes);
 
-        const response = await fetch(`/api/events/${updatedEventData.id}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(commonAttributes),
-        });
+      const response = await fetch(`/api/events/${updatedEventData.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(commonAttributes),
+      });
 
-        if (response.ok) {
-          const updatedEvent = await response.json();
+      if (response.ok) {
+        const updatedEvent = await response.json();
 
-          console.log("UP: " + updatedEvent);
-          setEvent(updatedEvent);
-      
-          setIsPanelOpen(false);
-          toggleScrollability(true);
-        } else {
-            console.error('Failed to update event:', response.statusText);
-        }
+        console.log("UP: " + updatedEvent);
+        setEvent(updatedEvent);
+
+        setIsPanelOpen(false);
+        toggleScrollability(true);
+      } else {
+        console.error('Failed to update event:', response.statusText);
+      }
     } catch (error) {
-        console.error('Error updating event:', error);
+      console.error('Error updating event:', error);
     }
-};
+  };
 
-const formatTime = (time) => {
-  console.log('formatTime called with:', time);
-  if (!time) {
-    console.warn('Invalid time value:', time);
-    return 'Invalid Time'; // Gracefully handle null/undefined
-  }
-  const [hours, minutes] = time.split(':');
-  const h = parseInt(hours, 10);
-  const period = h >= 12 ? 'PM' : 'AM';
-  const adjustedHour = h % 12 || 12;
-  return `${adjustedHour}:${minutes} ${period}`;
-};
+  const formatTime = (time) => {
+    console.log('formatTime called with:', time);
+    if (!time) {
+      console.warn('Invalid time value:', time);
+      return 'Invalid Time'; // Gracefully handle null/undefined
+    }
+    const [hours, minutes] = time.split(':');
+    const h = parseInt(hours, 10);
+    const period = h >= 12 ? 'PM' : 'AM';
+    const adjustedHour = h % 12 || 12;
+    return `${adjustedHour}:${minutes} ${period}`;
+  };
 
-      const handleDelete = async (eventId) => {
-        try {
-            const response = await fetch(`/api/events/${eventId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (response.ok) {
-                navigate('/calendar');
-              } else {
-                throw new Error('Failed to delete event');
-              }
-        } catch (error) {
-            console.error('Error deleting event:', error);
+  const handleDelete = async (eventId) => {
+    try {
+      const response = await fetch(`/api/events/${eventId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
         }
-    };
-    
-      const handleJoinEvent = async (eventId) => {
-        try {
-          const response = await fetch(`/api/events/${eventId}/join`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            credentials: 'include', 
-          });
-      
-          if (response.ok) {
-            setEvent(prevEvent => ({
-                ...prevEvent,
-                participants: [
-                  ...prevEvent.participants,
-                  { user_id: userDetails.user_id, name: userDetails.name }
-                ]
-              }));
-              setIsJoinedModalOpen(true);   
-          } else {
-            throw new Error('Failed to join event');
-          }
-        } catch (error) {
-          console.error('Error joining event:', error);
-        }
-      };
-    
-      const handleLeaveEvent = async (eventId) => {
-        try {
-          const response = await fetch(`/api/events/${eventId}/leave`, {
-            method: 'DELETE',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            credentials: 'include', 
-          });
-      
-          if (response.ok) {
-            setEvent(prevEvent => ({
-                ...prevEvent,
-                participants: prevEvent.participants.filter(
-                  participant => participant.user_id !== userDetails.user_id
-                )
-              }));
-            setIsLeaveModalOpen(false);
-          } else {
-            throw new Error('Failed to leave event');
-          }
-        } catch (error) {
-          console.error('Error leave event:', error);
-        }
-      };
+      });
 
-      const renderModal = () => {
-        if (!isPanelOpen || !modalVisible) return null;
-    
-        return createPortal(
-          <div className="modal-container">
-            <div 
-              className="backdrop" 
-              onClick={handleClosePanel}
-              style={{ display: modalVisible ? 'block' : 'none' }}
-            />
-            <div className="modal" style={{ display: modalVisible ? 'block' : 'none' }}>
-              <EventModal
-                eventData={event}
-                onClose={handleClosePanel}
-                mode = "edit"
-                onEventUpdate={handleEventUpdate}
-                userDetails={userDetails}
-                handleJoinEvent={() => handleJoinEvent(event.id)}
-                handleLeaveEvent={() => handleLeaveEvent(event.id)}
-                handleDelete={handleDelete}
-              />
-            </div>
-          </div>,
-          document.body
-        );
-      };
+      if (response.ok) {
+        navigate('/calendar');
+      } else {
+        throw new Error('Failed to delete event');
+      }
+    } catch (error) {
+      console.error('Error deleting event:', error);
+    }
+  };
+
+  const handleJoinEvent = async (eventId) => {
+    try {
+      const response = await fetch(`/api/events/${eventId}/join`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        setEvent(prevEvent => ({
+          ...prevEvent,
+          participants: [
+            ...prevEvent.participants,
+            { user_id: userDetails.user_id, name: userDetails.name }
+          ]
+        }));
+        setIsJoinedModalOpen(true);
+      } else {
+        throw new Error('Failed to join event');
+      }
+    } catch (error) {
+      console.error('Error joining event:', error);
+    }
+  };
+
+  const handleLeaveEvent = async (eventId) => {
+    try {
+      const response = await fetch(`/api/events/${eventId}/leave`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        setEvent(prevEvent => ({
+          ...prevEvent,
+          participants: prevEvent.participants.filter(
+            participant => participant.user_id !== userDetails.user_id
+          )
+        }));
+        setIsLeaveModalOpen(false);
+      } else {
+        throw new Error('Failed to leave event');
+      }
+    } catch (error) {
+      console.error('Error leave event:', error);
+    }
+  };
+
+  const renderModal = () => {
+    if (!isPanelOpen || !modalVisible) return null;
+
+    return createPortal(
+      <div className="modal-container">
+        <div
+          className="backdrop"
+          onClick={handleClosePanel}
+          style={{ display: modalVisible ? 'block' : 'none' }}
+        />
+        <div className="modal" style={{ display: modalVisible ? 'block' : 'none' }}>
+          <EventModal
+            eventData={event}
+            onClose={handleClosePanel}
+            mode="edit"
+            onEventUpdate={handleEventUpdate}
+            userDetails={userDetails}
+            handleJoinEvent={() => handleJoinEvent(event.id)}
+            handleLeaveEvent={() => handleLeaveEvent(event.id)}
+            handleDelete={handleDelete}
+          />
+        </div>
+      </div>,
+      document.body
+    );
+  };
 
   if (loading || !event) return <p>Loading...</p>;
   if (error) return <p>{error}</p>;
 
-    return (
-      <div className="event-page">
-        <header className="top-bar-home">
-          <Steamed />
-          <h1>OWL<sup>2</sup> Club</h1>
-        </header>
+  return (
+    <div className="event-page">
+      <header className="top-bar-home">
+        <Steamed />
+        <h1>OWL<sup>2</sup> Club</h1>
+      </header>
 
-        {/* Banner Image */}
-        <div className="banner" style={{ backgroundImage: `url(${event.bannerImage || bannerImage})` }}>
-          <div className="banner-overlay"></div>
-        </div>
+      {/* Banner Image */}
+      <div className="banner" style={{ backgroundImage: `url(${event.cover_image_url || event.bannerImage || bannerImage})` }}>
+        <div className="banner-overlay"></div>
+      </div>
 
-        {/* Title and Edit Button */}
-        <div className="event-title-container">
-          <h1 className="event-title">{event.title}</h1>
-        </div>
+      {/* Title and Edit Button */}
+      <div className="event-title-container">
+        <h1 className="event-title">{event.title}</h1>
+      </div>
 
-        {isEmailModalOpen && (
-          <EventMailer
-            event={event}
-            onClose={() => setIsEmailModalOpen(false)}
-          />
-        )}
+      {isEmailModalOpen && (
+        <EventMailer
+          event={event}
+          onClose={() => setIsEmailModalOpen(false)}
+        />
+      )}
 
       {renderModal()}
 
@@ -597,57 +598,57 @@ const formatTime = (time) => {
       </div>
 
       {/* Tab Content */}
-        <div className="tab-content">
-          {activeTab === "details" && (
-            <div className="details-tab">
+      <div className="tab-content">
+        {activeTab === "details" && (
+          <div className="details-tab">
             <p><strong>Date:</strong> {formatDateRead(event.event_date.split('T')[0])}</p>
             <p>
               <strong>Time:</strong>{" "}
               {formatTime(event.start_time)} - {formatTime(event.end_time)}
             </p>
-          <p>
+            <p>
               <strong>Type:</strong> {event.is_physical ? 'Physical' : 'Virtual'}
-          </p>
-          <p>
+            </p>
+            <p>
               <strong>Location:</strong>
               {event.is_physical ? (
-                  <>
-                      {event.location && <span>{event.location}, </span>}
-                      {event.city && <span>{event.city}, </span>}
-                      {event.state && <span>{event.state}, </span>}
-                      {event.zip_code && <span>{event.zip_code}, </span>}
-                      {event.country && <span>{event.country}</span>}
-                  </>
+                <>
+                  {event.location && <span>{event.location}, </span>}
+                  {event.city && <span>{event.city}, </span>}
+                  {event.state && <span>{event.state}, </span>}
+                  {event.zip_code && <span>{event.zip_code}, </span>}
+                  {event.country && <span>{event.country}</span>}
+                </>
               ) : (
-                  <a href={event.virtual_link} target="_blank" rel="noopener noreferrer">
-                      {event.virtual_link || 'No link provided'}
-                  </a>
+                <a href={event.virtual_link} target="_blank" rel="noopener noreferrer">
+                  {event.virtual_link || 'No link provided'}
+                </a>
               )}
-          </p>
-          <p><strong>Category:</strong> {EVENT_TYPE_MAP[event.type] || event.type || "Unknown"}</p>
-          <p><strong>Exclusivity:</strong> {event.exclusivity}</p>
-          <p><strong>Description:</strong> {event.description}</p>
-          <button className="edit-button" onClick={handleEdit}>Edit Details</button>
-          <button className="delete-button" onClick={handleShowDeleteModal}>Delete Event</button>
-          <button className="email-button" onClick={() => setIsEmailModalOpen(true)}>Draft Announcement Email</button>
+            </p>
+            <p><strong>Category:</strong> {EVENT_TYPE_MAP[event.type] || event.type || "Unknown"}</p>
+            <p><strong>Exclusivity:</strong> {event.exclusivity}</p>
+            <p><strong>Description:</strong> {event.description}</p>
+            <button className="edit-button" onClick={handleEdit}>Edit Details</button>
+            <button className="delete-button" onClick={handleShowDeleteModal}>Delete Event</button>
+            <button className="email-button" onClick={() => setIsEmailModalOpen(true)}>Draft Announcement Email</button>
 
-          <DeleteConfirmationModal
-            isOpen={isDeleteModalOpen}
-            onClose={handleCloseDeleteModal}
-            onConfirm={handleConfirmDelete}
-            eventName={event.title}
-          />
-          {event.participants && event.participants.length > 0 && (
+            <DeleteConfirmationModal
+              isOpen={isDeleteModalOpen}
+              onClose={handleCloseDeleteModal}
+              onConfirm={handleConfirmDelete}
+              eventName={event.title}
+            />
+            {event.participants && event.participants.length > 0 && (
               <div>
-                  <h4>Participants</h4>
-                  <ul>
-                      {event.participants.map(participant => (
-                          <li key={participant.user_id}>{participant.name}</li>
-                      ))}
-                  </ul>
+                <h4>Participants</h4>
+                <ul>
+                  {event.participants.map(participant => (
+                    <li key={participant.user_id}>{participant.name}</li>
+                  ))}
+                </ul>
               </div>
-          )}
-      </div>      
+            )}
+          </div>
         )}
 
         {activeTab === "comments" && (
@@ -658,75 +659,75 @@ const formatTime = (time) => {
         )}
 
         {activeTab === "participation" && (
-            <div className="participation-tab">
-              <div className="participants-section">
-                <h4>Current Participants ({event.participants?.length || 0})</h4>
-                
-                {/* Participants list */}
-                {event.participants && event.participants.length > 0 ? (
-                  <ul className="participants-list">
-                    {event.participants.map(participant => (
-                      <li key={participant.user_id} className="participant-item">
-                        <span className="participant-name">{participant.name}</span>
-                        {participant.user_id === userDetails.user_id && (
-                          <span className="current-user-badge">(You)</span>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="no-participants">No participants yet. Be the first to join!</p>
-                )}
+          <div className="participation-tab">
+            <div className="participants-section">
+              <h4>Current Participants ({event.participants?.length || 0})</h4>
 
-                {/* Join/Leave button */}
-                <div className="participation-actions">
-                  {event.participants?.some(p => p.user_id === userDetails.user_id) ? (
-                    <button 
-                      onClick={() => showLeaveModal(event.id)}
-                      className="leave-button"
-                    >
-                      Leave Event
-                    </button>
-                  ) : (
-                    <button 
-                      onClick={() => handleJoinEvent(event.id)}
-                      className="join-button"
-                    >
-                      Join Event
-                    </button>
-                  )}
-                  <button 
-                    onClick={() => setIsInviteModalOpen(true)}
-                    className="invite-button"
+              {/* Participants list */}
+              {event.participants && event.participants.length > 0 ? (
+                <ul className="participants-list">
+                  {event.participants.map(participant => (
+                    <li key={participant.user_id} className="participant-item">
+                      <span className="participant-name">{participant.name}</span>
+                      {participant.user_id === userDetails.user_id && (
+                        <span className="current-user-badge">(You)</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="no-participants">No participants yet. Be the first to join!</p>
+              )}
+
+              {/* Join/Leave button */}
+              <div className="participation-actions">
+                {event.participants?.some(p => p.user_id === userDetails.user_id) ? (
+                  <button
+                    onClick={() => showLeaveModal(event.id)}
+                    className="leave-button"
                   >
-                    Invite Member(s)
+                    Leave Event
                   </button>
-                </div>
+                ) : (
+                  <button
+                    onClick={() => handleJoinEvent(event.id)}
+                    className="join-button"
+                  >
+                    Join Event
+                  </button>
+                )}
+                <button
+                  onClick={() => setIsInviteModalOpen(true)}
+                  className="invite-button"
+                >
+                  Invite Member(s)
+                </button>
               </div>
-              
-              <InviteModal
-                isOpen={isInviteModalOpen}
-                onClose={() => setIsInviteModalOpen(false)}
-                eventId={event.id}
-                eventTitle={event.title}
-              />
-
-              <JoinedModal
-                isOpen={isJoinedModalOpen}
-                onClose={() => setIsJoinedModalOpen(false)}
-                eventName={event.title}
-                onSendConfirmation={() => sendConfirmationEmail(event.id, userDetails.user_id)}
-              />
-
-              <LeaveConfirmationModal
-                isOpen={isLeaveModalOpen}
-                onClose={() => setIsLeaveModalOpen(false)}
-                onConfirm={() => handleLeaveEvent(event.id)}
-              />
             </div>
-          )}
 
-        {activeTab === "images" && renderImagesTab()} 
+            <InviteModal
+              isOpen={isInviteModalOpen}
+              onClose={() => setIsInviteModalOpen(false)}
+              eventId={event.id}
+              eventTitle={event.title}
+            />
+
+            <JoinedModal
+              isOpen={isJoinedModalOpen}
+              onClose={() => setIsJoinedModalOpen(false)}
+              eventName={event.title}
+              onSendConfirmation={() => sendConfirmationEmail(event.id, userDetails.user_id)}
+            />
+
+            <LeaveConfirmationModal
+              isOpen={isLeaveModalOpen}
+              onClose={() => setIsLeaveModalOpen(false)}
+              onConfirm={() => handleLeaveEvent(event.id)}
+            />
+          </div>
+        )}
+
+        {activeTab === "images" && renderImagesTab()}
       </div>
     </div>
   );

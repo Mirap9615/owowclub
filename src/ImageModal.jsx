@@ -13,13 +13,13 @@ const formatDate = (isoDate) => {
   });
 };
 
-const ImageModal = React.memo(({ 
-  isOpen, 
-  closeModal, 
-  currentImage, 
+const ImageModal = React.memo(({
+  isOpen,
+  closeModal,
+  currentImage,
   onSave,
 }) => {
-  const [activeTab, setActiveTab] = useState('comments'); 
+  const [activeTab, setActiveTab] = useState('comments');
   const [editFields, setEditFields] = useState({ name: '', description: '', tags: [] });
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [availableEvents, setAvailableEvents] = useState([]);
@@ -42,7 +42,7 @@ const ImageModal = React.memo(({
     const fetchTagsAndEvents = async () => {
       try {
         const [tagsResponse, eventsResponse] = await Promise.all([
-          fetch(`/api/images/${currentImage?.title || ''}`),
+          fetch(`/api/media/tags/${currentImage?.title || ''}`),
           fetch('/api/events'),
         ]);
 
@@ -74,6 +74,30 @@ const ImageModal = React.memo(({
     setLightboxToggler(!lightboxToggler);
   };
 
+  const handleSetAsCover = async () => {
+    if (!currentImage.associated_event_id) return;
+
+    try {
+      const response = await fetch(`/api/events/${currentImage.associated_event_id}/cover`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ cover_image_url: currentImage.url }),
+      });
+
+      if (response.ok) {
+        alert('Event cover image updated successfully!');
+      } else {
+        console.error('Failed to update cover image');
+        alert('Failed to update cover image.');
+      }
+    } catch (error) {
+      console.error('Error updating cover image:', error);
+      alert('Error updating cover image.');
+    }
+  };
+
   return (
     <Modal
       isOpen={isOpen}
@@ -90,45 +114,45 @@ const ImageModal = React.memo(({
       <div className="image-author">uploaded by {currentImage.author_name} on {formatDate(currentImage.upload_date)}</div>
 
       {/* Description Editing */}
-  <div>
-    <div className="large-text">Description</div>
-    <div className="description-subtitle">Double-click to edit</div>
-    {isEditingDescription ? (
       <div>
-        <textarea
-          value={editFields.description}
-          onChange={(e) =>
-            setEditFields((prev) => ({ ...prev, description: e.target.value }))
-          }
-          rows="4"
-          style={{ width: '100%' }}
-        />
-        <button onClick={() => setIsEditingDescription(false)}>Save</button>
+        <div className="large-text">Description</div>
+        <div className="description-subtitle">Double-click to edit</div>
+        {isEditingDescription ? (
+          <div>
+            <textarea
+              value={editFields.description}
+              onChange={(e) =>
+                setEditFields((prev) => ({ ...prev, description: e.target.value }))
+              }
+              rows="4"
+              style={{ width: '100%' }}
+            />
+            <button onClick={() => setIsEditingDescription(false)}>Save</button>
+          </div>
+        ) : (
+          <div className="small-text" onDoubleClick={() => setIsEditingDescription(true)}>
+            {editFields.description || 'Double-click to edit description'}
+          </div>
+        )}
       </div>
-    ) : (
-      <div className="small-text" onDoubleClick={() => setIsEditingDescription(true)}>
-        {editFields.description || 'Double-click to edit description'}
-      </div>
-    )}
-  </div>
 
-  {/* Event Association */}
-  <div>
-    <div className="large-text">Associated Event</div>
-    <div>
-      <select
-        value={editFields.event || ''}
-        onChange={(e) => handleEventSelection(e.target.value)}
-      >
-        <option value="">No event associated</option>
-        {availableEvents.map((event) => (
-          <option key={event.id} value={event.id}>
-            {event.title}
-          </option>
-        ))}
-      </select>
-    </div>
-  </div>
+      {/* Event Association */}
+      <div>
+        <div className="large-text">Associated Event</div>
+        <div>
+          <select
+            value={editFields.event || ''}
+            onChange={(e) => handleEventSelection(e.target.value)}
+          >
+            <option value="">No event associated</option>
+            {availableEvents.map((event) => (
+              <option key={event.id} value={event.id}>
+                {event.title}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
 
       <div className="comment-section">
         <Comments commentableId={currentImage.image_id || currentImage.id} />
@@ -139,6 +163,11 @@ const ImageModal = React.memo(({
           <button onClick={saveChanges}>Save Changes</button>
           <button onClick={closeModal}>Close</button>
           <button onClick={handleLightboxToggle}>Gallery Mode</button>
+          {currentImage.associated_event_id && (
+            <button onClick={handleSetAsCover} style={{ backgroundColor: '#4CAF50', color: 'white' }}>
+              Set as Event Cover
+            </button>
+          )}
         </div>
       </div>
 

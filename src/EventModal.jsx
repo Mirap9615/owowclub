@@ -3,14 +3,14 @@ import './EventsModal.css';
 import { HexColorPicker } from 'react-colorful';
 
 const US_STATES = [
-    "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", 
-    "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", 
-    "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", 
-    "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", 
-    "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", 
-    "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", 
-    "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", 
-    "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", 
+    "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado",
+    "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho",
+    "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana",
+    "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota",
+    "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire",
+    "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota",
+    "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island",
+    "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont",
     "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"
 ];
 
@@ -42,7 +42,7 @@ const EventModal = ({ onClose, mode, eventData, onEventUpdate }) => {
 
     const formatDate = (dateString) => {
         const date = new Date(dateString);
-        if (isNaN(date)) return ''; 
+        if (isNaN(date)) return '';
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
         const year = date.getFullYear();
@@ -62,7 +62,7 @@ const EventModal = ({ onClose, mode, eventData, onEventUpdate }) => {
             event_date: '',
             start_time: '',
             end_time: '',
-            is_physical: true, 
+            is_physical: true,
             location: '',
             zip_code: '',
             city: '',
@@ -70,8 +70,10 @@ const EventModal = ({ onClose, mode, eventData, onEventUpdate }) => {
             country: '',
             virtual_link: '',
             color: '',
+            cover_image_url: '',
         };
 
+    const [eventMedia, setEventMedia] = useState([]);
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState(initialFormData);
     const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
@@ -88,7 +90,7 @@ const EventModal = ({ onClose, mode, eventData, onEventUpdate }) => {
         const { name, value } = e.target;
         setFormData((prev) => ({
             ...prev,
-            [name]: name === 'is_physical' ? value === 'true' : value, 
+            [name]: name === 'is_physical' ? value === 'true' : value,
         }));
     };
 
@@ -101,6 +103,33 @@ const EventModal = ({ onClose, mode, eventData, onEventUpdate }) => {
         console.log('formData:', formData);
         onEventUpdate(formData);
         onClose();
+    };
+
+    const handleCoverImageUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const uploadData = new FormData();
+        uploadData.append('media', file);
+
+        try {
+            const response = await fetch('/upload-media', {
+                method: 'POST',
+                body: uploadData,
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setFormData((prev) => ({
+                    ...prev,
+                    cover_image_url: data.url,
+                }));
+            } else {
+                console.error('Failed to upload image');
+            }
+        } catch (error) {
+            console.error('Error uploading image:', error);
+        }
     };
 
     const renderLocationSection = () => {
@@ -138,7 +167,7 @@ const EventModal = ({ onClose, mode, eventData, onEventUpdate }) => {
                     <label>
                         State
                         {formData.country === "United States" ? (
-                        <select
+                            <select
                                 name="state"
                                 value={formData.state}
                                 onChange={handleInputChange}
@@ -259,6 +288,42 @@ const EventModal = ({ onClose, mode, eventData, onEventUpdate }) => {
                                 value={formData.description}
                                 onChange={handleInputChange}
                             />
+                        </label>
+                        <label>
+                            Cover Image
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleCoverImageUpload}
+                            />
+                            {formData.cover_image_url && (
+                                <div className="cover-image-preview">
+                                    <img src={formData.cover_image_url} alt="Cover Preview" style={{ maxWidth: '100%', maxHeight: '200px', marginTop: '10px' }} />
+                                </div>
+                            )}
+                            {eventMedia.length > 0 && (
+                                <div className="event-media-picker" style={{ marginTop: '10px' }}>
+                                    <p style={{ fontSize: '0.9em', marginBottom: '5px' }}>Or select from event media:</p>
+                                    <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '5px' }}>
+                                        {eventMedia.filter(m => m.media_type === 'image').map(media => (
+                                            <img
+                                                key={media.id}
+                                                src={media.url}
+                                                alt="Event Media"
+                                                style={{
+                                                    width: '60px',
+                                                    height: '60px',
+                                                    objectFit: 'cover',
+                                                    cursor: 'pointer',
+                                                    border: formData.cover_image_url === media.url ? '2px solid blue' : '1px solid #ccc',
+                                                    borderRadius: '4px'
+                                                }}
+                                                onClick={() => setFormData(prev => ({ ...prev, cover_image_url: media.url }))}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </label>
                         <div className="color-picker-section">
                             <label>Event Color</label>

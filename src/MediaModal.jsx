@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import './MediaModal.css'; // Don't forget to rename your CSS file too
+import './MediaModal.css'; 
 import Modal from 'react-modal';
 import Comments from './Comments.jsx';
 import FsLightbox from 'fslightbox-react';
 
-// This helper function is great, let's keep it.
 const formatDate = (isoDate) => {
   if (!isoDate) return 'unknown date';
   return new Date(isoDate).toLocaleDateString('en-US', {
@@ -15,7 +14,7 @@ const formatDate = (isoDate) => {
 const MediaModal = React.memo(({
   isOpen,
   closeModal,
-  currentMedia, // Renamed from currentImage
+  currentMedia, 
   onSave,
 }) => {
   // --- STATE ---
@@ -26,22 +25,20 @@ const MediaModal = React.memo(({
 
   const title = 'Detailed Media View';
 
-  // --- EFFECTS ---
+  // useEffects 
+
   useEffect(() => {
-    // Populate edit fields when new media is selected
     if (currentMedia) {
       setEditFields({
         description: currentMedia.description || '',
         tags: currentMedia.tags || [],
         event: currentMedia.associated_event_id || null,
       });
-      // Reset editing state when media changes
       setIsEditingDescription(false);
     }
   }, [currentMedia]);
 
   useEffect(() => {
-    // Fetch events when the modal opens
     const fetchEvents = async () => {
       try {
         const response = await fetch('/api/events');
@@ -65,15 +62,12 @@ const MediaModal = React.memo(({
   };
 
   const saveChanges = () => {
-    // Use the generic 'media' naming convention for the saved object
     onSave({ ...currentMedia, ...editFields, associatedEventId: editFields.event });
     closeModal();
   };
 
-  // Determine media type for Lightbox
   const lightboxType = currentMedia?.media_type === 'video' ? 'video' : 'image';
 
-  // Guard against rendering when currentMedia is null (can happen briefly on close)
   if (!currentMedia) {
     return null;
   }
@@ -86,13 +80,12 @@ const MediaModal = React.memo(({
       className="media-modal"
       overlayClassName="modal-overlay"
     >
-      {/* --- HEADER (Fixed at the top) --- */}
+      {/* --- HEADER --- */}
       <div className="modal-header">
         <h2>{currentMedia.name || 'Media Details'}</h2>
       </div>
 
       {/* --- SCROLLABLE CONTENT WRAPPER --- */}
-      {/* This is the key part that will now scroll correctly */}
       <div className="modal-content-wrapper">
         
         {/* --- Media Display (Image/Video) --- */}
@@ -109,7 +102,6 @@ const MediaModal = React.memo(({
           Uploaded by {currentMedia.author_name || 'Unknown'} on {formatDate(currentMedia.upload_date)}
         </div>
 
-        {/* --- Description Editing --- */}
         <div className="modal-section">
           <label className="large-text">Description</label>
           {isEditingDescription ? (
@@ -119,7 +111,6 @@ const MediaModal = React.memo(({
                 onChange={(e) => setEditFields((prev) => ({ ...prev, description: e.target.value }))}
                 rows="4"
               />
-              {/* Note: A smaller, more integrated button might be better UX */}
               <button onClick={() => setIsEditingDescription(false)} className="button-secondary" style={{ marginTop: '0.5rem' }}>
                 Save Description
               </button>
@@ -153,7 +144,6 @@ const MediaModal = React.memo(({
         </div>
 
       </div>
-      {/* --- END OF SCROLLABLE CONTENT WRAPPER --- */}
 
       
       {/* --- FOOTER (Fixed at the bottom) --- */}
@@ -165,7 +155,6 @@ const MediaModal = React.memo(({
         <button onClick={closeModal} className="button-tertiary">Cancel</button>
       </div>
 
-      {/* --- Lightbox for Fullscreen View (remains outside the visual flow) --- */}
       <FsLightbox
         toggler={lightboxToggler}
         sources={[currentMedia.url]}

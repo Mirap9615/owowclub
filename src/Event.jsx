@@ -14,13 +14,14 @@ const JoinedModal = ({ isOpen, onClose, eventName, onSendConfirmation }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="modal-container">
-      <div className="modal-overlay" onClick={onClose}></div>
-      <div className="modal-content">
-        <h2>Welcome to {eventName}!</h2>
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={e => e.stopPropagation()}>
+        <h3>Welcome to {eventName}!</h3>
         <p>You have successfully joined the event.</p>
-        <button onClick={onSendConfirmation}>Send Confirmation Email</button>
-        <button onClick={onClose}>Close</button>
+        <div className="modal-actions">
+          <button onClick={onSendConfirmation} className="event-ghost-button">Send Confirmation Email</button>
+          <button onClick={onClose} className="event-ghost-button">Close</button>
+        </div>
       </div>
     </div>
   );
@@ -30,12 +31,13 @@ const LeaveConfirmationModal = ({ isOpen, onClose, onConfirm }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="modal-container">
-      <div className="modal-overlay" onClick={onClose}></div>
-      <div className="modal-content">
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={e => e.stopPropagation()}>
         <h3>Are you sure you want to leave?</h3>
-        <button onClick={onConfirm}>Yes, Leave</button>
-        <button onClick={onClose}>Cancel</button>
+        <div className="modal-actions">
+          <button onClick={onConfirm} className="event-ghost-button">Yes, Leave</button>
+          <button onClick={onClose} className="event-ghost-button">Cancel</button>
+        </div>
       </div>
     </div>
   );
@@ -45,17 +47,16 @@ const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, eventName }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="modal-container">
-      <div className="modal-overlay" onClick={onClose}></div>
-      <div className="modal-content">
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={e => e.stopPropagation()}>
         <h3>Are you sure you want to delete "{eventName}"?</h3>
         <p>This action cannot be undone.</p>
-        <div className="modal-buttons">
-          <button onClick={onConfirm} className="delete-button">
-            Yes, Delete
+        <div className="modal-actions">
+          <button onClick={onConfirm} className="event-ghost-button">
+            YES, DELETE
           </button>
-          <button onClick={onClose} className="cancel-button">
-            Cancel
+          <button onClick={onClose} className="event-ghost-button">
+            CANCEL
           </button>
         </div>
       </div>
@@ -339,8 +340,8 @@ const EventPage = () => {
             accept="image/*"
             style={{ display: 'none' }}
           />
-          <button className="upload-button" onClick={() => fileInputRef.current?.click()}>
-            Upload Image
+          <button className="event-ghost-button" onClick={() => fileInputRef.current?.click()}>
+            UPLOAD IMAGE
           </button>
         </div>
         <div className="image-grid">
@@ -537,13 +538,8 @@ const EventPage = () => {
     if (!isPanelOpen || !modalVisible) return null;
 
     return createPortal(
-      <div className="modal-container">
-        <div
-          className="backdrop"
-          onClick={handleClosePanel}
-          style={{ display: modalVisible ? 'block' : 'none' }}
-        />
-        <div className="modal" style={{ display: modalVisible ? 'block' : 'none' }}>
+      <div className="modal-overlay" onClick={handleClosePanel}>
+        <div className="event-modal-wrapper" onClick={e => e.stopPropagation()}>
           <EventModal
             eventData={event}
             onClose={handleClosePanel}
@@ -594,7 +590,7 @@ const EventPage = () => {
         <button onClick={() => setActiveTab("details")} className={activeTab === "details" ? "active" : ""}>Details</button>
         <button onClick={() => setActiveTab("participation")} className={activeTab === "participation" ? "active" : ""}>Participation</button>
         <button onClick={() => setActiveTab("images")} className={activeTab === "images" ? "active" : ""}>Images</button>
-        <button onClick={() => setActiveTab("comments")} className={activeTab === "comments" ? "active" : ""}>Notes and Comments</button>
+        <button onClick={() => setActiveTab("comments")} className={activeTab === "comments" ? "active" : ""}>Comments</button>
       </div>
 
       {/* Tab Content */}
@@ -628,9 +624,11 @@ const EventPage = () => {
             <p><strong>Category:</strong> {EVENT_TYPE_MAP[event.type] || event.type || "Unknown"}</p>
             <p><strong>Exclusivity:</strong> {event.exclusivity}</p>
             <p><strong>Description:</strong> {event.description}</p>
-            <button className="edit-button" onClick={handleEdit}>Edit Details</button>
-            <button className="delete-button" onClick={handleShowDeleteModal}>Delete Event</button>
-            <button className="email-button" onClick={() => setIsEmailModalOpen(true)}>Draft Announcement Email</button>
+            <div className="details-actions">
+              <button className="event-ghost-button" onClick={handleEdit}>EDIT DETAILS</button>
+              <button className="event-ghost-button" onClick={handleShowDeleteModal}>DELETE EVENT</button>
+              <button className="event-ghost-button" onClick={() => setIsEmailModalOpen(true)}>DRAFT ANNOUNCEMENT EMAIL</button>
+            </div>
 
             <DeleteConfirmationModal
               isOpen={isDeleteModalOpen}
@@ -653,7 +651,6 @@ const EventPage = () => {
 
         {activeTab === "comments" && (
           <div className="comments-tab">
-            <h4>Notes and Comments</h4>
             <Comments commentableId={event.id} />
           </div>
         )}
@@ -684,23 +681,23 @@ const EventPage = () => {
                 {event.participants?.some(p => p.user_id === userDetails.user_id) ? (
                   <button
                     onClick={() => showLeaveModal(event.id)}
-                    className="leave-button"
+                    className="event-ghost-button"
                   >
-                    Leave Event
+                    LEAVE EVENT
                   </button>
                 ) : (
                   <button
                     onClick={() => handleJoinEvent(event.id)}
-                    className="join-button"
+                    className="event-ghost-button"
                   >
-                    Join Event
+                    JOIN EVENT
                   </button>
                 )}
                 <button
                   onClick={() => setIsInviteModalOpen(true)}
-                  className="invite-button"
+                  className="event-ghost-button"
                 >
-                  Invite Member(s)
+                  INVITE MEMBER(S)
                 </button>
               </div>
             </div>

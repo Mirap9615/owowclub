@@ -2,10 +2,10 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './Home.jsx';
 import Activities from './Activities.jsx';
-import NotFound from './NotFound.jsx'; 
+import NotFound from './NotFound.jsx';
 import Membership from './Membership.jsx';
 import About from './About.jsx';
-import Cal from './Calendar.jsx'
+import Events from './Events.jsx'
 import Soon from './Soon.jsx'
 import Login from './Login.jsx'
 import Settings from './Settings.jsx'
@@ -36,11 +36,11 @@ function AppRouter() {
         <Route path="/membership" element={<Membership />} />
         <Route path="/activities" element={<Activities />} />
 
-        <Route path="/calendar" element={<ProtectedRoute element={Cal} />} />
+        <Route path="/events" element={<ProtectedRoute element={Events} />} />
         <Route path="/gallery" element={<ProtectedRoute element={Gallery} />} />
         <Route path="/settings" element={<ProtectedRoute element={Settings} />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/register/:token" element={<Register />} /> 
+        <Route path="/register/:token" element={<Register />} />
         <Route path="/request" element={<Request />} />
 
         <Route path="/events/invite/:token" element={<EventInviteHandler />} />

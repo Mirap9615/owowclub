@@ -30,7 +30,7 @@ const Comments = ({ commentableId }) => {
         console.error(err.message);
       }
     };
-  
+
     fetchUserDetails();
   }, []);
 
@@ -50,32 +50,32 @@ const Comments = ({ commentableId }) => {
         setLoading(false);
       }
     };
-  
+
     fetchComments();
-  }, [commentableId]);  
+  }, [commentableId]);
 
   const sortComments = (commentsList) => {
     if (sortOrder === 'Newest First') {
       return commentsList.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     }
-    return commentsList; 
+    return commentsList;
   };
 
   const formatRelativeTime = (createdAt) => {
     const now = Date.now(); // Current time in UTC (ms)
     const createdTime = new Date(createdAt).getTime(); // Created time in UTC (ms)
     const diffMs = now - createdTime; // Difference in ms
-  
+
     if (diffMs < 0) {
       console.error(`Future timestamp detected: ${createdAt}`);
       return 'commented';
     }
-  
+
     const diffMinutes = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMinutes / 60);
     const diffDays = Math.floor(diffHours / 24);
     const diffMonths = Math.floor(diffDays / 30);
-  
+
     if (diffMinutes < 5) {
       return 'commented';
     } else if (diffMinutes < 60) {
@@ -118,7 +118,7 @@ const Comments = ({ commentableId }) => {
     const commentToEdit = comments.find((comment) => comment.id === commentId);
     setEditedContent(commentToEdit.content);
   };
-  
+
   const saveEditedComment = async (commentId) => {
     try {
       const response = await fetch(`/api/comments/${commentId}`, {
@@ -156,19 +156,19 @@ const Comments = ({ commentableId }) => {
       const endpoint = userLiked
         ? `/api/comments/${commentId}/unlike`
         : `/api/comments/${commentId}/like`;
-  
+
       const method = userLiked ? 'DELETE' : 'POST';
       const response = await fetch(endpoint, { method });
-  
+
       if (response.ok) {
         setComments((prevComments) =>
           prevComments.map((comment) =>
             comment.id === commentId
               ? {
-                  ...comment,
-                  like_count: userLiked ? comment.like_count - 1 : comment.like_count + 1,
-                  user_liked: !userLiked,
-                }
+                ...comment,
+                like_count: userLiked ? comment.like_count - 1 : comment.like_count + 1,
+                user_liked: !userLiked,
+              }
               : comment
           )
         );
@@ -241,16 +241,20 @@ const Comments = ({ commentableId }) => {
       <div className="add-comment">
         {userDetails ? (
           <>
-            <input
-              type="text"
+            <textarea
               value={newComment}
               onFocus={() => setShowPostButton(true)}
               onChange={(e) => setNewComment(e.target.value)}
               placeholder="Write a comment..."
+              rows={showPostButton ? 3 : 1}
             />
             {showPostButton && (
-              <button onClick={handleAddComment} disabled={loading || !newComment.trim()}>
-                Post
+              <button
+                className="post-button"
+                onClick={handleAddComment}
+                disabled={loading || !newComment.trim()}
+              >
+                POST COMMENT
               </button>
             )}
           </>

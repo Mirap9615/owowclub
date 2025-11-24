@@ -88,10 +88,16 @@ const EventModal = ({ onClose, mode, eventData, onEventUpdate }) => {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setFormData((prev) => ({
-            ...prev,
-            [name]: name === 'is_physical' ? value === 'true' : value,
-        }));
+        setFormData((prev) => {
+            const updates = { [name]: name === 'is_physical' ? value === 'true' : value };
+
+            // Clear state if country changes to something other than US
+            if (name === 'country' && value !== 'United States') {
+                updates.state = '';
+            }
+
+            return { ...prev, ...updates };
+        });
     };
 
     const toggleColorPicker = () => {
@@ -291,19 +297,29 @@ const EventModal = ({ onClose, mode, eventData, onEventUpdate }) => {
                         </label>
                         <label>
                             Cover Image
-                            <input
-                                type="file"
-                                accept="image/*"
-                                onChange={handleCoverImageUpload}
-                            />
+                            <div className="file-input-wrapper">
+                                <input
+                                    type="file"
+                                    id="cover-image-upload"
+                                    accept="image/*"
+                                    onChange={handleCoverImageUpload}
+                                    style={{ display: 'none' }}
+                                />
+                                <label htmlFor="cover-image-upload" className="file-input-button">
+                                    CHOOSE FILE
+                                </label>
+                                <span className="file-name">
+                                    {formData.cover_image_url ? 'Image Selected' : 'No file chosen'}
+                                </span>
+                            </div>
                             {formData.cover_image_url && (
                                 <div className="cover-image-preview">
-                                    <img src={formData.cover_image_url} alt="Cover Preview" style={{ maxWidth: '100%', maxHeight: '200px', marginTop: '10px' }} />
+                                    <img src={formData.cover_image_url} alt="Cover Preview" style={{ maxWidth: '100%', maxHeight: '200px', marginTop: '10px', borderRadius: '4px' }} />
                                 </div>
                             )}
                             {eventMedia.length > 0 && (
                                 <div className="event-media-picker" style={{ marginTop: '10px' }}>
-                                    <p style={{ fontSize: '0.9em', marginBottom: '5px' }}>Or select from event media:</p>
+                                    <p style={{ fontSize: '0.9em', marginBottom: '5px', color: '#666' }}>Or select from event media:</p>
                                     <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '5px' }}>
                                         {eventMedia.filter(m => m.media_type === 'image').map(media => (
                                             <img
@@ -315,7 +331,7 @@ const EventModal = ({ onClose, mode, eventData, onEventUpdate }) => {
                                                     height: '60px',
                                                     objectFit: 'cover',
                                                     cursor: 'pointer',
-                                                    border: formData.cover_image_url === media.url ? '2px solid blue' : '1px solid #ccc',
+                                                    border: formData.cover_image_url === media.url ? '2px solid #725d29' : '1px solid #ddd',
                                                     borderRadius: '4px'
                                                 }}
                                                 onClick={() => setFormData(prev => ({ ...prev, cover_image_url: media.url }))}

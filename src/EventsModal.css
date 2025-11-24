@@ -1,17 +1,30 @@
 .event-modal {
-    max-width: 100%;
-    margin: 0 auto;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 500px;
+    max-width: 90%;
     background: #fff;
     border-radius: 10px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     overflow: hidden;
-    z-index: 1001;
+    z-index: 1100;
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+    /* Ensure modal fits within viewport */
 }
 
 .modal-header {
     padding: 20px;
     text-align: center;
     position: relative;
+    flex: 0 0 auto;
+    /* Don't shrink or grow */
+    border-bottom: 1px solid #eee;
+    background: #fff;
+    z-index: 10;
 }
 
 .modal-header h2 {
@@ -24,42 +37,72 @@
     display: flex;
     justify-content: space-between;
     /*align-items: flex-end;*/
-    align-items: center; /* Center items vertically */
-    gap: 10px; /* Add consistent spacing between items */
-    flex-wrap: wrap; /* Allow wrapping on smaller screens */
-    padding: 10px; /* Optional: Add padding for better visuals */
+    align-items: center;
+    /* Center items vertically */
+    gap: 10px;
+    /* Add consistent spacing between items */
+    flex-wrap: wrap;
+    /* Allow wrapping on smaller screens */
+    padding: 10px;
+    /* Optional: Add padding for better visuals */
 }
 
 .progress-step {
     text-align: center;
-    border-bottom: 4px solid blue;
+    border-bottom: 3px solid #e0e0e0;
+    color: #999;
+    padding-bottom: 5px;
+    cursor: pointer;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
     transition: all 0.3s ease-in-out;
 }
 
 .progress-step.active {
-    border-color: black;
-    font-weight: bold;
+    border-color: #725d29;
+    /* Gold */
+    color: #471a25;
+    /* Deep Burgundy */
+    font-weight: 700;
 }
 
 .modal-body {
     padding: 20px;
+    flex: 1 1 auto;
+    /* Grow and shrink */
+    overflow-y: auto;
+    /* Scrollable content */
 }
 
 .step-content label {
     display: block;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
     font-size: 0.9rem;
+    font-family: 'Montserrat', sans-serif;
+    color: #333;
+    font-weight: 500;
 }
 
 .step-content label input,
 .step-content label select,
 .step-content label textarea {
     width: 100%;
-    padding: 8px;
-    margin-top: 5px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 0.9rem;
+    padding: 10px;
+    margin-top: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    font-family: 'Montserrat', sans-serif;
+    transition: border-color 0.2s;
+}
+
+.step-content label input:focus,
+.step-content label select:focus,
+.step-content label textarea:focus {
+    border-color: #725d29;
+    /* Gold */
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(114, 93, 41, 0.1);
 }
 
 textarea {
@@ -75,30 +118,62 @@ textarea {
     gap: 10px;
     justify-content: center;
     border-top: 1px solid #e0e0e0;
+    flex: 0 0 auto;
+    /* Don't shrink or grow */
 }
 
 .modal-footer button {
-    padding: 10px 20px;
+    padding: 10px 24px;
     font-size: 0.9rem;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
     border: none;
-    border-radius: 5px;
+    border-radius: 4px;
     cursor: pointer;
-    transition: background-color 0.3s ease-in-out;
+    transition: all 0.2s ease;
 }
 
 .modal-footer button:disabled {
-    background: #e0e0e0;
-    color: #999;
+    background: #f0f0f0;
+    color: #ccc;
     cursor: not-allowed;
 }
 
-.modal-footer button:not(:disabled) {
-    background: #457ad6;
+/* Primary Action (Save/Next) */
+.modal-footer button:not(:disabled):nth-child(3),
+/* Next/Save */
+.modal-footer button:not(:disabled):nth-child(2)
+
+/* Next (if Back is present) */
+    {
+    background: #471a25;
+    /* Deep Burgundy */
     color: #fff;
 }
 
-.modal-footer button:not(:disabled):hover {
-    background: #365ea7;
+.modal-footer button:not(:disabled):nth-child(3):hover,
+.modal-footer button:not(:disabled):nth-child(2):hover {
+    background: #5e2230;
+}
+
+/* Secondary Action (Back/Cancel) */
+.modal-footer button:nth-child(1),
+/* Back */
+.modal-footer button:last-child
+
+/* Cancel */
+    {
+    background: transparent;
+    border: 1px solid #ddd;
+    color: #666;
+}
+
+.modal-footer button:nth-child(1):hover,
+.modal-footer button:last-child:hover {
+    border-color: #999;
+    color: #333;
 }
 
 input:focus,
@@ -137,7 +212,7 @@ input[type="text"][placeholder="Search for users..."] {
 }
 
 .button-red {
-    background-color: #f44336; 
+    background-color: #f44336;
     color: #fff;
     padding: 10px 20px;
     border: none;
@@ -165,13 +240,13 @@ input[type="text"][placeholder="Search for users..."] {
 }
 
 .disabled-button {
-    background-color: #e0e0e0; 
+    background-color: #e0e0e0;
     color: #999;
     cursor: not-allowed;
 }
 
 button:disabled {
-    background-color: #e0e0e0; 
+    background-color: #e0e0e0;
     color: #999;
 }
 
@@ -195,18 +270,22 @@ button:disabled {
 }
 
 .pick-color-button {
-    padding: 5px 10px;
-    font-size: 0.9rem;
+    padding: 8px 16px;
+    font-size: 0.85rem;
     color: #fff;
-    background-color: #457ad6;
+    background-color: #471a25;
+    /* Deep Burgundy */
     border: none;
-    border-radius: 5px;
+    border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
 }
 
 .pick-color-button:hover {
-    background-color: #365ea7; 
+    background-color: #5e2230;
 }
 
 .color-picker-popover {
@@ -218,7 +297,7 @@ button:disabled {
     border-radius: 10px;
     padding: 15px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    z-index: 1100; 
+    z-index: 1100;
     width: max-content;
 }
 
@@ -239,16 +318,23 @@ button:disabled {
 }
 
 .close-button {
-    background-color: #f44336; 
-    color: #fff;
+    background: transparent;
+    color: #666;
+    border: 1px solid #ddd;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
 }
 
 .close-button:hover {
-    background-color: #d32f2f;
+    background-color: #f5f5f5;
+    color: #333;
+    border-color: #ccc;
 }
 
 .done-button {
-    background-color: #4caf50; 
+    background-color: #4caf50;
     color: #fff;
     margin-left: 10px;
 }
@@ -285,24 +371,65 @@ button:disabled {
     .event-modal {
         background: black;
     }
+
     .modal-footer {
         background: gainsboro;
     }
+
     .progress-step.active {
         border-color: white;
     }
+
     .progress-step {
         border-color: gray;
     }
+
     .progress-step {
-        flex: none; /* Reset equal distribution */
-        max-width: 100%; /* Allow full width if necessary */
+        flex: none;
+        /* Reset equal distribution */
+        max-width: 100%;
+        /* Allow full width if necessary */
     }
+
     .progress-bar {
-        gap: 5px; /* Reduce spacing on smaller screens */
-        flex-direction: column; /* Stack steps vertically if needed */
+        gap: 5px;
+        /* Reduce spacing on smaller screens */
+        flex-direction: column;
+        /* Stack steps vertically if needed */
     }
 }
 
+.file-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+    /* border: 1px solid #ddd; Removed bounding box */
+    padding: 5px 0;
+    /* Adjusted padding */
+    /* border-radius: 4px; */
+}
 
+.file-input-button {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    color: #333;
+    padding: 6px 12px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    transition: background-color 0.2s;
+}
 
+.file-input-button:hover {
+    background-color: #e0e0e0;
+}
+
+.file-name {
+    font-size: 0.9rem;
+    color: #666;
+    font-family: 'Montserrat', sans-serif;
+}

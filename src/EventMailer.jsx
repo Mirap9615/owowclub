@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './Mail.css'; 
+import './Mail.css';
 import './EventMailer.css'
 
 const recipientGroupLabels = {
@@ -27,7 +27,7 @@ const EventMailer = ({ event, onClose }) => {
     const [hour, minute] = timeStr.split(':');
     const local = new Date(Date.UTC(+year, +month - 1, +day, +hour, +minute));
     return local.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-  }  
+  }
 
   useEffect(() => {
     if (event) {
@@ -37,16 +37,16 @@ const EventMailer = ({ event, onClose }) => {
         day: 'numeric',
         year: 'numeric',
       });
-  
+
       const startUtc = formatUtcDateTime(event.event_date, event.start_time);
       const endUtc = formatUtcDateTime(event.event_date, event.end_time);
-  
+
       const dynamicTitle = event.title;
       const dynamicDescription = event.description || '';
       const dynamicLocation = `${event.location}, ${event.city}, ${event.state}`;
-  
+
       const googleCalLink = `https://calendar.google.com/calendar/r/eventedit?text=${encodeURIComponent(dynamicTitle)}&dates=${startUtc}/${endUtc}&details=${encodeURIComponent(dynamicDescription)}&location=${encodeURIComponent(dynamicLocation)}`;
-  
+
       setSubject(`Upcoming Event: ${event.title} on ${date}`);
       setBody(`
         This is a reminder that <strong>${event.title}</strong> is scheduled for <strong>${date}</strong>. 
@@ -64,7 +64,7 @@ const EventMailer = ({ event, onClose }) => {
         </p>
       `);
     }
-  }, [event]);  
+  }, [event]);
 
   useEffect(() => {
     if (recipientGroup === 'selected') {
@@ -116,11 +116,10 @@ const EventMailer = ({ event, onClose }) => {
   };
 
   return (
-    <div className="modal-container">
-      <div className="modal-overlay" onClick={onClose}></div>
-      <div className="modal-content event-mailer-modal">
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content event-mailer-modal" onClick={e => e.stopPropagation()}>
         <div className="event-mailer-header">
-            <h2 className="event-mailer-title">Draft Announcement Email</h2>
+          <h2 className="event-mailer-title">Draft Announcement Email</h2>
         </div>
 
         <div className="mail-layout modal-mail-layout">
@@ -139,42 +138,42 @@ const EventMailer = ({ event, onClose }) => {
             </div>
 
             {recipientGroup === 'selected' && (
-                <div className="member-checklist">
-                    <label>Select Members:</label>
-                    <div className="member-checkboxes">
-                    {allMembers.map(member => (
-                        <label key={member.user_id} className="member-checkbox-item">
-                        <input
-                            type="checkbox"
-                            value={member.user_id}
-                            checked={selectedMemberIds.includes(member.user_id)}
-                            onChange={(e) => {
-                            const id = member.user_id;
-                            setSelectedMemberIds(prev =>
-                                e.target.checked
-                                ? [...prev, id]
-                                : prev.filter(x => x !== id)
-                            );
-                            }}
-                        />
-                        {member.name} ({member.email})
-                        </label>
-                    ))}
-                    </div>
+              <div className="member-checklist">
+                <label>Select Members:</label>
+                <div className="member-checkboxes">
+                  {allMembers.map(member => (
+                    <label key={member.user_id} className="member-checkbox-item">
+                      <input
+                        type="checkbox"
+                        value={member.user_id}
+                        checked={selectedMemberIds.includes(member.user_id)}
+                        onChange={(e) => {
+                          const id = member.user_id;
+                          setSelectedMemberIds(prev =>
+                            e.target.checked
+                              ? [...prev, id]
+                              : prev.filter(x => x !== id)
+                          );
+                        }}
+                      />
+                      {member.name} ({member.email})
+                    </label>
+                  ))}
                 </div>
+              </div>
             )}
 
             {errorMessage && <p className="error">{errorMessage}</p>}
             {successMessage && <p className="success">{successMessage}</p>}
 
             <form onSubmit={handleSubmit}>
-                <div className="event-mailer-form-group event-mailer-subject-group">
+              <div className="event-mailer-form-group event-mailer-subject-group">
                 <label>Subject</label>
                 <input
                   type="text"
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
-                  className="event-mailer-input"
+                  className="email-modal-input"
                   required
                 />
               </div>
@@ -184,27 +183,29 @@ const EventMailer = ({ event, onClose }) => {
                 <textarea
                   value={body}
                   onChange={(e) => setBody(e.target.value)}
-                  className="event-mailer-input"
+                  className="email-modal-textarea"
                   rows="15"
                   required
                 />
               </div>
 
-              <button
-                type="submit"
-                disabled={isSending}
-                className="send-button"
-              >
-                {isSending ? 'Sending...' : 'Send Email'}
-              </button>
-
-              <button
-                type="button"
-                onClick={onClose}
-                className="cancel-button"
+              <div className="modal-actions">
+                <button
+                  type="submit"
+                  disabled={isSending}
+                  className="event-ghost-button"
                 >
-                    Cancel
+                  {isSending ? 'SENDING...' : 'SEND EMAIL'}
                 </button>
+
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="event-ghost-button"
+                >
+                  CANCEL
+                </button>
+              </div>
             </form>
           </div>
 

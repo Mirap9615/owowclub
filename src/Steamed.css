@@ -1,46 +1,49 @@
     /* Steamed.css */
     .hamburger-menu-container {
-        display: flex; /* It contains the button */
+        display: flex;
         align-items: center;
-        background-color: transparent; /* Will be on top of .top-bar-home's background */
-        z-index: 1050; /* Button itself */
-        font-size: initial; /* Reset, let button define its own font context if needed */
-        /* transform: translateX(0); REMOVED - button doesn't move when menu opens */
-        /* transition: transform 0.3s ease; REMOVED */
-        /* width: 100%; REMOVED */
+        background-color: transparent;
+        z-index: 1050;
+        font-family: var(--font-sans);
+        /* Set default font here */
     }
-    
+
     .hamburger-button {
         background: transparent;
-        border: none; /* Remove default border */
-        padding: 5px 8px; /* CRITICAL: Control padding for size and hover area */
-        font-size: inherit; /* Inherit from a sensible parent or set explicitly */
-        color: white; /* Default icon/text color (light mode) - will be overridden by dark mode */
+        border: none;
+        padding: 5px 8px;
+        font-size: inherit;
+        color: white;
         cursor: pointer;
         display: flex;
-        flex-direction: column; /* Stack icon and text */
-        align-items: center; /* Center them horizontally */
-        line-height: 1.1; /* Tighter line height for stacked items */
+        flex-direction: column;
+        align-items: center;
+        line-height: 1.1;
+        font-family: inherit;
+        /* Inherit from container */
     }
 
     .hamburger-button:hover,
     .hamburger-button:focus,
     .hamburger-button.active {
-        background: transparent !important; /* Ensure no background on hover */
+        background: transparent !important;
         outline: none !important;
-        border: none !important; /* Ensure no border on hover */
-        color: #8bd6ae; /* Match title color on hover (light mode) */
+        border: none !important;
+        color: #8bd6ae;
     }
 
     .hamburger-button .burger {
-        font-size: 24px; /* Adjust icon size */
+        font-size: 24px;
         display: block;
     }
 
     .hamburger-button .menu-text {
-        font-size: 10px; /* Smaller "Menu" text */
+        font-size: 10px;
         display: block;
-        margin-top: 5px; /* Tiny space between icon and text */
+        margin-top: 5px;
+        font-weight: 500;
+        letter-spacing: 0.05em;
+        /* Font inherited from container */
     }
 
     /* Menu Panel itself */
@@ -53,28 +56,34 @@
         background-color: white;
         transform: translateX(-100%);
         transition: transform 0.3s ease;
-        z-index: 1120; /* Higher than button and backdrop */
-        overflow-y: auto; /* Allow scrolling if content exceeds height */
-        border-right: 1px solid #ccc; /* Softer border */
+        z-index: 1120;
+        overflow-y: auto;
+        border-right: 1px solid #ccc;
         text-align: center;
+        font-family: var(--font-sans);
+        /* Set default font for menu */
     }
 
     .menu a {
         display: block;
-        padding: 12px 15px; /* Adjust padding */
-        text-decoration: none; /* Remove underline by default */
-        color: #333; /* Dark text for links */
+        padding: 12px 15px;
+        text-decoration: none;
+        color: #333;
         white-space: nowrap;
         border: none;
         transition: background-color 0.2s ease;
+        font-weight: 500;
+        letter-spacing: 0.02em;
+        /* Font inherited from .menu */
     }
 
     .menu a:hover {
-        background-color: #f0f0f0; /* Subtle hover for menu items */
-        color: #333333; /* Accent color on hover */
+        background-color: #f0f0f0;
+        color: #333333;
     }
 
-    .menu.menu-active { /* Corrected class name for transform */
+    .menu.menu-active {
+        /* Corrected class name for transform */
         transform: translateX(0);
     }
 
@@ -84,8 +93,10 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black backdrop */
-        z-index: 1010; /* Below menu panel, above page content */
+        background-color: rgba(0, 0, 0, 0.5);
+        /* Semi-transparent black backdrop */
+        z-index: 1010;
+        /* Below menu panel, above page content */
         display: none;
     }
 
@@ -95,22 +106,39 @@
 
     /* Sections within the menu */
     .another-section {
-        margin-top: 30px; /* Reduced margin */
+        margin-top: 30px;
+        /* Reduced margin */
         padding-top: 15px;
-        border-top: 1px solid #eee; /* Separator for sections */
+        border-top: 1px solid #eee;
+        /* Separator for sections */
     }
 
-    .section-label, .logged-in-info {
-        font-size: 0.85em; /* Slightly larger */
-        color: #777; /* Lighter grey */
-        margin-bottom: 8px; /* Space below label */
-        padding: 0 10px;
-        text-align: center; /* Align section labels left for clarity */
+    /* Remove top margin/border for the first section to fix whitespace */
+    .another-section:first-child {
+        margin-top: 0;
+        border-top: none;
+        padding-top: 20px;
     }
+
+    .section-label,
     .logged-in-info {
-        text-align: center; /* Keep logged in info centered or left as preferred */
+        font-family: var(--font-serif);
+        font-size: 1rem;
+        color: #777;
+        margin-bottom: 8px;
+        padding: 0 10px;
+        text-align: center;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+    }
+
+    .logged-in-info {
+        text-align: center;
         margin-top: 20px;
         padding-bottom: 10px;
+        font-family: var(--font-sans);
+        font-size: 0.85rem;
+        font-weight: 400;
     }
 
 
@@ -118,30 +146,40 @@
     @media (max-width: 768px) {
         .hamburger-menu-container {
             /* On mobile, this container BECOMES the top bar */
-            position: relative; /* Takes space in document flow */
+            position: relative;
+            /* Takes space in document flow */
             width: 100%;
-            padding: 0; /* Bar spans full width */
+            padding: 0;
+            /* Bar spans full width */
             display: flex;
-            justify-content: flex-start; /* Align button to the left */
-            min-height: 55px; /* Mobile bar height */
+            justify-content: flex-start;
+            /* Align button to the left */
+            min-height: 55px;
+            /* Mobile bar height */
             align-items: center;
-            z-index: 1050; /* Ensure it's above page content if not fixed */
+            z-index: 1050;
+            /* Ensure it's above page content if not fixed */
             /* transform and transition removed, not needed for container on mobile */
         }
 
         .hamburger-menu-container .hamburger-button {
-            padding: 0 15px; /* Padding for the button itself inside the mobile bar */
-            flex-direction: row; /* Icon and text side-by-side */
+            padding: 0 15px;
+            /* Padding for the button itself inside the mobile bar */
+            flex-direction: row;
+            /* Icon and text side-by-side */
             align-items: center;
         }
 
         .hamburger-menu-container .hamburger-button .burger {
-            font-size: 22px; /* Adjust for mobile bar */
-            margin-right: 6px; /* Space between icon and text */
+            font-size: 22px;
+            /* Adjust for mobile bar */
+            margin-right: 6px;
+            /* Space between icon and text */
         }
 
         .hamburger-menu-container .hamburger-button .menu-text {
-            font-size: 14px; /* Adjust for mobile bar */
+            font-size: 14px;
+            /* Adjust for mobile bar */
         }
 
         .menu {
@@ -152,25 +190,33 @@
 
     /* === DARK MODE STYLES for Steamed.css === */
     @media (prefers-color-scheme: dark) {
+
         /* Desktop hamburger button (inside dark .top-bar-home) */
         .hamburger-button {
-            color: #e0e0e0; /* Light color for icon/text on dark top bar */
+            color: #e0e0e0;
+            /* Light color for icon/text on dark top bar */
         }
+
         .hamburger-button:hover,
         .hamburger-button:focus,
         .hamburger-button.active {
-            color: #e8c1c9; /* Lighter maroon/pink for hover */
+            color: #e8c1c9;
+            /* Lighter maroon/pink for hover */
         }
 
         /* Mobile hamburger container (becomes the bar) */
         @media (max-width: 768px) {
             .hamburger-menu-container {
-                background-color: #282c2c; /* Darker bar for mobile dark mode */
+                background-color: #282c2c;
+                /* Darker bar for mobile dark mode */
                 border-bottom: 1px solid #333;
             }
+
             .hamburger-menu-container .hamburger-button {
-                color: #e0e0e0; /* Light text/icon for dark mobile bar */
+                color: #e0e0e0;
+                /* Light text/icon for dark mobile bar */
             }
+
             .hamburger-menu-container .hamburger-button:hover,
             .hamburger-menu-container .hamburger-button:focus,
             .hamburger-menu-container .hamburger-button.active {
@@ -180,24 +226,31 @@
 
         /* Menu Panel Dark Mode */
         .menu {
-            background-color: #282c2c; /* Dark background for menu panel */
+            background-color: #282c2c;
+            /* Dark background for menu panel */
             border-right: 1px solid #444;
         }
 
         .menu a {
-            color: #e0e0e0; /* Light text for links */
+            color: #e0e0e0;
+            /* Light text for links */
         }
 
         .menu a:hover {
-            background-color: #383c3c; /* Slightly lighter dark for hover */
-            color: #e8c1c9; /* Accent color on hover */
+            background-color: #383c3c;
+            /* Slightly lighter dark for hover */
+            color: #e8c1c9;
+            /* Accent color on hover */
         }
 
         .another-section {
-            border-top: 1px solid #444; /* Darker separator */
+            border-top: 1px solid #444;
+            /* Darker separator */
         }
 
-        .section-label, .logged-in-info {
-            color: #aaa; /* Lighter grey for dark mode */
+        .section-label,
+        .logged-in-info {
+            color: #aaa;
+            /* Lighter grey for dark mode */
         }
     }

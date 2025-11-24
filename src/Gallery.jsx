@@ -55,11 +55,11 @@ function Gallery() {
     const mediaId = params.get('media');
 
     if (mediaId && media.length > 0) {
-        const mediaItem = media.find((item) => item.id === mediaId);
-        if (mediaItem) {
-            setCurrentMedia(mediaItem); 
-            setIsModalOpen(true);  
-        }
+      const mediaItem = media.find((item) => item.id === mediaId);
+      if (mediaItem) {
+        setCurrentMedia(mediaItem);
+        setIsModalOpen(true);
+      }
     }
   }, [media]);
 
@@ -131,19 +131,19 @@ function Gallery() {
       .filter(key => selectedMedia[key])
       .map(url => media.find(item => item.url === url)?.id)
       .filter(id => id);
-  
+
     if (mediaToDelete.length === 0) {
       console.warn('No valid media selected for deletion.');
-      return;   
+      return;
     }
-  
+
     try {
       const response = await fetch('/api/delete-media', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ media: mediaToDelete }),
       });
-  
+
       if (response.ok) {
         setMedia(current => current.filter(item => !mediaToDelete.includes(item.id)));
         toggleEditMode();
@@ -154,16 +154,16 @@ function Gallery() {
       console.error('Error deleting media:', error);
     }
   }, [media, selectedMedia, toggleEditMode]);
-  
+
   const groupedFilteredMedia = useMemo(() => {
     const filtered = media.filter(item => {
       const matchesSearch = !searchQuery || (item.tags && item.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())));
       const matchesEvent = !selectedEvent || item.associated_event_id == selectedEvent;
       return matchesSearch && matchesEvent;
     });
-  
+
     const sortedMedia = filtered.sort((a, b) => new Date(b.upload_date) - new Date(a.upload_date));
-  
+
     return sortedMedia.reduce((acc, item) => {
       const date = new Date(item.upload_date).toLocaleDateString();
       if (!acc[date]) acc[date] = [];
@@ -196,39 +196,49 @@ function Gallery() {
         </header>
         <div className="main">
           <div className="gallery-page-header">
-              <div className="header-main-row">
-                <h1 className="gallery-title">Media Gallery</h1>
-                <div className="header-actions">
-                  {editMode ? (
-                    <>
-                      <button onClick={handleDeleteMedia} disabled={!Object.values(selectedMedia).some(v => v)} className="button-danger">
-                        Delete Selected
-                      </button>
-                      <button onClick={toggleEditMode} className="button-secondary">Cancel</button>
-                    </>
-                  ) : (
-                    <>
-                      <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*,video/*" style={{ display: 'none' }} />
-                      <button onClick={handleClickUpload} className="header-action-link">&#43; Upload Media</button>
-                      <button onClick={toggleEditMode} className="header-action-link">&#9881; Manage Media</button>
-                    </>
-                  )}
+            <h1 className="gallery-title">Media Gallery</h1>
+
+            <div className="gallery-controls">
+              {/* Row 1: Search Bar (Full Width) */}
+              <div className="search-bar-container">
+                <div className="search-bar">
+                  <input
+                    type="text"
+                    placeholder="Search by tags..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
                 </div>
               </div>
-              <div className="controls-row">
-                <div className="search-bar">
-                  <input type="text" placeholder="Search by tags..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-                </div>
-                <div className="filter-bar">
-                  <span>Show... </span>
-                  <select value={selectedEvent} onChange={(e) => setSelectedEvent(e.target.value)}>
-                    <option value="">All Events</option>
-                    {events.map(event => (<option key={event.id} value={event.id}>{event.title}</option>))}
-                  </select>
-                </div>
+
+              {/* Row 2: Filter (Centered) */}
+              <div className="filter-container">
+                <select value={selectedEvent} onChange={(e) => setSelectedEvent(e.target.value)}>
+                  <option value="">All Events</option>
+                  {events.map(event => (<option key={event.id} value={event.id}>{event.title}</option>))}
+                </select>
+              </div>
+
+              {/* Row 3: Buttons (Centered) */}
+              <div className="button-actions">
+                {editMode ? (
+                  <>
+                    <button onClick={handleDeleteMedia} disabled={!Object.values(selectedMedia).some(v => v)} className="button-danger">
+                      DELETE SELECTED
+                    </button>
+                    <button onClick={toggleEditMode} className="button-secondary">CANCEL</button>
+                  </>
+                ) : (
+                  <>
+                    <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*,video/*" style={{ display: 'none' }} />
+                    <button onClick={handleClickUpload} className="header-action-link">UPLOAD MEDIA</button>
+                    <button onClick={toggleEditMode} className="header-action-link">MANAGE MEDIA</button>
+                  </>
+                )}
               </div>
             </div>
-  
+          </div>
+
           <div className="gallery">
             {Object.keys(groupedFilteredMedia).length > 0 ? (
               Object.entries(groupedFilteredMedia).map(([date, mediaByDate]) => (
@@ -236,7 +246,7 @@ function Gallery() {
                   <h2 className="date-marker">{date}</h2>
                   <div className="media-row">
                     {mediaByDate.map((item) => (
-                      <MediaItem 
+                      <MediaItem
                         key={item.url}
                         media={item}
                         editMode={editMode}
@@ -269,7 +279,7 @@ function Gallery() {
 
 const MediaItem = React.memo(({ media, editMode, selectedMedia, handleSelectMedia, handleMediaClick }) => (
   <div
-      className={`media-item ${editMode ? 'edit-mode' : ''} ${media.media_type === 'video' ? 'is-video' : ''}`}    onClick={(e) => {
+    className={`media-item ${editMode ? 'edit-mode' : ''} ${media.media_type === 'video' ? 'is-video' : ''}`} onClick={(e) => {
       if (editMode) {
         e.stopPropagation();
         handleSelectMedia(media.url);
@@ -283,7 +293,7 @@ const MediaItem = React.memo(({ media, editMode, selectedMedia, handleSelectMedi
         {selectedMedia[media.url] ? '✓' : 'O'}
       </div>
     )}
-    
+
     {media.media_type === 'video' ? (
       media.thumbnail_url ? (
         <img src={media.thumbnail_url} alt={media.name || ''} loading="lazy" className="media-thumbnail" />

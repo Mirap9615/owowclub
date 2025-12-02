@@ -6,7 +6,7 @@ const Settings = () => {
   const [userDetails, setUserDetails] = useState({
     name: '',
     type: '',
-    admin: false,  
+    admin: false,
   });
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -20,7 +20,7 @@ const Settings = () => {
           credentials: 'include',
         });
         const data = await response.json();
-        setUserDetails(data);  
+        setUserDetails(data);
       } catch (error) {
         console.error('Error fetching user details:', error);
       }
@@ -89,10 +89,10 @@ const Settings = () => {
   return (
     <>
       <header className="top-bar-home">
-          <Steamed />
-          <h1>OWL<sup>2</sup> Club</h1>
-        </header>
-        
+        <Steamed />
+        <h1>OWL<sup>2</sup> Club</h1>
+      </header>
+
       <div className="centerer">
         <div className="settings-container">
           <h2>Settings</h2>
@@ -124,7 +124,7 @@ const Settings = () => {
               </div>
             )}
 
-            <button type="submit" className="update-button">Update Details</button>
+            <button type="submit" className="update-button">UPDATE DETAILS</button>
           </form>
 
           <form onSubmit={handleUpdatePassword}>
@@ -155,7 +155,7 @@ const Settings = () => {
                 required
               />
             </div>
-            <button type="submit" className="update-button">Update Password</button>
+            <button type="submit" className="update-button">UPDATE PASSWORD</button>
           </form>
         </div>
       </div>

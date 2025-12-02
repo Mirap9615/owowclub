@@ -1,29 +1,119 @@
+/* Settings.css */
+
+/* Main Container */
 .settings-container {
-    width: 300px;
-    margin: 0 auto;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  }
-
-  .update-button {
-      margin-bottom: 2vh;
-  }
-
-.centerer {
-  min-height: calc(100vh - 70px); 
-  display: flex;
-  justify-content: center; 
-  align-items: center; 
-  padding-bottom: 10vh; 
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 3rem;
+  background-color: #ffffff;
+  /* Optional: subtle shadow or border, but keeping it clean */
+  /* box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); */
+  /* border: 1px solid #f0f0f0; */
+  border-radius: 8px;
 }
 
-  @media (min-width: 769px) {
-    .centerer {
-        min-height: calc(100vh - 70px); 
-        display: flex;
-        justify-content: center; 
-        align-items: center; 
+.centerer {
+  min-height: calc(100vh - 70px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-bottom: 10vh;
+  background-color: #fcfcfc;
+  /* Very subtle off-white background for the page */
+}
+
+/* Typography */
+.settings-container h2 {
+  font-family: 'Canela', 'Cormorant Garamond', serif;
+  font-size: 2.5rem;
+  font-weight: 400;
+  color: #333;
+  margin-bottom: 2.5rem;
+  text-align: center;
+  letter-spacing: 0.02em;
+}
+
+/* Form Elements */
+.input-group {
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.input-group label {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #555;
+  margin-bottom: 0.5rem;
+}
+
+.input-group input,
+.input-group select {
+  width: 100%;
+  padding: 12px 15px;
+  font-size: 1rem;
+  font-family: 'Montserrat', sans-serif;
+  color: #333;
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.input-group input:focus,
+.input-group select:focus {
+  outline: none;
+  border-color: #725d29;
+  /* Gold accent */
+  box-shadow: 0 0 0 2px rgba(114, 93, 41, 0.1);
+}
+
+/* Buttons (Luxury Ghost Style) */
+.update-button {
+  width: 100%;
+  background-color: transparent;
+  border: 1px solid #725d29;
+  border-radius: 2px;
+  cursor: pointer;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 1rem;
+  margin-top: 1rem;
+  margin-bottom: 3rem;
+  /* Space between forms */
+  transition: all 0.3s ease;
+  color: #725d29;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.update-button:hover {
+  background-color: #725d29;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.update-button:active {
+  transform: translateY(0);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .settings-container {
+    padding: 1.5rem;
+    width: 90%;
+  }
+
+  .settings-container h2 {
+    font-size: 2rem;
   }
 }

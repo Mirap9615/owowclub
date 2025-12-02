@@ -164,12 +164,42 @@ function Gallery() {
 
     const sortedMedia = filtered.sort((a, b) => new Date(b.upload_date) - new Date(a.upload_date));
 
-    return sortedMedia.reduce((acc, item) => {
+    const byDate = sortedMedia.reduce((acc, item) => {
       const date = new Date(item.upload_date).toLocaleDateString();
       if (!acc[date]) acc[date] = [];
       acc[date].push(item);
       return acc;
     }, {});
+
+    return Object.entries(byDate).map(([date, items]) => {
+      const eventIds = new Set();
+      let eventName = null;
+      let hasItemsWithoutEvent = false;
+
+      items.forEach(item => {
+        if (item.associated_event_id) {
+          eventIds.add(item.associated_event_id);
+          if (!eventName) eventName = item.event_name;
+        } else {
+          hasItemsWithoutEvent = true;
+        }
+      });
+
+      let primaryHeader = date;
+      let secondaryHeader = null;
+
+      if (!hasItemsWithoutEvent && eventIds.size === 1) {
+        primaryHeader = eventName || "Untitled Event";
+        secondaryHeader = date;
+      }
+
+      return {
+        id: date,
+        primaryHeader,
+        secondaryHeader,
+        items
+      };
+    });
   }, [media, searchQuery, selectedEvent]);
 
   const handleAddComment = useCallback(async (commentText) => {
@@ -194,58 +224,59 @@ function Gallery() {
           <Steamed />
           <h1>OWL<sup>2</sup> Club</h1>
         </header>
-        <div className="main">
-          <div className="gallery-page-header">
-            <h1 className="gallery-title">Media Gallery</h1>
+        <div className="container">
+          <h1 className="gallery-title">Media Gallery</h1>
 
-            <div className="gallery-controls">
-              {/* Row 1: Search Bar (Full Width) */}
-              <div className="search-bar-container">
-                <div className="search-bar">
-                  <input
-                    type="text"
-                    placeholder="Search by tags..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                </div>
+          <div className="gallery-controls">
+            {/* Row 1: Search Bar (Full Width) */}
+            <div className="search-bar-container">
+              <div className="search-bar">
+                <input
+                  type="text"
+                  placeholder="Search by tags..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
               </div>
+            </div>
 
-              {/* Row 2: Filter (Centered) */}
-              <div className="filter-container">
-                <select value={selectedEvent} onChange={(e) => setSelectedEvent(e.target.value)}>
-                  <option value="">All Events</option>
-                  {events.map(event => (<option key={event.id} value={event.id}>{event.title}</option>))}
-                </select>
-              </div>
+            {/* Row 2: Filter (Centered) */}
+            <div className="filter-container">
+              <select value={selectedEvent} onChange={(e) => setSelectedEvent(e.target.value)}>
+                <option value="">All Events</option>
+                {events.map(event => (<option key={event.id} value={event.id}>{event.title}</option>))}
+              </select>
+            </div>
 
-              {/* Row 3: Buttons (Centered) */}
-              <div className="button-actions">
-                {editMode ? (
-                  <>
-                    <button onClick={handleDeleteMedia} disabled={!Object.values(selectedMedia).some(v => v)} className="button-danger">
-                      DELETE SELECTED
-                    </button>
-                    <button onClick={toggleEditMode} className="button-secondary">CANCEL</button>
-                  </>
-                ) : (
-                  <>
-                    <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*,video/*" style={{ display: 'none' }} />
-                    <button onClick={handleClickUpload} className="header-action-link">UPLOAD MEDIA</button>
-                    <button onClick={toggleEditMode} className="header-action-link">MANAGE MEDIA</button>
-                  </>
-                )}
-              </div>
+            {/* Row 3: Buttons (Centered) */}
+            <div className="button-actions">
+              {editMode ? (
+                <>
+                  <button onClick={handleDeleteMedia} disabled={!Object.values(selectedMedia).some(v => v)} className="button-danger">
+                    DELETE SELECTED
+                  </button>
+                  <button onClick={toggleEditMode} className="button-secondary">CANCEL</button>
+                </>
+              ) : (
+                <>
+                  <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*,video/*" style={{ display: 'none' }} />
+                  <button onClick={handleClickUpload} className="header-action-link">UPLOAD MEDIA</button>
+                  <button onClick={toggleEditMode} className="header-action-link">MANAGE MEDIA</button>
+                </>
+              )}
             </div>
           </div>
 
           <div className="gallery">
-            {Object.keys(groupedFilteredMedia).length > 0 ? (
-              Object.entries(groupedFilteredMedia).map(([date, mediaByDate]) => (
-                <div key={date} className="date-group">
-                  <h2 className="date-marker">{date}</h2>
+            {groupedFilteredMedia.length > 0 ? (
+              groupedFilteredMedia.map((group) => (
+                <div key={group.id} className="date-group">
+                  <div className="group-header">
+                    <h2 className="date-marker">{group.primaryHeader}</h2>
+                    {group.secondaryHeader && <span className="secondary-header">{group.secondaryHeader}</span>}
+                  </div>
                   <div className="media-row">
-                    {mediaByDate.map((item) => (
+                    {group.items.map((item) => (
                       <MediaItem
                         key={item.url}
                         media={item}

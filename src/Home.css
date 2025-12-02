@@ -96,11 +96,13 @@ body {
    ========================================================================== */
 
 .section-text-block {
-  background-color: var(--color-background);
+  background-color: #61A6AB;
   padding: 6rem 2rem;
   display: flex;
   justify-content: center;
 }
+
+
 
 .text-content-wrapper {
   max-width: 700px;
@@ -111,14 +113,15 @@ body {
   font-family: var(--font-serif);
   font-size: 1.8rem;
   font-weight: 700;
-  color: var(--color-primary);
+
+  color: #692B39;
   margin-bottom: 1.5rem;
 }
 
 .text-content-wrapper p {
   font-size: 1.1rem;
   line-height: 1.8;
-  color: #555;
+  color: #FFF4DE;
   margin: 0 auto 2rem auto;
   max-width: 600px;
 }
@@ -161,11 +164,11 @@ body {
    ========================================================================== */
 
 .site-footer {
-  background-color: #f8f9fa;
+  background-color: #591536;
   padding: 2rem;
   font-family: var(--font-sans);
-  color: #6c757d;
-  border-top: 1px solid #e9ecef;
+  color: #FFF4DE;
+  border-top: none;
 }
 
 .footer-content-wrapper {
@@ -181,7 +184,7 @@ body {
 .footer-brand h4 {
   font-family: var(--font-serif);
   font-size: 1.5rem;
-  color: var(--color-primary);
+  color: #FFF4DE;
   margin: 0;
   font-weight: 600;
 }
@@ -193,14 +196,14 @@ body {
 }
 
 .footer-links a {
-  color: #6c757d;
+  color: #FFF4DE;
   text-decoration: none;
   font-size: 0.9rem;
   transition: color 0.2s ease;
 }
 
 .footer-links a:hover {
-  color: var(--color-primary);
+  color: #61A6AB;
   text-decoration: underline;
 }
 
@@ -257,8 +260,8 @@ body {
   align-items: center;
   justify-content: flex-start;
   box-sizing: border-box;
-  background-color: #990000;
-  color: white;
+  background-color: #591536;
+  color: #FFF4DE;
   padding: 15px;
   width: 100%;
   position: fixed;

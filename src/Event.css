@@ -523,3 +523,79 @@
 .upload-button {
   margin-bottom: 20px;
 }
+
+/* Media Management Styles */
+.button-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.button-actions .button-danger,
+.button-actions .button-secondary {
+  background-color: transparent;
+  border-radius: 2px;
+  /* Sharp corners */
+  cursor: pointer;
+  font-family: 'Montserrat', 'Lato', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 0.8rem 1.5rem;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+}
+
+.button-actions .button-danger {
+  border: 1px solid #d32f2f;
+  color: #d32f2f;
+}
+
+.button-actions .button-danger:hover {
+  background-color: #d32f2f;
+  color: white;
+}
+
+.button-actions .button-secondary {
+  border: 1px solid #6c757d;
+  color: #6c757d;
+}
+
+.button-actions .button-secondary:hover {
+  background-color: #6c757d;
+  color: white;
+}
+
+.select-overlay {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 30px;
+  height: 30px;
+  background-color: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  color: #28a745;
+  /* Green checkmark */
+  font-weight: bold;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.image-card.edit-mode:hover {
+  transform: none;
+  /* Disable zoom in edit mode */
+}
+
+.image-card.edit-mode {
+  cursor: pointer;
+}

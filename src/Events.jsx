@@ -9,6 +9,7 @@ import { HexColorPicker } from 'react-colorful';
 import { format } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
 import EventModal from './EventModal.jsx';
+import { EVENT_TYPES } from './constants/eventTypes';
 
 const findEventsForDate = (selectedDate, allEvents) => {
   return allEvents.filter(event => {
@@ -172,12 +173,30 @@ function Cal() {
     }
   }, [isPanelOpen]);
 
+
+
   const [filter, setFilter] = useState('');
-  const [sortDirection, setSortDirection] = useState('asc');
+  const [sortDirection, setSortDirection] = useState('desc');
+  const [selectedType, setSelectedType] = useState('all');
   const [displayedEvents, setDisplayedEvents] = useState([]);
 
   useEffect(() => {
-    const sortedEvents = [...events].sort((a, b) => {
+    let processedEvents = [...events];
+
+    // 1. Filter by Type
+    if (selectedType !== 'all') {
+      processedEvents = processedEvents.filter(event => event.type === selectedType);
+    }
+
+    // 2. Filter by Search Text
+    if (filter) {
+      processedEvents = processedEvents.filter(event =>
+        event.title.toLowerCase().includes(filter.toLowerCase())
+      );
+    }
+
+    // 3. Sort by Date
+    processedEvents.sort((a, b) => {
       if (sortDirection === 'asc') {
         return a.startDateTime - b.startDateTime;
       } else {
@@ -185,15 +204,15 @@ function Cal() {
       }
     });
 
-    const filteredEvents = sortedEvents.filter(event =>
-      event.title.toLowerCase().includes(filter.toLowerCase())
-    );
-
-    setDisplayedEvents(filteredEvents);
-  }, [sortDirection, filter, events]);
+    setDisplayedEvents(processedEvents);
+  }, [sortDirection, filter, selectedType, events]);
 
   const handleSearchChange = (e) => {
     setFilter(e.target.value);
+  };
+
+  const toggleSortDirection = () => {
+    setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
   };
 
   useEffect(() => {
@@ -241,13 +260,32 @@ function Cal() {
             </>
           )}
 
-          <input
-            type="text"
-            className="search-bar"
-            value={filter}
-            onChange={handleSearchChange}
-            placeholder="Search events"
-          />
+          <div className="controls-container">
+            <input
+              type="text"
+              className="search-bar"
+              value={filter}
+              onChange={handleSearchChange}
+              placeholder="Search events..."
+            />
+
+            <div className="filter-sort-group">
+              <select
+                className="type-filter-select"
+                value={selectedType}
+                onChange={(e) => setSelectedType(e.target.value)}
+              >
+                <option value="all">All Types</option>
+                {EVENT_TYPES.map(type => (
+                  <option key={type.value} value={type.value}>{type.label}</option>
+                ))}
+              </select>
+
+              <button className="sort-button" onClick={toggleSortDirection}>
+                Sort by Date {sortDirection === 'asc' ? '↑' : '↓'}
+              </button>
+            </div>
+          </div>
 
           <div className="events-grid">
             {displayedEvents.map(event => {

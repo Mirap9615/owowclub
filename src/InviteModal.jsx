@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import './Event.css';
+import './InviteModal.css'; // Import the new stylesheet
 
 const InviteModal = ({ isOpen, onClose, eventId, eventTitle }) => {
   const [users, setUsers] = useState([]);
@@ -45,26 +45,26 @@ const InviteModal = ({ isOpen, onClose, eventId, eventTitle }) => {
   const handleSendInvites = async () => {
     setLoading(true);
     try {
-      console.log('Sending invites for users:', selectedUsers); 
+      console.log('Sending invites for users:', selectedUsers);
       const response = await fetch('/api/events/invite', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          eventId: Number(eventId), 
+          eventId: Number(eventId),
           eventTitle,
-          userIds: selectedUsers.map(id => Number(id)) 
+          userIds: selectedUsers.map(id => Number(id))
         }),
       });
-  
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.details || 'Failed to send invites');
       }
-  
+
       const data = await response.json();
-      console.log('Invite response:', data); 
+      console.log('Invite response:', data);
       onClose();
     } catch (error) {
       console.error('Error sending invites:', error);
@@ -76,48 +76,47 @@ const InviteModal = ({ isOpen, onClose, eventId, eventTitle }) => {
   if (!isOpen) return null;
 
   return createPortal(
-    <div className="modal-container">
-      <div className="backdrop" onClick={onClose} />
-      <div className="modal invite-modal">
-        <div className="modal-header">
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="invite-modal" onClick={e => e.stopPropagation()}>
+        <div className="invite-modal-header">
           <h2>Invite Members</h2>
-          <button className="close-button" onClick={onClose}>&times;</button>
+          <button className="invite-close-button" onClick={onClose}>&times;</button>
         </div>
-        <div className="modal-content">
+        <div className="invite-modal-body">
           <input
             type="text"
             placeholder="Search users..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
+            className="invite-search-input"
           />
-          <div className="users-list">
+          <div className="invite-users-list">
             {filteredUsers.map(user => (
-              <div key={user.user_id} className="user-item">
-                <label className="user-label">
+              <div key={user.user_id} className="invite-user-item">
+                <label className="invite-user-label">
                   <input
                     type="checkbox"
                     checked={selectedUsers.includes(user.user_id)}
                     onChange={() => handleUserSelect(user.user_id)}
                   />
-                  <span className="user-info">
-                  <span className="user-name">{user.name || user.email}</span>
-                  <span className="user-email">({user.email})</span>
-                    <span className="user-type">{user.type}</span>
-                  </span>
+                  <div className="invite-user-info">
+                    <span className="invite-user-name">{user.name || user.email}</span>
+                    <span className="invite-user-email">{user.email}</span>
+                    <span className="invite-user-type">{user.type}</span>
+                  </div>
                 </label>
               </div>
             ))}
           </div>
-          <div className="modal-footer">
-            <button
-              className="invite-button"
-              onClick={handleSendInvites}
-              disabled={loading || selectedUsers.length === 0}
-            >
-              {loading ? 'Sending Invites...' : `Invite Selected (${selectedUsers.length})`}
-            </button>
-          </div>
+        </div>
+        <div className="invite-modal-footer">
+          <button
+            className="invite-submit-button"
+            onClick={handleSendInvites}
+            disabled={loading || selectedUsers.length === 0}
+          >
+            {loading ? 'Sending...' : `Invite Selected (${selectedUsers.length})`}
+          </button>
         </div>
       </div>
     </div>,

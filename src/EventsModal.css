@@ -367,38 +367,6 @@ button:disabled {
     unicode-bidi: isolate;
 }
 
-@media (prefers-color-scheme: dark) {
-    .event-modal {
-        background: black;
-    }
-
-    .modal-footer {
-        background: gainsboro;
-    }
-
-    .progress-step.active {
-        border-color: white;
-    }
-
-    .progress-step {
-        border-color: gray;
-    }
-
-    .progress-step {
-        flex: none;
-        /* Reset equal distribution */
-        max-width: 100%;
-        /* Allow full width if necessary */
-    }
-
-    .progress-bar {
-        gap: 5px;
-        /* Reduce spacing on smaller screens */
-        flex-direction: column;
-        /* Stack steps vertically if needed */
-    }
-}
-
 .file-input-wrapper {
     display: flex;
     align-items: center;

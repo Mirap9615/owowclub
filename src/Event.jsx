@@ -9,6 +9,7 @@ import InviteModal from './InviteModal.jsx';
 import EventMailer from './EventMailer.jsx';
 import Comments from './Comments.jsx';
 import { createPortal } from 'react-dom';
+import { EVENT_TYPE_MAP } from './constants/eventTypes';
 
 const JoinedModal = ({ isOpen, onClose, eventName, onSendConfirmation }) => {
   if (!isOpen) return null;
@@ -94,8 +95,51 @@ const EventPage = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [pendingLeaveEventId, setPendingLeaveEventId] = useState(null);
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [selectedMedia, setSelectedMedia] = useState({});
   const fileInputRef = useRef(null);
   const eventRef = useRef(null);
+
+  const toggleEditMode = useCallback(() => {
+    setEditMode(prev => !prev);
+    setSelectedMedia({});
+  }, []);
+
+  const handleSelectMedia = useCallback((mediaUrl) => {
+    setSelectedMedia(prev => ({
+      ...prev,
+      [mediaUrl]: !prev[mediaUrl]
+    }));
+  }, []);
+
+  const handleDeleteMedia = useCallback(async () => {
+    const mediaToDelete = Object.keys(selectedMedia)
+      .filter(key => selectedMedia[key])
+      .map(url => eventImages.find(item => item.url === url)?.id)
+      .filter(id => id);
+
+    if (mediaToDelete.length === 0) {
+      console.warn('No valid media selected for deletion.');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/delete-media', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ media: mediaToDelete }),
+      });
+
+      if (response.ok) {
+        setEventImages(current => current.filter(item => !mediaToDelete.includes(item.id)));
+        toggleEditMode();
+      } else {
+        console.error('Failed to delete media item(s)');
+      }
+    } catch (error) {
+      console.error('Error deleting media:', error);
+    }
+  }, [eventImages, selectedMedia, toggleEditMode]);
 
 
   const navigate = useNavigate();
@@ -111,33 +155,7 @@ const EventPage = () => {
     type: '',
   });
 
-  const EVENT_TYPE_MAP = {
-    travel: "Travel Adventure",
-    "tea-party": "Tea Party",
-    golf: "Golf Practice",
-    concert: "Concert or Live Show",
-    "arts-crafts": "Arts & Crafts Workshop",
-    entertainment: "General Entertainment",
-    "cooking-food": "Cooking, Baking, or Food Tasting",
-    sports: "Sports or Physical Activity",
-    "hiking-camping": "Hiking or Camping Trip",
-    "book-club": "Book Club Meeting",
-    "yoga-meditation": "Yoga or Meditation Session",
-    picnic: "Picnic or Outdoor Gathering",
-    "movie-screening": "Movie Screening",
-    "charity-fundraising": "Charity or Fundraising Event",
-    "arcade-escape": "Arcade or Escape Room",
-    "wine-tasting": "Wine or Craft Beer Tasting",
-    karaoke: "Karaoke Night",
-    "volunteer-day": "Community Volunteer Day",
-    "fishing-trip": "Fishing Trip",
-    golfing: "Golfing Outing",
-    potluck: "Potluck Gathering",
-    "art-gallery": "Art Gallery Tour",
-    museum: "Museum Visit",
-    other: "Other",
-    custom: "Custom...",
-  };
+
 
 
   const showLeaveModal = (eventId) => {
@@ -293,35 +311,34 @@ const EventPage = () => {
 
   const handleFileChange = async (event) => {
     const currentEvent = eventRef.current;
+    const files = Array.from(event.target.files);
 
-    console.log('Event data:', currentEvent);
-    console.log('Event ID:', currentEvent?.id);
-    const file = event.target.files[0];
-    if (!file) return;
+    if (files.length === 0) return;
 
-    console.log(currentEvent);
-    const formData = new FormData();
-    formData.append('media', file);
-    formData.append('event_id', currentEvent.id);
-    formData.append('associated_event_id', currentEvent.id);
-    console.log(currentEvent.id);
+    for (const file of files) {
+      const formData = new FormData();
+      formData.append('media', file);
+      formData.append('event_id', currentEvent.id);
+      formData.append('associated_event_id', currentEvent.id);
 
-    try {
-      const response = await fetch('/upload-media', {
-        method: 'POST',
-        body: formData,
-      });
+      try {
+        const response = await fetch('/upload-media', {
+          method: 'POST',
+          body: formData,
+        });
 
-      if (response.ok) {
-        const newImage = await response.json();
-        setEventImages((prev) => [...prev, newImage]);
-        event.target.value = ''; // Clear file input
-      } else {
-        throw new Error('Upload failed');
+        if (response.ok) {
+          const newMedia = await response.json();
+          setEventImages((prev) => [...prev, newMedia]);
+        } else {
+          console.error(`Failed to upload ${file.name}`);
+        }
+      } catch (error) {
+        console.error(`Error uploading ${file.name}:`, error);
       }
-    } catch (error) {
-      console.error('Error uploading image:', error);
     }
+
+    event.target.value = ''; // Clear file input
   };
 
 
@@ -333,40 +350,67 @@ const EventPage = () => {
     return (
       <div className="images-tab">
         <div className="image-controls">
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            accept="image/*"
-            style={{ display: 'none' }}
-          />
-          <button className="event-ghost-button" onClick={() => fileInputRef.current?.click()}>
-            UPLOAD IMAGE
-          </button>
+          {editMode ? (
+            <div className="button-actions">
+              <button onClick={handleDeleteMedia} disabled={!Object.values(selectedMedia).some(v => v)} className="button-danger">
+                DELETE SELECTED
+              </button>
+              <button onClick={toggleEditMode} className="button-secondary">CANCEL</button>
+            </div>
+          ) : (
+            <div className="button-actions">
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept="image/*,video/*"
+                multiple
+                style={{ display: 'none' }}
+              />
+              <button className="event-ghost-button" onClick={() => fileInputRef.current?.click()}>
+                UPLOAD MEDIA
+              </button>
+              <button className="event-ghost-button" onClick={toggleEditMode}>
+                MANAGE MEDIA
+              </button>
+            </div>
+          )}
         </div>
         <div className="image-grid">
           {eventImages.length > 0 ? (
             eventImages.map((image) => (
               <div
-                key={image.image_id}
-                className="image-card"
-                onClick={() => handleImageClick(image)}
+                key={image.image_id || image.id}
+                className={`image-card ${editMode ? 'edit-mode' : ''}`}
+                onClick={(e) => {
+                  if (editMode) {
+                    e.stopPropagation();
+                    handleSelectMedia(image.url);
+                  } else {
+                    handleImageClick(image);
+                  }
+                }}
                 style={{ cursor: 'pointer' }}
               >
-                <img
-                  src={image.url}
-                />
-                {/*image.name && (
-                  <div className="image-caption">
-                    {image.name}
-                  </div> 
-                  https://www.universitywomensclub.com/our-home-in-mayfair/
-                )*/}
+                {editMode && (
+                  <div className="select-overlay">
+                    {selectedMedia[image.url] ? '✓' : 'O'}
+                  </div>
+                )}
+                {image.media_type === 'video' ? (
+                  image.thumbnail_url ? (
+                    <img src={image.thumbnail_url} alt={image.name || ''} loading="lazy" />
+                  ) : (
+                    <video src={image.url} muted playsInline className="media-thumbnail" />
+                  )
+                ) : (
+                  <img src={image.url} alt={image.name || ''} loading="lazy" />
+                )}
               </div>
             ))
           ) : (
             <div className="no-images-message">
-              No images have been tagged with this event yet.
+              No media has been tagged with this event yet.
             </div>
           )}
         </div>
@@ -437,7 +481,10 @@ const EventPage = () => {
         const updatedEvent = await response.json();
 
         console.log("UP: " + updatedEvent);
-        setEvent(updatedEvent);
+        setEvent(prevEvent => ({
+          ...updatedEvent,
+          participants: prevEvent.participants
+        }));
 
         setIsPanelOpen(false);
         toggleScrollability(true);
@@ -589,7 +636,7 @@ const EventPage = () => {
       <div className="tabs">
         <button onClick={() => setActiveTab("details")} className={activeTab === "details" ? "active" : ""}>Details</button>
         <button onClick={() => setActiveTab("participation")} className={activeTab === "participation" ? "active" : ""}>Participation</button>
-        <button onClick={() => setActiveTab("images")} className={activeTab === "images" ? "active" : ""}>Images</button>
+        <button onClick={() => setActiveTab("images")} className={activeTab === "images" ? "active" : ""}>Media</button>
         <button onClick={() => setActiveTab("comments")} className={activeTab === "comments" ? "active" : ""}>Comments</button>
       </div>
 
@@ -597,17 +644,15 @@ const EventPage = () => {
       <div className="tab-content">
         {activeTab === "details" && (
           <div className="details-tab">
-            <p><strong>Date:</strong> {formatDateRead(event.event_date.split('T')[0])}</p>
+            <p><strong>Date:</strong>{formatDateRead(event.event_date.split('T')[0])}</p>
             <p>
-              <strong>Time:</strong>{" "}
-              {formatTime(event.start_time)} - {formatTime(event.end_time)}
+              <strong>Time:</strong>{formatTime(event.start_time)} - {formatTime(event.end_time)}
             </p>
             <p>
-              <strong>Type:</strong> {event.is_physical ? 'Physical' : 'Virtual'}
+              <strong>Type:</strong>{event.is_physical ? 'Physical' : 'Virtual'}
             </p>
             <p>
-              <strong>Location:</strong>
-              {event.is_physical ? (
+              <strong>Location:</strong>{event.is_physical ? (
                 <>
                   {event.location && <span>{event.location}, </span>}
                   {event.city && <span>{event.city}, </span>}
@@ -621,9 +666,9 @@ const EventPage = () => {
                 </a>
               )}
             </p>
-            <p><strong>Category:</strong> {EVENT_TYPE_MAP[event.type] || event.type || "Unknown"}</p>
-            <p><strong>Exclusivity:</strong> {event.exclusivity}</p>
-            <p><strong>Description:</strong> {event.description}</p>
+            <p><strong>Category:</strong>{EVENT_TYPE_MAP[event.type] || event.type || "Unknown"}</p>
+            <p><strong>Exclusivity:</strong>{event.exclusivity === 'invite-only' ? 'Invitation Only' : event.exclusivity}</p>
+            <p><strong>Description:</strong>{event.description}</p>
             <div className="details-actions">
               <button className="event-ghost-button" onClick={handleEdit}>EDIT DETAILS</button>
               <button className="event-ghost-button" onClick={handleShowDeleteModal}>DELETE EVENT</button>

@@ -86,28 +86,31 @@ function Gallery() {
   };
 
   const handleFileChange = useCallback(async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
+    const files = Array.from(event.target.files);
+    if (files.length === 0) return;
 
-    const formData = new FormData();
-    formData.append('media', file);
+    for (const file of files) {
+      const formData = new FormData();
+      formData.append('media', file);
 
-    try {
-      const response = await fetch('/upload-media', {
-        method: 'POST',
-        body: formData,
-      });
+      try {
+        const response = await fetch('/upload-media', {
+          method: 'POST',
+          body: formData,
+        });
 
-      if (response.ok) {
-        const newMediaItem = await response.json();
-        setMedia(prev => [...prev, newMediaItem]);
-        event.target.value = '';
-      } else {
-        throw new Error('Upload failed');
+        if (response.ok) {
+          const newMediaItem = await response.json();
+          setMedia(prev => [...prev, newMediaItem]);
+        } else {
+          console.error(`Failed to upload ${file.name}`);
+        }
+      } catch (error) {
+        console.error(`Error uploading ${file.name}:`, error);
       }
-    } catch (error) {
-      console.error('Error uploading media:', error);
     }
+
+    event.target.value = '';
   }, []);
 
   const handleClickUpload = useCallback(() => {
@@ -259,7 +262,7 @@ function Gallery() {
                 </>
               ) : (
                 <>
-                  <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*,video/*" style={{ display: 'none' }} />
+                  <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*,video/*" multiple style={{ display: 'none' }} />
                   <button onClick={handleClickUpload} className="header-action-link">UPLOAD MEDIA</button>
                   <button onClick={toggleEditMode} className="header-action-link">MANAGE MEDIA</button>
                 </>

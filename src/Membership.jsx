@@ -14,9 +14,9 @@ const membershipTypes = {
       "Participation in Gatherings"
     ],
     additionalBenefits: [
-        "Free vacation housing",
-        "Free participation in gathering activites",
-        "Free exhibition of own creations"
+      "Free vacation housing",
+      "Free participation in gathering activites",
+      "Free exhibition of own creations"
     ]
   },
   executive: {
@@ -29,21 +29,21 @@ const membershipTypes = {
       "Participation in gatherings"
     ],
     additionalBenefits: [
-        "80% discount on vacation housing",
-        "Free participation in gathering activities",
-        "Free exhibition of own creations"
+      "80% discount on vacation housing",
+      "Free participation in gathering activities",
+      "Free exhibition of own creations"
     ]
   },
   flying: {
-    title: "Flying Member",
+    title: "Fellow Member",
     benefits: [
-      "$$ annual membership fee",
+      "$288 annual member fee",
       "6-month minimum",
       "Volunteering activities"
-      
+
     ],
     additionalBenefits: [
-        "Deep discount on vacation housing",
+      "Deep discount on vacation housing",
       "Free participation in gathering activities",
       "Minimum cost to exhibit own creations"
     ]
@@ -51,41 +51,41 @@ const membershipTypes = {
 };
 
 const MembershipColumn = ({ title, benefits, additionalBenefits, titleColor, benefitsColor }) => (
-    <div className="membership-column">
-      <h2 className="membership-title" style={{ color: titleColor }}>{title}</h2>
-      <ul className="membership-list" style={{ color: benefitsColor }}>
-        {benefits.map((benefit, index) => (
+  <div className="membership-column">
+    <h2 className="membership-title" style={{ color: titleColor }}>{title}</h2>
+    <ul className="membership-list" style={{ color: benefitsColor }}>
+      {benefits.map((benefit, index) => (
+        <li key={index}>{benefit}</li>
+      ))}
+    </ul>
+    {additionalBenefits && (
+      <ul className="membership-additional-list" style={{ color: benefitsColor }}>
+        {additionalBenefits.map((benefit, index) => (
           <li key={index}>{benefit}</li>
         ))}
       </ul>
-      {additionalBenefits && (
-        <ul className="membership-additional-list" style={{ color: benefitsColor }}>
-          {additionalBenefits.map((benefit, index) => (
-            <li key={index}>{benefit}</li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-  
+    )}
+  </div>
+);
+
 
 const Membership = () => {
   return (
     <>
       <header className="top-bar-home">
-          <Steamed />
-          <h1>OWL<sup>2</sup> Club</h1>
+        <Steamed />
+        <h1>OWL<sup>2</sup> Club</h1>
       </header>
       <div className="page-three-container">
         <img src={MembershipImage} alt="Membership" className="membership-image" />
         <div className="memberships-container">
           <MembershipColumn title={membershipTypes.flying.title} benefits={membershipTypes.flying.benefits} additionalBenefits={membershipTypes.flying.additionalBenefits} />
           <MembershipColumn title={membershipTypes.executive.title} benefits={membershipTypes.executive.benefits} additionalBenefits={membershipTypes.executive.additionalBenefits} />
-          <MembershipColumn title={membershipTypes.hosting.title} benefits={membershipTypes.hosting.benefits} additionalBenefits={membershipTypes.hosting.additionalBenefits}/>
+          <MembershipColumn title={membershipTypes.hosting.title} benefits={membershipTypes.hosting.benefits} additionalBenefits={membershipTypes.hosting.additionalBenefits} />
         </div>
       </div>
     </>
-    
+
   );
 };
 

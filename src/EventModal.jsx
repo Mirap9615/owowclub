@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './EventsModal.css';
 import { HexColorPicker } from 'react-colorful';
+import { EVENT_TYPES } from './constants/eventTypes';
 
 const US_STATES = [
     "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado",
@@ -249,31 +250,9 @@ const EventModal = ({ onClose, mode, eventData, onEventUpdate }) => {
                                 onChange={handleInputChange}
                             >
                                 <option value="none">Select...</option>
-                                <option value="travel">Travel Adventure</option>
-                                <option value="tea-party">Tea Party</option>
-                                <option value="golf">Golf Practice</option>
-                                <option value="concert">Concert or Live Show</option>
-                                <option value="arts-crafts">Arts & Crafts Workshop</option>
-                                <option value="entertainment">General Entertainment</option>
-                                <option value="cooking-food">Cooking, Baking, or Food Tasting</option>
-                                <option value="sports">Sports or Physical Activity</option>
-                                <option value="hiking-camping">Hiking or Camping Trip</option>
-                                <option value="book-club">Book Club Meeting</option>
-                                <option value="yoga-meditation">Yoga or Meditation Session</option>
-                                <option value="picnic">Picnic or Outdoor Gathering</option>
-                                <option value="movie-screening">Movie Screening</option>
-                                <option value="charity-fundraising">Charity or Fundraising Event</option>
-                                <option value="arcade-escape">Arcade or Escape Room</option>
-                                <option value="wine-tasting">Wine or Craft Beer Tasting</option>
-                                <option value="karaoke">Karaoke Night</option>
-                                <option value="volunteer-day">Community Volunteer Day</option>
-                                <option value="fishing-trip">Fishing Trip</option>
-                                <option value="golfing">Golfing Outing</option>
-                                <option value="potluck">Potluck Gathering</option>
-                                <option value="art-gallery">Art Gallery Tour</option>
-                                <option value="museum">Museum Visit</option>
-                                <option value="other">Other</option>
-                                <option value="custom">Custom...</option>
+                                {EVENT_TYPES.map(type => (
+                                    <option key={type.value} value={type.value}>{type.label}</option>
+                                ))}
                             </select>
                         </label>
                         <label>

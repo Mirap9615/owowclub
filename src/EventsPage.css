@@ -74,12 +74,78 @@
   background-color: #f4f4f4;
 }
 
+.controls-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto 30px auto;
+}
+
 .search-bar {
-  padding: 8px;
+  padding: 12px 15px;
   border: 1px solid #ccc;
-  width: 50%;
-  margin: 20px auto;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  border-radius: 2px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.filter-sort-group {
+  display: flex;
+  gap: 15px;
+  width: 100%;
+  justify-content: center;
+}
+
+.type-filter-select {
+  padding: 10px 15px;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.9rem;
+  background-color: white;
+  cursor: pointer;
+  flex: 1;
+  max-width: 300px;
+}
+
+.sort-button {
+  padding: 10px 20px;
+  background-color: white;
+  border: 1px solid #725d29;
+  /* Gold */
+  color: #725d29;
+  border-radius: 2px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.sort-button:hover {
+  background-color: #725d29;
+  color: white;
+}
+
+@media (max-width: 600px) {
+  .filter-sort-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .type-filter-select,
+  .sort-button {
+    max-width: none;
+    width: 100%;
+  }
 }
 
 .react-calendar .highlight {
@@ -293,51 +359,6 @@ span {
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  .button {
-    background-color: #313132;
-  }
-
-  .react-calendar {
-    background-color: #333;
-    color: white;
-  }
-
-  .react-calendar__tile {
-    background-color: #444;
-    color: white;
-  }
-
-  .react-calendar__tile:enabled:hover,
-  .react-calendar__tile:enabled:focus {
-    background-color: #555;
-  }
-
-  .react-calendar__navigation button {
-    color: white;
-  }
-
-  .side-panel {
-    background-color: #292727;
-  }
-
-  .table.upcoming-events th {
-    background-color: #333;
-    color: white;
-  }
-
-  .card-title,
-  .card-datg,
-  .card-date-span,
-  .card-date {
-    color: white
-  }
-
-  [contentEditable="true"] {
-    background-color: unset;
-  }
-}
-
 .no-scroll {
   overflow: hidden;
 }
@@ -452,10 +473,4 @@ span {
 
 .home .hamburger-menu-container {
   z-index: unset;
-}
-
-@media (prefers-color-scheme: dark) {
-  .modal {
-    background-color: black;
-  }
 }

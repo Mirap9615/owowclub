@@ -43,6 +43,28 @@ function Gallery() {
     fetchEvents();
   }, []);
 
+  const [userDetails, setUserDetails] = useState({
+    name: '',
+    user_id: '',
+    type: '',
+    admin: false,
+  });
+
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      try {
+        const response = await fetch('/user-details');
+        if (response.ok) {
+          const data = await response.json();
+          setUserDetails(data);
+        }
+      } catch (error) {
+        console.error('Error fetching user details:', error);
+      }
+    };
+    fetchUserDetails();
+  }, []);
+
   // --- HANDLERS ---
   const handleMediaClick = useCallback((mediaItem) => {
     setCurrentMedia(mediaItem);
@@ -253,19 +275,21 @@ function Gallery() {
 
             {/* Row 3: Buttons (Centered) */}
             <div className="button-actions">
-              {editMode ? (
-                <>
-                  <button onClick={handleDeleteMedia} disabled={!Object.values(selectedMedia).some(v => v)} className="button-danger">
-                    DELETE SELECTED
-                  </button>
-                  <button onClick={toggleEditMode} className="button-secondary">CANCEL</button>
-                </>
-              ) : (
-                <>
-                  <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*,video/*" multiple style={{ display: 'none' }} />
-                  <button onClick={handleClickUpload} className="header-action-link">UPLOAD MEDIA</button>
-                  <button onClick={toggleEditMode} className="header-action-link">MANAGE MEDIA</button>
-                </>
+              {userDetails?.user_id && (
+                editMode ? (
+                  <>
+                    <button onClick={handleDeleteMedia} disabled={!Object.values(selectedMedia).some(v => v)} className="button-danger">
+                      DELETE SELECTED
+                    </button>
+                    <button onClick={toggleEditMode} className="button-secondary">CANCEL</button>
+                  </>
+                ) : (
+                  <>
+                    <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*,video/*" multiple style={{ display: 'none' }} />
+                    <button onClick={handleClickUpload} className="header-action-link">UPLOAD MEDIA</button>
+                    <button onClick={toggleEditMode} className="header-action-link">MANAGE MEDIA</button>
+                  </>
+                )
               )}
             </div>
           </div>
@@ -303,6 +327,7 @@ function Gallery() {
               closeModal={closeModal}
               currentMedia={currentMedia}
               onSave={handleModalSaveChanges}
+              userDetails={userDetails}
             />
           )}
         </div>

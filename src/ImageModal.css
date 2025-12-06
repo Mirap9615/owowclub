@@ -1,205 +1,226 @@
-.image-modal {
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  padding: 20px;
-  max-width: 80vw;
-  margin: auto;
-  position: fixed;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  max-height: 90vh;
-  z-index: 2501;
-}
+/* ==========================================================================
+   Modal Layout & Overlay
+   ========================================================================== */
 
 .modal-overlay {
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2500;
-}
-
-.modal-section-doubler {
-  flex-direction: column;
-}
-
-.modal-section label {
-  font-weight: bold;
-  display: block;
-}
-
-.modal-image {
-  max-width: 100%;
-  height: auto;
-  border-radius: 8px;
-}
-
-.modal-buttons {
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-}
-
-.modal-buttons button {
-  padding: 8px 12px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  background-color: rgb(69, 122, 214);
-  color: white;
-  transition: background-color 0.3s ease;
-}
-
-.modal-buttons button:hover {
-  background-color: #0056b3;
-}
-
-.centered-blue-button {
-  background-color: rgb(197, 197, 197);
-  color: white;
-  border: none;
-  padding: 5px 10px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  font-size: 14px;
-  margin-left: auto;
-  margin-right: auto;
-  width: fit-content;
-  margin-bottom: 10px;
-}
-
-.modal-tags {
-  display: flex;
-  justify-content: center;
-  flex-direction: column;
-  gap: 10px;
-  text-align: left;
-}
-
-.modal-tags strong {
-  font-weight: bold;
-  margin-right: 5px;
-}
-
-.image-author {
-  font-size: 12px;
-  color: #666;
-  margin-top: 5px;
-  text-align: left;
-  width: 100%;
-  margin-left: 0;
-}
-
-.modal-tabs {
-  display: flex;
-  justify-content: center;
-  margin: 20px 0;
-  border-bottom: 1px solid #ccc;
-}
-
-.tab-button {
-  padding: 10px 20px;
-  background: none;
-  border: none;
-  font-size: 16px;
-  cursor: pointer;
-  color: #555;
-}
-
-.tab-button.active {
-  font-weight: bold;
-  color: #000;
-  border-bottom: 2px solid #000;
-}
-
-.tab-button:hover {
-  color: #000;
-}
-
-.modal-tab-content {
-  padding: 20px;
-}
-
-.comments-tab,
-.metadata-tab {
-  overflow-y: auto;
-}
-
-.comments-tab {
-  padding-top: 10px;
-}
-
-.metadata-tab {
-  padding-top: 10px;
-}
-
-.tag-modal {
-  background-color: white;
-  border-radius: 8px;
-  padding: 20px;
-  max-width: 600px;
-  margin: auto;
-  position: fixed;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  z-index: 5000;
-  /* Higher than the image modal */
-}
-
-/* Tag modal overlay */
-.tag-modal-overlay {
-  background-color: rgba(0, 0, 0, 0.5);
-  /* Transparent overlay */
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 3000;
-  /* Slightly below the tag modal */
+  right: 0;
+  bottom: 0;
+  background-color: rgba(30, 30, 30, 0.85);
+  /* Darker, classier overlay */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  padding: 1rem;
 }
 
-/* Buttons inside the tag modal */
-.tag-modal button {
-  margin-top: 10px;
-  padding: 8px 12px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  background-color: #007bff;
-  color: white;
-  transition: background-color 0.3s ease;
-}
-
-.tag-modal button:hover {
-  background-color: #0056b3;
-}
-
-.tag-modal input {
-  margin-top: 10px;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+.image-modal {
+  background-color: #fff;
+  color: #333;
+  border-radius: 12px;
+  max-width: 900px;
+  padding: 0px;
   width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+  outline: none;
+  overflow: hidden;
+}
+
+/* --- The key to perfect scrolling --- */
+.modal-content-wrapper {
+  padding: 1rem 2rem;
+  overflow-y: auto;
+  flex-grow: 1;
+}
+
+
+/* ==========================================================================
+   Modal Header & Footer
+   ========================================================================== */
+
+.modal-header {
+  padding: 1rem 2rem;
+  border-bottom: 1px solid #e9ecef;
+  flex-shrink: 0;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-family: 'Canela', 'Cormorant Garamond', serif;
+  font-size: 1.6rem;
+  text-align: center;
+}
+
+/* ==========================================================================
+   Media Display (Image)
+   ========================================================================== */
+
+.media-display-container {
+  margin-left: -2rem;
+  margin-right: -2rem;
+  margin-bottom: 0.75rem;
+  background-color: #f0f0f0;
+  /* Placeholder for loading */
+  display: flex;
+  justify-content: center;
+}
+
+.modal-media {
+  width: 100%;
+  max-height: 60vh;
+  object-fit: contain;
+  display: block;
+}
+
+.image-author {
+  font-size: 0.85rem;
+  color: #6c757d;
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #e9ecef;
+  text-align: center;
+}
+
+
+/* ==========================================================================
+   Form Sections & Editing
+   ========================================================================== */
+
+.modal-section {
+  margin-bottom: 2rem;
+}
+
+.large-text {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+  color: #495057;
+  display: block;
 }
 
 .description-subtitle {
   display: block;
   font-size: 12px;
   color: #666;
-  margin-top: -8px;
+  margin-top: -4px;
   margin-bottom: 8px;
 }
 
-.large-text {
-  display: block;
-  font-size: 1.17em;
-  margin-top: 12px;
-  margin-bottom: 5px;
-  font-weight: bold;
-  unicode-bidi: isolate;
+.modal-section select,
+.modal-section textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #ced4da;
+  font-size: 1rem;
+  margin-top: 0.25rem;
+  box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.modal-section select:focus,
+.modal-section textarea:focus {
+  outline: none;
+  border-color: #471a25;
+  box-shadow: 0 0 0 3px rgba(71, 26, 37, 0.1);
+}
+
+.small-text {
+  padding: 0.75rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  min-height: 1.5em;
+  line-height: 1.6;
+  color: #495057;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.small-text:hover {
+  background-color: #f8f9fa;
+  border-color: #dee2e6;
+}
+
+.edit-description-wrapper textarea {
+  width: 100%;
+}
+
+
+/* ==========================================================================
+   Buttons
+   ========================================================================== */
+
+.image-modal-buttons {
+  padding: 1rem 2rem;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  flex-shrink: 0;
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* Base Button Style */
+.image-modal-buttons button,
+.edit-description-wrapper button {
+  padding: 0.6rem 1.2rem;
+  /* Reduced padding */
+  border-radius: 8px;
+  /* Curved corners */
+  cursor: pointer;
+  font-family: 'Montserrat', 'Lato', sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+/* Save Changes - Green */
+.image-modal-btn-save {
+  background-color: #2E7D32;
+  color: white;
+  border-color: #2E7D32;
+}
+
+.image-modal-btn-save:hover {
+  background-color: #1B5E20;
+  border-color: #1B5E20;
+  transform: translateY(-1px);
+}
+
+/* Blue Buttons (Close, Gallery Mode, Set Cover) */
+.image-modal-btn-blue {
+  background-color: #1565C0;
+  color: white;
+  border-color: #1565C0;
+}
+
+.image-modal-btn-blue:hover {
+  background-color: #0D47A1;
+  border-color: #0D47A1;
+  transform: translateY(-1px);
+}
+
+/* Description Save Button (Small) */
+.edit-description-wrapper button {
+  margin-top: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  background-color: transparent;
+  color: #725d29;
+  border: 1px solid #725d29;
+}
+
+.edit-description-wrapper button:hover {
+  background-color: #725d29;
+  color: white;
 }

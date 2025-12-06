@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './MediaModal.css'; 
+import './MediaModal.css';
 import Modal from 'react-modal';
 import Comments from './Comments.jsx';
 import FsLightbox from 'fslightbox-react';
@@ -14,9 +14,19 @@ const formatDate = (isoDate) => {
 const MediaModal = React.memo(({
   isOpen,
   closeModal,
-  currentMedia, 
+  currentMedia,
   onSave,
+  userDetails,
 }) => {
+  // ... (state remains same)
+
+  // ... (useEffects remain same)
+
+  // ... (handlers remain same)
+
+  // ... (render logic)
+
+
   // --- STATE ---
   const [editFields, setEditFields] = useState({ description: '', tags: [], event: null });
   const [isEditingDescription, setIsEditingDescription] = useState(false);
@@ -87,17 +97,17 @@ const MediaModal = React.memo(({
 
       {/* --- SCROLLABLE CONTENT WRAPPER --- */}
       <div className="modal-content-wrapper">
-        
+
         {/* --- Media Display (Image/Video) --- */}
         <div className="media-display-container">
           {currentMedia.media_type === 'video' ? (
-            
+
             <video src={currentMedia.url} controls autoPlay className="modal-media" />
           ) : (
             <img src={currentMedia.url} alt={currentMedia.name} className="modal-media" />
           )}
         </div>
-        
+
         <div className="media-author">
           Uploaded by {currentMedia.author_name || 'Unknown'} on {formatDate(currentMedia.upload_date)}
         </div>
@@ -116,8 +126,12 @@ const MediaModal = React.memo(({
               </button>
             </div>
           ) : (
-            <p className="small-text" onDoubleClick={() => setIsEditingDescription(true)}>
-              {editFields.description || 'No description provided. Double-click to edit.'}
+            <p
+              className="small-text"
+              onDoubleClick={() => userDetails?.user_id && setIsEditingDescription(true)}
+              style={{ cursor: userDetails?.user_id ? 'pointer' : 'default' }}
+            >
+              {editFields.description || (userDetails?.user_id ? 'No description provided. Double-click to edit.' : 'No description provided.')}
             </p>
           )}
         </div>
@@ -125,17 +139,23 @@ const MediaModal = React.memo(({
         {/* --- Event Association --- */}
         <div className="modal-section">
           <label className="large-text">Associated Event</label>
-          <select
-            value={editFields.event || ''}
-            onChange={(e) => handleEventSelection(e.target.value)}
-          >
-            <option value="">(None)</option>
-            {availableEvents.map((event) => (
-              <option key={event.id} value={event.id}>
-                {event.title}
-              </option>
-            ))}
-          </select>
+          {userDetails?.user_id ? (
+            <select
+              value={editFields.event || ''}
+              onChange={(e) => handleEventSelection(e.target.value)}
+            >
+              <option value="">(None)</option>
+              {availableEvents.map((event) => (
+                <option key={event.id} value={event.id}>
+                  {event.title}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <div className="static-text">
+              {availableEvents.find(e => e.id === editFields.event)?.title || '(None)'}
+            </div>
+          )}
         </div>
 
         {/* --- Comments Section --- */}
@@ -145,10 +165,10 @@ const MediaModal = React.memo(({
 
       </div>
 
-      
+
       {/* --- FOOTER (Fixed at the bottom) --- */}
       <div className="modal-buttons">
-        <button onClick={saveChanges} className="button-primary">Save & Close</button>
+        {userDetails?.user_id && <button onClick={saveChanges} className="button-primary">Save & Close</button>}
         <button onClick={() => setLightboxToggler(!lightboxToggler)} className="button-secondary">
           Fullscreen
         </button>

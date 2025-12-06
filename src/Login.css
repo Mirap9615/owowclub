@@ -1,91 +1,227 @@
-.login-container {
-  width: 300px;
-  margin: 0 auto;
+/* Login.css */
+
+/* Use the site's font variables */
+:root {
+  --font-serif: 'Cormorant Garamond', serif;
+  --font-sans: 'Montserrat', sans-serif;
+  --color-teal: #2A4B50;
+  --color-gold: #725d29;
+  --color-cream: #F9F5F0;
+  --color-white: #ffffff;
+}
+
+.login-page-wrapper {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--color-cream);
   padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  padding-top: 80px;
+  /* Account for fixed header if applicable */
 }
 
-h2 {
+.login-card-container {
+  width: 100%;
+  max-width: 420px;
+  background-color: var(--color-white);
+  padding: 40px;
+  border-radius: 4px;
+  /* Sharp/Slightly rounded for premium feel */
+  box-shadow: 0 10px 30px rgba(42, 75, 80, 0.08);
+  /* Subtle teal-tinted shadow */
+  border: 1px solid rgba(114, 93, 41, 0.15);
+  /* Very subtle gold border */
+  display: flex;
+  flex-direction: column;
+}
+
+.login-card-container h2 {
+  font-family: var(--font-serif);
+  color: var(--color-teal);
+  font-size: 3rem;
+  margin-bottom: 30px;
+  margin-top: 0;
   text-align: center;
+  font-weight: 400;
+  letter-spacing: -0.02em;
 }
 
-.input-group {
+.login-input-group {
+  margin-bottom: 20px;
   width: 100%;
-  margin-bottom: 15px;
 }
 
-.input-group label {
+.login-input-group label {
   display: block;
-  margin-bottom: 5px;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 8px;
 }
 
-.input-group input {
-  padding: 8px;
-  width: 93%
-}
-
-.login-button,
-.register-button,
-.google-login-button {
+.login-input-group input {
   width: 100%;
-  padding: 10px;
-  margin-top: 10px;
-  border: none;
-  border-radius: 5px;
+  padding: 14px 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 2px;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background-color: #fafafa;
+  color: #333;
+  box-sizing: border-box;
+  /* Ensure padding doesn't affect width */
+}
+
+.login-input-group input:focus {
+  border-color: var(--color-gold);
+  background-color: #fff;
+  outline: none;
+  box-shadow: 0 0 0 1px var(--color-gold);
+}
+
+/* Buttons */
+.login-card-container button {
+  width: 100%;
+  padding: 14px;
+  border-radius: 2px;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.85rem;
   cursor: pointer;
-}
-
-.login-button {
-  background-color: #4CAF50;
-  color: white;
-}
-
-.register-button {
-  background-color: #008CBA;
-  color: white;
-}
-
-.google-login {
-  margin-top: 15px;
-}
-
-.google-login-button {
-  background-color: #db4437;
-  color: white;
-}
-
-.forgot-password {
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
   margin-top: 10px;
 }
 
-.forgot-password a {
-  color: blue;
+.login-btn-primary {
+  background-color: var(--color-teal);
+  color: white;
+  border: none;
+  margin-top: 20px;
+}
+
+.login-btn-primary:hover {
+  background-color: #1e363a;
+  /* Darker teal */
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(42, 75, 80, 0.2);
+}
+
+.login-btn-secondary {
+  background-color: transparent;
+  color: var(--color-gold);
+  border: 1px solid var(--color-gold);
+}
+
+.login-btn-secondary:hover {
+  background-color: var(--color-gold);
+  color: white;
+}
+
+.login-google-section {
+  margin-top: 20px;
+  border-top: 1px solid #f0f0f0;
+  padding-top: 20px;
+}
+
+.login-btn-google {
+  background-color: #fff;
+  color: #555;
+  border: 1px solid #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-transform: none;
+  /* Google brand usually prefers normal case */
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.login-btn-google:hover {
+  background-color: #f9f9f9;
+  border-color: #ccc;
+  color: #333;
+}
+
+.login-forgot-password {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.login-forgot-password a {
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  color: #999;
   text-decoration: none;
+  transition: color 0.2s;
+  border-bottom: 1px solid transparent;
 }
 
-.forgot-password a:hover {
-  text-decoration: underline;
+.login-forgot-password a:hover {
+  color: var(--color-gold);
+  border-bottom-color: var(--color-gold);
 }
 
-.centerer {
-  margin-top: 30px;
-}
+/* Responsive - iPad and smaller */
+@media (max-width: 768px) {
+  .login-page-wrapper {
+    padding: 20px;
+    padding-top: 80px;
+    align-items: flex-start;
+    /* Move card up slightly */
+  }
 
-@media (min-width: 769px) {
-  .centerer {
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 0;
-    padding: 0;
+  .login-card-container {
+    max-width: 100%;
+    padding: 30px;
+    /* Keep shadow/border for iPad, remove for very small phones if desired */
+  }
+
+  .login-card-container h2 {
+    font-size: 3.5rem;
+    /* Larger heading */
+  }
+
+  .login-input-group label {
+    font-size: 0.9rem;
+    /* Larger label */
+    margin-bottom: 10px;
+  }
+
+  .login-input-group input {
+    padding: 18px 20px;
+    /* Larger touch target */
+    font-size: 1.2rem;
+    /* Larger text */
+  }
+
+  .login-card-container button {
+    padding: 18px;
+    /* Larger touch target */
+    font-size: 1rem;
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  .forgot-password a {
-    color: #e0e0e0;
+/* Very small screens (Phones) */
+@media (max-width: 480px) {
+  .login-page-wrapper {
+    padding: 0;
+    padding-top: 60px;
+    background-color: var(--color-white);
+  }
+
+  .login-card-container {
+    padding: 20px;
+    box-shadow: none;
+    border: none;
+    height: 100%;
+    /* Full height */
   }
 }

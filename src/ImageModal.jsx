@@ -18,6 +18,7 @@ const ImageModal = React.memo(({
   closeModal,
   currentImage,
   onSave,
+  userDetails,
 }) => {
   const [activeTab, setActiveTab] = useState('comments');
   const [editFields, setEditFields] = useState({ name: '', description: '', tags: [] });
@@ -29,13 +30,13 @@ const ImageModal = React.memo(({
 
   useEffect(() => {
     if (currentImage) {
+      const initialEventId = currentImage.associated_event_id || currentImage.event_id || null;
       setEditFields({
         description: currentImage.description || '',
         tags: currentImage.tags || [],
-        event: currentImage.associated_event_id || null,
+        event: initialEventId,
       });
     }
-    console.log(currentImage);
   }, [currentImage]);
 
   useEffect(() => {
@@ -58,14 +59,39 @@ const ImageModal = React.memo(({
   }, [isOpen, currentImage?.title]);
 
   const handleEventSelection = (eventId) => {
+    const newEventId = eventId || null;
     setEditFields((prev) => ({
       ...prev,
-      event: eventId || null,
+      event: newEventId,
     }));
+    // Seamless save for event
+    onSave({
+      ...currentImage,
+      ...editFields,
+      event: newEventId,
+      associated_event_id: newEventId,
+      associatedEventId: newEventId // Correct field for backend
+    });
+  };
+
+  const handleSaveDescription = () => {
+    setIsEditingDescription(false);
+    // Seamless save for description
+    // Use the current editFields.event, falling back to currentImage data if needed
+    const eventIdToSave = editFields.event || currentImage.associated_event_id || currentImage.event_id || null;
+
+    const payload = {
+      ...currentImage,
+      ...editFields,
+      description: editFields.description,
+      associated_event_id: eventIdToSave,
+      associatedEventId: eventIdToSave // Correct field for backend
+    };
+
+    onSave(payload);
   };
 
   const saveChanges = () => {
-    console.log('Saving Changes:', editFields);
     onSave({ ...currentImage, ...editFields, associatedEventId: editFields.event, });
     closeModal();
   };
@@ -106,69 +132,89 @@ const ImageModal = React.memo(({
       className="image-modal"
       overlayClassName="modal-overlay"
     >
+      {/* --- HEADER --- */}
       <div className="modal-header">
-        <h2 style={{ display: 'flex', justifyContent: 'center' }}>{title}</h2>
+        <h2>{title}</h2>
       </div>
 
-      <img src={currentImage.url} className="modal-image" />
-      <div className="image-author">uploaded by {currentImage.author_name} on {formatDate(currentImage.upload_date)}</div>
+      {/* --- SCROLLABLE CONTENT WRAPPER --- */}
+      <div className="modal-content-wrapper">
 
-      {/* Description Editing */}
-      <div>
-        <div className="large-text">Description</div>
-        <div className="description-subtitle">Double-click to edit</div>
-        {isEditingDescription ? (
-          <div>
-            <textarea
-              value={editFields.description}
-              onChange={(e) =>
-                setEditFields((prev) => ({ ...prev, description: e.target.value }))
-              }
-              rows="4"
-              style={{ width: '100%' }}
-            />
-            <button onClick={() => setIsEditingDescription(false)}>Save</button>
-          </div>
-        ) : (
-          <div className="small-text" onDoubleClick={() => setIsEditingDescription(true)}>
-            {editFields.description || 'Double-click to edit description'}
-          </div>
-        )}
-      </div>
-
-      {/* Event Association */}
-      <div>
-        <div className="large-text">Associated Event</div>
-        <div>
-          <select
-            value={editFields.event || ''}
-            onChange={(e) => handleEventSelection(e.target.value)}
-          >
-            <option value="">No event associated</option>
-            {availableEvents.map((event) => (
-              <option key={event.id} value={event.id}>
-                {event.title}
-              </option>
-            ))}
-          </select>
+        {/* --- Media Display --- */}
+        <div className="media-display-container">
+          <img src={currentImage.url} className="modal-media" alt={currentImage.title || 'Image'} />
         </div>
-      </div>
 
-      <div className="comment-section">
-        <Comments commentableId={currentImage.image_id || currentImage.id} />
-      </div>
+        <div className="image-author">
+          uploaded by {currentImage.author_name} on {formatDate(currentImage.upload_date)}
+        </div>
 
-      <div className="modal-buttons">
-        <div className="modal-buttons">
-          <button onClick={saveChanges}>Save Changes</button>
-          <button onClick={closeModal}>Close</button>
-          <button onClick={handleLightboxToggle}>Gallery Mode</button>
-          {currentImage.associated_event_id && (
-            <button onClick={handleSetAsCover} style={{ backgroundColor: '#4CAF50', color: 'white' }}>
-              Set as Event Cover
-            </button>
+        {/* --- Description Editing --- */}
+        <div className="modal-section">
+          <div className="large-text">Description</div>
+          {userDetails?.user_id && <div className="description-subtitle">Double-click to edit</div>}
+          {isEditingDescription ? (
+            <div className="edit-description-wrapper">
+              <textarea
+                value={editFields.description}
+                onChange={(e) =>
+                  setEditFields((prev) => ({ ...prev, description: e.target.value }))
+                }
+                rows="4"
+              />
+              <button onClick={handleSaveDescription} className="modal-btn-ghost" style={{ marginTop: '0.5rem' }}>
+                Save Description
+              </button>
+            </div>
+          ) : (
+            <div
+              className="small-text"
+              onDoubleClick={() => userDetails?.user_id && setIsEditingDescription(true)}
+              style={{ cursor: userDetails?.user_id ? 'pointer' : 'default' }}
+            >
+              {editFields.description || (userDetails?.user_id ? 'Double-click to edit description' : 'No description provided.')}
+            </div>
           )}
         </div>
+
+        {/* --- Event Association --- */}
+        <div className="modal-section">
+          <div className="large-text">Associated Event</div>
+          {userDetails?.user_id ? (
+            <select
+              value={editFields.event || ''}
+              onChange={(e) => handleEventSelection(e.target.value)}
+            >
+              <option value="">No event associated</option>
+              {availableEvents.map((event) => (
+                <option key={event.id} value={event.id}>
+                  {event.title}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <div className="static-text">
+              {availableEvents.find(e => e.id === editFields.event)?.title || 'No event associated'}
+            </div>
+          )}
+        </div>
+
+        {/* --- Comments Section --- */}
+        <div className="modal-section">
+          <Comments commentableId={currentImage.image_id || currentImage.id} />
+        </div>
+
+      </div>
+
+      {/* --- FOOTER (Fixed at the bottom) --- */}
+      <div className="image-modal-buttons">
+        <button className="image-modal-btn-blue" onClick={closeModal}>Close</button>
+        <button className="image-modal-btn-blue" onClick={handleLightboxToggle}>Gallery Mode</button>
+        {userDetails?.user_id && currentImage.associated_event_id && (
+          <button className="image-modal-btn-blue" onClick={handleSetAsCover}>
+            Set as Event Cover
+          </button>
+        )}
       </div>
 
       {currentImage && (

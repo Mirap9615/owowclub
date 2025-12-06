@@ -78,11 +78,19 @@ const formatDateRead = (isoDate) => {
 };
 
 const EventPage = () => {
-  const { id } = useParams();
+  const { id, tab } = useParams();
+  const navigate = useNavigate();
+  // Map URL tab names to internal state names
+  const getTabFromUrl = (urlTab) => {
+    if (urlTab === 'media') return 'images';
+    if (['details', 'participation', 'comments'].includes(urlTab)) return urlTab;
+    return 'details';
+  };
+
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState("details");
+  const [activeTab, setActiveTab] = useState(getTabFromUrl(tab));
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [eventImages, setEventImages] = useState([]);
@@ -142,10 +150,14 @@ const EventPage = () => {
   }, [eventImages, selectedMedia, toggleEditMode]);
 
 
-  const navigate = useNavigate();
-
   const handleImageClick = (image) => {
-    setCurrentImage(image);
+    // Ensure the image has the associated_event_id set to the current event
+    // This is crucial because the API might not return it when fetching images FOR an event
+    const imageWithContext = {
+      ...image,
+      associated_event_id: image.associated_event_id || event.id
+    };
+    setCurrentImage(imageWithContext);
     setIsModalOpen(true);
   };
 
@@ -153,10 +165,8 @@ const EventPage = () => {
     name: '',
     user_id: '',
     type: '',
+    admin: false,
   });
-
-
-
 
   const showLeaveModal = (eventId) => {
     setPendingLeaveEventId(eventId);
@@ -223,6 +233,10 @@ const EventPage = () => {
             img.id === updatedImage.id ? updatedImage : img
           )
         );
+        // Sync currentImage if it's the item being updated
+        if (currentImage && currentImage.id === updatedImage.id) {
+          setCurrentImage(updatedImage);
+        }
       } else {
         console.error('Failed to save changes');
       }
@@ -281,6 +295,23 @@ const EventPage = () => {
 
     fetchEvent();
   }, [id]);
+
+  // Redirect to /details if no tab is specified
+  useEffect(() => {
+    if (!tab) {
+      navigate(`/events/${id}/details`, { replace: true });
+    }
+  }, [id, tab, navigate]);
+
+  // Sync activeTab with URL changes
+  useEffect(() => {
+    setActiveTab(getTabFromUrl(tab));
+  }, [tab]);
+
+  const handleTabChange = (newTab) => {
+    const urlTab = newTab === 'images' ? 'media' : newTab;
+    navigate(`/events/${id}/${urlTab}`);
+  };
 
   useEffect(() => {
     const fetchEventImages = async () => {
@@ -350,30 +381,32 @@ const EventPage = () => {
     return (
       <div className="images-tab">
         <div className="image-controls">
-          {editMode ? (
-            <div className="button-actions">
-              <button onClick={handleDeleteMedia} disabled={!Object.values(selectedMedia).some(v => v)} className="button-danger">
-                DELETE SELECTED
-              </button>
-              <button onClick={toggleEditMode} className="button-secondary">CANCEL</button>
-            </div>
-          ) : (
-            <div className="button-actions">
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                accept="image/*,video/*"
-                multiple
-                style={{ display: 'none' }}
-              />
-              <button className="event-ghost-button" onClick={() => fileInputRef.current?.click()}>
-                UPLOAD MEDIA
-              </button>
-              <button className="event-ghost-button" onClick={toggleEditMode}>
-                MANAGE MEDIA
-              </button>
-            </div>
+          {userDetails.user_id && (
+            editMode ? (
+              <div className="button-actions">
+                <button onClick={handleDeleteMedia} disabled={!Object.values(selectedMedia).some(v => v)} className="button-danger">
+                  DELETE SELECTED
+                </button>
+                <button onClick={toggleEditMode} className="button-secondary">CANCEL</button>
+              </div>
+            ) : (
+              <div className="button-actions">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  accept="image/*,video/*"
+                  multiple
+                  style={{ display: 'none' }}
+                />
+                <button className="event-ghost-button" onClick={() => fileInputRef.current?.click()}>
+                  UPLOAD MEDIA
+                </button>
+                <button className="event-ghost-button" onClick={toggleEditMode}>
+                  MANAGE MEDIA
+                </button>
+              </div>
+            )
           )}
         </div>
         <div className="image-grid">
@@ -421,6 +454,7 @@ const EventPage = () => {
             closeModal={() => setIsModalOpen(false)}
             currentImage={currentImage}
             onSave={handleModalSaveChanges}
+            userDetails={userDetails}
           />
         )}
       </div>
@@ -519,7 +553,7 @@ const EventPage = () => {
       });
 
       if (response.ok) {
-        navigate('/calendar');
+        navigate('/events');
       } else {
         throw new Error('Failed to delete event');
       }
@@ -634,10 +668,10 @@ const EventPage = () => {
 
       {/* Tabs Navigation */}
       <div className="tabs">
-        <button onClick={() => setActiveTab("details")} className={activeTab === "details" ? "active" : ""}>Details</button>
-        <button onClick={() => setActiveTab("participation")} className={activeTab === "participation" ? "active" : ""}>Participation</button>
-        <button onClick={() => setActiveTab("images")} className={activeTab === "images" ? "active" : ""}>Media</button>
-        <button onClick={() => setActiveTab("comments")} className={activeTab === "comments" ? "active" : ""}>Comments</button>
+        <button onClick={() => handleTabChange("details")} className={activeTab === "details" ? "active" : ""}>Details</button>
+        <button onClick={() => handleTabChange("participation")} className={activeTab === "participation" ? "active" : ""}>Participation</button>
+        <button onClick={() => handleTabChange("images")} className={activeTab === "images" ? "active" : ""}>Media</button>
+        <button onClick={() => handleTabChange("comments")} className={activeTab === "comments" ? "active" : ""}>Comments</button>
       </div>
 
       {/* Tab Content */}
@@ -653,26 +687,49 @@ const EventPage = () => {
             </p>
             <p>
               <strong>Location:</strong>{event.is_physical ? (
-                <>
-                  {event.location && <span>{event.location}, </span>}
-                  {event.city && <span>{event.city}, </span>}
-                  {event.state && <span>{event.state}, </span>}
-                  {event.zip_code && <span>{event.zip_code}, </span>}
-                  {event.country && <span>{event.country}</span>}
-                </>
+                userDetails.user_id ? (
+                  <>
+                    {event.location && <span>{event.location}, </span>}
+                    {event.city && <span>{event.city}, </span>}
+                    {event.state && <span>{event.state}, </span>}
+                    {event.zip_code && <span>{event.zip_code}, </span>}
+                    {event.country && <span>{event.country}</span>}
+                  </>
+                ) : (
+                  <>
+                    {event.city && <span>{event.city}, </span>}
+                    {event.state && <span>{event.state}, </span>}
+                    {event.country && <span>{event.country}</span>}
+                  </>
+                )
               ) : (
-                <a href={event.virtual_link} target="_blank" rel="noopener noreferrer">
-                  {event.virtual_link || 'No link provided'}
-                </a>
+                userDetails.user_id ? (
+                  <a href={event.virtual_link} target="_blank" rel="noopener noreferrer">
+                    {event.virtual_link || 'No link provided'}
+                  </a>
+                ) : (
+                  <span>Login to view link</span>
+                )
               )}
             </p>
             <p><strong>Category:</strong>{EVENT_TYPE_MAP[event.type] || event.type || "Unknown"}</p>
             <p><strong>Exclusivity:</strong>{event.exclusivity === 'invite-only' ? 'Invitation Only' : event.exclusivity}</p>
             <p><strong>Description:</strong>{event.description}</p>
+
+            {!userDetails.user_id && (
+              <p style={{ color: '#888', marginTop: '20px' }}>
+                Log in to see full event details
+              </p>
+            )}
+
             <div className="details-actions">
-              <button className="event-ghost-button" onClick={handleEdit}>EDIT DETAILS</button>
-              <button className="event-ghost-button" onClick={handleShowDeleteModal}>DELETE EVENT</button>
-              <button className="event-ghost-button" onClick={() => setIsEmailModalOpen(true)}>DRAFT ANNOUNCEMENT EMAIL</button>
+              {(userDetails.admin || userDetails.type?.trim().toLowerCase() === 'founding') && (
+                <>
+                  <button className="event-ghost-button" onClick={handleEdit}>EDIT DETAILS</button>
+                  <button className="event-ghost-button" onClick={handleShowDeleteModal}>DELETE EVENT</button>
+                  <button className="event-ghost-button" onClick={() => setIsEmailModalOpen(true)}>DRAFT ANNOUNCEMENT EMAIL</button>
+                </>
+              )}
             </div>
 
             <DeleteConfirmationModal
@@ -681,7 +738,7 @@ const EventPage = () => {
               onConfirm={handleConfirmDelete}
               eventName={event.title}
             />
-            {event.participants && event.participants.length > 0 && (
+            {userDetails.user_id && event.participants && event.participants.length > 0 && (
               <div>
                 <h4>Participants</h4>
                 <ul>
@@ -702,50 +759,56 @@ const EventPage = () => {
 
         {activeTab === "participation" && (
           <div className="participation-tab">
-            <div className="participants-section">
-              <h4>Current Participants ({event.participants?.length || 0})</h4>
+            {userDetails.user_id ? (
+              <div className="participants-section">
+                <h4>Current Participants ({event.participants?.length || 0})</h4>
 
-              {/* Participants list */}
-              {event.participants && event.participants.length > 0 ? (
-                <ul className="participants-list">
-                  {event.participants.map(participant => (
-                    <li key={participant.user_id} className="participant-item">
-                      <span className="participant-name">{participant.name}</span>
-                      {participant.user_id === userDetails.user_id && (
-                        <span className="current-user-badge">(You)</span>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="no-participants">No participants yet. Be the first to join!</p>
-              )}
-
-              {/* Join/Leave button */}
-              <div className="participation-actions">
-                {event.participants?.some(p => p.user_id === userDetails.user_id) ? (
-                  <button
-                    onClick={() => showLeaveModal(event.id)}
-                    className="event-ghost-button"
-                  >
-                    LEAVE EVENT
-                  </button>
+                {/* Participants list */}
+                {event.participants && event.participants.length > 0 ? (
+                  <ul className="participants-list">
+                    {event.participants.map(participant => (
+                      <li key={participant.user_id} className="participant-item">
+                        <span className="participant-name">{participant.name}</span>
+                        {participant.user_id === userDetails.user_id && (
+                          <span className="current-user-badge">(You)</span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
                 ) : (
+                  <p className="no-participants">No participants yet. Be the first to join!</p>
+                )}
+
+                {/* Join/Leave button */}
+                <div className="participation-actions">
+                  {event.participants?.some(p => p.user_id === userDetails.user_id) ? (
+                    <button
+                      onClick={() => showLeaveModal(event.id)}
+                      className="event-ghost-button"
+                    >
+                      LEAVE EVENT
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleJoinEvent(event.id)}
+                      className="event-ghost-button"
+                    >
+                      JOIN EVENT
+                    </button>
+                  )}
                   <button
-                    onClick={() => handleJoinEvent(event.id)}
+                    onClick={() => setIsInviteModalOpen(true)}
                     className="event-ghost-button"
                   >
-                    JOIN EVENT
+                    INVITE MEMBER(S)
                   </button>
-                )}
-                <button
-                  onClick={() => setIsInviteModalOpen(true)}
-                  className="event-ghost-button"
-                >
-                  INVITE MEMBER(S)
-                </button>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="login-prompt">
+                <p>Please log in to view participants and join the event.</p>
+              </div>
+            )}
 
             <InviteModal
               isOpen={isInviteModalOpen}

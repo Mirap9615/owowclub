@@ -246,7 +246,7 @@ function Cal() {
         <div className="container">
           <h1>Events</h1>
 
-          {userDetails.type !== 'Standard' && (
+          {userDetails.user_id && userDetails.type !== 'Standard' && (
             <button className="event-ghost-button" onClick={handleCreateEvent}>Create Event</button>
           )}
           {isModalOpen && (
@@ -311,7 +311,7 @@ function Cal() {
                 <div
                   key={event.id}
                   className="event-card"
-                  onClick={() => Navigate(`/events/${event.slug}`)}
+                  onClick={() => Navigate(`/events/${event.slug}/details`)}
                 >
                   <div className="event-image" style={backgroundStyle}></div>
 

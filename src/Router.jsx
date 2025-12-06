@@ -44,7 +44,7 @@ function AppRouter() {
         <Route path="/request" element={<Request />} />
 
         <Route path="/events/invite/:token" element={<EventInviteHandler />} />
-        <Route path="/events/:id" element={<EventPage />} />
+        <Route path="/events/:id/:tab?" element={<EventPage />} />
 
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />

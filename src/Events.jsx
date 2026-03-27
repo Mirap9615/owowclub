@@ -10,6 +10,23 @@ import { format } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
 import EventModal from './EventModal.jsx';
 import { EVENT_TYPES } from './constants/eventTypes';
+import { MapPin, Calendar as CalendarIcon, Video } from 'lucide-react';
+import CalendarView from './CalendarView.jsx';
+
+const LinkifyText = ({ text }) => {
+  if (!text) return null;
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  return text.split(urlRegex).map((part, i) => {
+    if (part.match(urlRegex)) {
+      return (
+        <a key={i} href={part} target="_blank" rel="noopener noreferrer" style={{ color: '#725d29', textDecoration: 'underline' }}>
+          {part}
+        </a>
+      );
+    }
+    return part;
+  });
+};
 
 const findEventsForDate = (selectedDate, allEvents) => {
   return allEvents.filter(event => {
@@ -30,6 +47,7 @@ function Cal() {
   const [events, setEvents] = useState([]);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(null);
   const [userDetails, setUserDetails] = useState({
     name: '',
     user_id: '',
@@ -45,8 +63,8 @@ function Cal() {
         const data = await response.json();
         const parsedEvents = data.map(event => {
           const eventDate = event.event_date.split('T')[0];
-          const startDateTime = new Date(`${eventDate}T${event.start_time}`);
-          const endDateTime = new Date(`${eventDate}T${event.end_time}`);
+          const startDateTime = new Date(`${eventDate}T${event.start_time}Z`);
+          const endDateTime = new Date(`${eventDate}T${event.end_time}Z`);
 
           return {
             id: event.id,
@@ -91,30 +109,39 @@ function Cal() {
     }
   }, [events]);
 
-  const handleCreateEvent = () => {
+  const handleCreateEvent = (date = null) => {
+    setSelectedDate(date instanceof Date ? date : null);
     setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
+    setSelectedDate(null);
   };
 
   const handleEventCreate = async (formData) => {
+    const rawDate = formData.event_date || new Date().toISOString().split("T")[0];
+    const rawStart = formData.start_time || '16:00';
+    const rawEnd = formData.end_time || '21:00';
+
+    const startObj = new Date(`${rawDate}T${rawStart}`);
+    const endObj = new Date(`${rawDate}T${rawEnd}`);
+
     const finalFormData = {
       title: formData.title.trim() || 'New Event',
       type: formData.type || 'entertainment',
       exclusivity: formData.exclusivity || 'open',
       description: formData.description.trim() || 'Default description',
-      event_date: formData.event_date || new Date().toISOString().split("T")[0],
-      start_time: formData.start_time || '16:00',
-      end_time: formData.end_time || '21:00',
+      event_date: startObj.toISOString().split("T")[0],
+      start_time: startObj.toISOString().split("T")[1].substring(0, 5),
+      end_time: endObj.toISOString().split("T")[1].substring(0, 5),
       is_physical: formData.is_physical,
-      location: formData.is_physical ? formData.location.trim() || 'Unset' : null,
-      zip_code: formData.is_physical ? formData.zip_code.trim() || '' : null,
-      city: formData.is_physical ? formData.city.trim() || '' : null,
-      state: formData.is_physical ? formData.state.trim() || '' : null,
-      country: formData.is_physical ? formData.country.trim() || '' : null,
-      virtual_link: !formData.is_physical ? formData.virtual_link.trim() || '' : null,
+      location: formData.is_physical ? formData.location?.trim() || 'Unset' : null,
+      zip_code: formData.is_physical ? formData.zip_code?.trim() || '' : null,
+      city: formData.is_physical ? formData.city?.trim() || '' : null,
+      state: formData.is_physical ? formData.state?.trim() || '' : null,
+      country: formData.is_physical ? formData.country?.trim() || '' : null,
+      virtual_link: !formData.is_physical ? formData.virtual_link?.trim() || '' : null,
       color: formData.color || '#d3d3d3',
     };
 
@@ -130,8 +157,8 @@ function Cal() {
       if (response.ok) {
         const responseData = await response.json();
 
-        const startDateTime = new Date(`${finalFormData.event_date}T${finalFormData.start_time}`);
-        const endDateTime = new Date(`${finalFormData.event_date}T${finalFormData.end_time}`);
+        const startDateTime = new Date(`${finalFormData.event_date}T${finalFormData.start_time}Z`);
+        const endDateTime = new Date(`${finalFormData.event_date}T${finalFormData.end_time}Z`);
 
         const createdEvent = {
           id: responseData.id,
@@ -177,15 +204,23 @@ function Cal() {
 
   const [filter, setFilter] = useState('');
   const [sortDirection, setSortDirection] = useState('desc');
-  const [selectedType, setSelectedType] = useState('all');
+  const [selectedTitle, setSelectedTitle] = useState('all');
   const [displayedEvents, setDisplayedEvents] = useState([]);
+  const [uniqueTitles, setUniqueTitles] = useState([]);
+
+  useEffect(() => {
+    // Extract unique titles from events, sorted by recency (newest first)
+    const recencySorted = [...events].sort((a, b) => b.startDateTime.getTime() - a.startDateTime.getTime());
+    const titles = Array.from(new Set(recencySorted.map(e => e.title)));
+    setUniqueTitles(titles);
+  }, [events]);
 
   useEffect(() => {
     let processedEvents = [...events];
 
-    // 1. Filter by Type
-    if (selectedType !== 'all') {
-      processedEvents = processedEvents.filter(event => event.type === selectedType);
+    // 1. Filter by Title
+    if (selectedTitle !== 'all') {
+      processedEvents = processedEvents.filter(event => event.title === selectedTitle);
     }
 
     // 2. Filter by Search Text
@@ -205,7 +240,7 @@ function Cal() {
     });
 
     setDisplayedEvents(processedEvents);
-  }, [sortDirection, filter, selectedType, events]);
+  }, [sortDirection, filter, selectedTitle, events]);
 
   const handleSearchChange = (e) => {
     setFilter(e.target.value);
@@ -242,25 +277,17 @@ function Cal() {
           <Steamed />
           <h1>OWL<sup>2</sup> Club</h1>
         </header>
-        <br></br>
+
         <div className="container">
           <h1>Events</h1>
 
-          {userDetails.user_id && userDetails.type !== 'Standard' && (
-            <button className="event-ghost-button" onClick={handleCreateEvent}>Create Event</button>
-          )}
-          {isModalOpen && (
-            <>
-              <div className="backdrop backdrop-active" onClick={handleCloseModal}></div>
-              <EventModal
-                onClose={handleCloseModal}
-                mode="create"
-                onEventUpdate={handleEventCreate}
-              />
-            </>
-          )}
+          <CalendarView events={events} onDateClick={handleCreateEvent} />
 
-          <div className="controls-container">
+          <div className="controls-container" style={{ marginTop: '2rem' }}>
+            {userDetails.user_id && userDetails.type !== 'Standard' && (
+              <button className="event-ghost-button" style={{ marginRight: '1rem', marginBottom: 0 }} onClick={() => handleCreateEvent()}>Create Event</button>
+            )}
+
             <input
               type="text"
               className="search-bar"
@@ -272,12 +299,12 @@ function Cal() {
             <div className="filter-sort-group">
               <select
                 className="type-filter-select"
-                value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value)}
+                value={selectedTitle}
+                onChange={(e) => setSelectedTitle(e.target.value)}
               >
-                <option value="all">All Types</option>
-                {EVENT_TYPES.map(type => (
-                  <option key={type.value} value={type.value}>{type.label}</option>
+                <option value="all">All Events</option>
+                {uniqueTitles.map(title => (
+                  <option key={title} value={title}>{title}</option>
                 ))}
               </select>
 
@@ -286,6 +313,18 @@ function Cal() {
               </button>
             </div>
           </div>
+
+          {isModalOpen && (
+            <>
+              <div className="backdrop backdrop-active" onClick={handleCloseModal}></div>
+              <EventModal
+                onClose={handleCloseModal}
+                mode="create"
+                onEventUpdate={handleEventCreate}
+                initialDate={selectedDate}
+              />
+            </>
+          )}
 
           <div className="events-grid">
             {displayedEvents.map(event => {
@@ -311,22 +350,25 @@ function Cal() {
                 <div
                   key={event.id}
                   className="event-card"
-                  onClick={() => Navigate(`/events/${event.slug}/details`)}
+                  onClick={() => Navigate(`/events/${event.slug}`)}
                 >
                   <div className="event-image" style={backgroundStyle}></div>
 
                   <div className="event-info">
+                    <div className="event-meta">
+                      <span className="event-date"><CalendarIcon size={14} className="meta-icon" />{dateDisplay}</span>
+                      <span className="event-type">{event.is_physical ? <MapPin size={14} className="meta-icon" /> : <Video size={14} className="meta-icon" />} {typeDisplay}</span>
+                    </div>
+
                     <h3 className="event-title">{event.title}</h3>
 
-                    <p className="event-meta">
-                      <span className="event-type">{typeDisplay}</span> | <span className="event-date">{dateDisplay}</span>
-                    </p>
-
-                    <p className="event-venue">{venueDisplay}</p>
-
                     {event.description && (
-                      <p className="event-description">{event.description.length > 120 ? `${event.description.substring(0, 120)}...` : event.description}</p>
+                      <p className="event-description"><LinkifyText text={event.description} /></p>
                     )}
+
+                    <div className="event-location">
+                      {venueDisplay}
+                    </div>
                   </div>
                 </div>
               );

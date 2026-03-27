@@ -68,17 +68,7 @@
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  .page-three-container {
-    color: black;
-  }
-}
-
-@media (min-width: 769px) and (prefers-color-scheme: dark) {
-  .page-three-container {
-    color: black;
-  }
-
+@media (min-width: 769px) {
   .membership-image {
     margin-top: 90px;
   }

@@ -1,0 +1,440 @@
+.calendar-view-container {
+  width: 100%;
+  margin-bottom: 2rem;
+  background-color: var(--color-background-cream);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.calendar-header-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .calendar-header-wrapper {
+    justify-content: center;
+  }
+}
+
+.calendar-header {
+  display: flex;
+  align-items: center;
+}
+
+.view-mode-toggle {
+  display: flex;
+  background-color: #ffffff;
+  border: 1px solid #000000;
+  border-radius: 20px;
+  padding: 4px;
+}
+
+.view-mode-toggle button {
+  background: transparent;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 16px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #000000;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.view-mode-toggle button.active {
+  background-color: #000;
+  color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+@media (prefers-color-scheme: dark) {
+  .view-mode-toggle {
+    background-color: #333;
+  }
+
+  .view-mode-toggle button {
+    color: #aaa;
+  }
+
+  .view-mode-toggle button.active {
+    background-color: #fff;
+    color: #000;
+  }
+}
+
+.calendar-controls {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.calendar-controls h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2rem;
+  color: var(--color-primary-teal);
+  margin: 0;
+  min-width: 150px;
+  text-align: center;
+}
+
+.calendar-controls button {
+  background: none;
+  border: 1px solid var(--color-primary-gold);
+  color: var(--color-primary-gold);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all 0.2s ease;
+}
+
+.calendar-controls button:hover {
+  background-color: var(--color-primary-gold);
+  color: #fff;
+}
+
+.calendar-grid.desktop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+.calendar-grid.mobile-grid {
+  display: block;
+}
+
+.calendar-grid.single-month-grid {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.calendar-grid.single-month-grid .day-cell {
+  aspect-ratio: auto;
+  min-height: 80px;
+  border-radius: 8px;
+  /* Remove the complete squish of 50% border radius */
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 8px;
+}
+
+.calendar-month {
+  background: #fff;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.month-title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-primary-teal);
+  text-align: center;
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.days-of-week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #888;
+  margin-bottom: 0.5rem;
+}
+
+.days-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.day-cell {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: transform 0.1s ease;
+}
+
+.day-cell:hover {
+  transform: scale(1.1);
+}
+
+.day-number {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.day-cell.outside-month .day-number {
+  color: #ccc;
+}
+
+.day-cell.today .day-number {
+  border: 2px solid var(--color-primary-gold);
+  font-weight: 700;
+  color: var(--color-primary-teal);
+}
+
+.day-cell.has-event .day-number {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.multi-event-dot {
+  position: absolute;
+  bottom: 0px;
+  width: 4px;
+  height: 4px;
+  background-color: var(--color-primary-teal);
+  border-radius: 50%;
+}
+
+/* Sidebar Overlay */
+.calendar-sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.calendar-sidebar-overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Sidebar Drawer */
+.calendar-sidebar {
+  position: fixed;
+  top: 0;
+  right: -400px;
+  width: 100%;
+  max-width: 400px;
+  height: 100vh;
+  background: #ffffff;
+  z-index: 1001;
+  box-shadow: -4px 0 15px rgba(0, 0, 0, 0.1);
+  transition: right 0.3s ease;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.calendar-sidebar.open {
+  right: 0;
+}
+
+.sidebar-header-image {
+  height: 200px;
+  width: 100%;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+.sidebar-details {
+  padding: 2rem;
+}
+
+.sidebar-date {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #000000;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.sidebar-details h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2.2rem;
+  color: #000000;
+  margin: 0.5rem 0 1rem 0;
+  line-height: 1.2;
+}
+
+.sidebar-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #000000;
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+}
+
+.sidebar-description {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #000000;
+  margin-bottom: 2rem;
+  white-space: pre-wrap;
+}
+
+.view-full-event-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 44px;
+  background-color: #471a25;
+  color: #ffffff;
+  border-radius: 6px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-decoration: none;
+  border: none;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.view-full-event-btn:hover {
+  background-color: #5e2230;
+}
+
+.sidebar-close-btn-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 44px;
+  background-color: transparent;
+  color: #666666;
+  border-radius: 6px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 1px solid #dddddd;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.sidebar-close-btn-bottom:hover {
+  background-color: #f5f5f5;
+  border-color: #999999;
+  color: #333333;
+}
+
+@media (prefers-color-scheme: dark) {
+
+  /* Main Container Dark ModeOverrides */
+  .calendar-view-container {
+    background-color: #111111;
+    color: #ffffff;
+  }
+
+  .calendar-month {
+    background: #222222;
+  }
+
+  .calendar-controls h2,
+  .month-title {
+    color: #ffffff;
+  }
+
+  .calendar-controls button {
+    color: #ffffff;
+    border-color: #ffffff;
+  }
+
+  .calendar-controls button:hover {
+    background-color: #ffffff;
+    color: #000000;
+  }
+
+  .day-cell {
+    color: #ffffff;
+  }
+
+  .day-number {
+    color: #ffffff;
+  }
+
+  .day-cell.outside-month .day-number {
+    color: #666666;
+  }
+
+  .day-cell.today .day-number {
+    border-color: #ffffff;
+    color: #ffffff;
+  }
+
+  /* View Mode Toggle Button Dark Overrides */
+  .view-mode-toggle {
+    background-color: #000000;
+    border: 1px solid #ffffff;
+  }
+
+  .view-mode-toggle button {
+    color: #ffffff;
+  }
+
+  .view-mode-toggle button.active {
+    background-color: #ffffff;
+    color: #000000;
+  }
+
+  /* Sidebar Dark Overrides */
+  .calendar-sidebar {
+    background: #000000;
+  }
+
+  .sidebar-date,
+  .sidebar-details h2,
+  .sidebar-meta,
+  .sidebar-description {
+    color: #ffffff;
+  }
+
+  .view-full-event-btn {
+    background-color: #471a25;
+    color: #ffffff;
+    border: none;
+  }
+
+  .view-full-event-btn:hover {
+    background-color: #5e2230;
+  }
+
+  .sidebar-close-btn-bottom {
+    background-color: transparent;
+    color: #bbbbbb;
+    border-color: #555555;
+  }
+
+  .sidebar-close-btn-bottom:hover {
+    background-color: #222222;
+    border-color: #777777;
+    color: #ffffff;
+  }
+}

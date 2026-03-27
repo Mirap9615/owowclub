@@ -11,6 +11,21 @@ import Comments from './Comments.jsx';
 import { createPortal } from 'react-dom';
 import { EVENT_TYPE_MAP } from './constants/eventTypes';
 
+const LinkifyText = ({ text }) => {
+  if (!text) return null;
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  return text.split(urlRegex).map((part, i) => {
+    if (part.match(urlRegex)) {
+      return (
+        <a key={i} href={part} target="_blank" rel="noopener noreferrer" style={{ color: '#725d29', textDecoration: 'underline' }}>
+          {part}
+        </a>
+      );
+    }
+    return part;
+  });
+};
+
 const JoinedModal = ({ isOpen, onClose, eventName, onSendConfirmation }) => {
   if (!isOpen) return null;
 
@@ -65,32 +80,43 @@ const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, eventName }) => {
   );
 }
 
-const formatDateRead = (isoDate) => {
-  if (!isoDate) return 'N/A';
-
-  const [year, month, day] = isoDate.split('-');
+const formatDateRead = (utcDate, utcTime) => {
+  if (!utcDate || !utcTime) return 'N/A';
+  const d = new Date(`${utcDate.split('T')[0]}T${utcTime}Z`);
   const monthNames = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
+  return `${monthNames[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+};
 
-  return `${monthNames[parseInt(month, 10) - 1]} ${parseInt(day, 10)}, ${year}`;
+const formatTimeFromUTC = (utcDate, utcTime) => {
+  if (!utcDate || !utcTime) return 'Invalid Time';
+  const d = new Date(`${utcDate.split('T')[0]}T${utcTime}Z`);
+  if (isNaN(d.getTime())) return 'Invalid Time';
+  let h = d.getHours();
+  let m = d.getMinutes();
+  const period = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  return `${h}:${String(m).padStart(2, '0')} ${period}`;
 };
 
 const EventPage = () => {
   const { id, tab } = useParams();
   const navigate = useNavigate();
   // Map URL tab names to internal state names
-  const getTabFromUrl = (urlTab) => {
+  const getTabFromUrl = (urlTab, isPast) => {
     if (urlTab === 'media') return 'images';
-    if (['details', 'participation', 'comments'].includes(urlTab)) return urlTab;
-    return 'details';
+    if (['details', 'participation', 'comments', 'summary'].includes(urlTab)) return urlTab;
+    return isPast ? 'summary' : 'details';
   };
 
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState(getTabFromUrl(tab));
+  const [activeTab, setActiveTab] = useState('details'); // Set initial state appropriately later
+  const [isEditingSummary, setIsEditingSummary] = useState(false);
+  const [summaryDraft, setSummaryDraft] = useState('');
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [eventImages, setEventImages] = useState([]);
@@ -296,17 +322,19 @@ const EventPage = () => {
     fetchEvent();
   }, [id]);
 
-  // Redirect to /details if no tab is specified
+  // Redirect to /details or /summary if no tab is specified
   useEffect(() => {
-    if (!tab) {
-      navigate(`/events/${id}/details`, { replace: true });
+    if (!tab && event) {
+      const isPast = new Date() > new Date(`${event.event_date.split('T')[0]}T${event.end_time}Z`);
+      navigate(`/events/${id}/${isPast ? 'summary' : 'details'}`, { replace: true });
     }
-  }, [id, tab, navigate]);
+  }, [id, tab, navigate, event]);
 
   // Sync activeTab with URL changes
   useEffect(() => {
-    setActiveTab(getTabFromUrl(tab));
-  }, [tab]);
+    const isPast = event ? new Date() > new Date(`${event.event_date.split('T')[0]}T${event.end_time}Z`) : false;
+    setActiveTab(getTabFromUrl(tab, isPast));
+  }, [tab, event]);
 
   const handleTabChange = (newTab) => {
     const urlTab = newTab === 'images' ? 'media' : newTab;
@@ -475,16 +503,36 @@ const EventPage = () => {
 
   const handleEventUpdate = async (updatedEventData) => {
     try {
-      const commonAttributes = {
-        date: updatedEventData.event_date && updatedEventData.event_date.trim() !== ""
+      const getLocalFormattedDate = (utcDate, utcTime) => {
+          if (!utcDate || !utcTime) return '';
+          const d = new Date(`${utcDate.split('T')[0]}T${utcTime}Z`);
+          if (isNaN(d.getTime())) return '';
+          return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      };
+      const getLocalFormattedTime = (utcDate, utcTime) => {
+          if (!utcDate || !utcTime) return '';
+          const d = new Date(`${utcDate.split('T')[0]}T${utcTime}Z`);
+          if (isNaN(d.getTime())) return '';
+          return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+      };
+
+      const rawDate = updatedEventData.event_date && updatedEventData.event_date.trim() !== ""
           ? updatedEventData.event_date
-          : event.event_date,
-        start_time: updatedEventData.start_time && updatedEventData.start_time.trim() !== ""
-          ? `${updatedEventData.start_time}`
-          : event.start_time,
-        end_time: updatedEventData.end_time && updatedEventData.end_time.trim() !== ""
-          ? `${updatedEventData.end_time}`
-          : event.end_time,
+          : getLocalFormattedDate(event.event_date, event.start_time);
+      const rawStart = updatedEventData.start_time && updatedEventData.start_time.trim() !== ""
+          ? updatedEventData.start_time
+          : getLocalFormattedTime(event.event_date, event.start_time);
+      const rawEnd = updatedEventData.end_time && updatedEventData.end_time.trim() !== ""
+          ? updatedEventData.end_time
+          : getLocalFormattedTime(event.event_date, event.end_time);
+
+      const startObj = new Date(`${rawDate}T${rawStart}`);
+      const endObj = new Date(`${rawDate}T${rawEnd}`);
+
+      const commonAttributes = {
+        date: startObj.toISOString().split("T")[0],
+        start_time: startObj.toISOString().split("T")[1].substring(0, 5),
+        end_time: endObj.toISOString().split("T")[1].substring(0, 5),
         title: updatedEventData.title,
         description: updatedEventData.description,
         note: updatedEventData.note,
@@ -528,19 +576,6 @@ const EventPage = () => {
     } catch (error) {
       console.error('Error updating event:', error);
     }
-  };
-
-  const formatTime = (time) => {
-    console.log('formatTime called with:', time);
-    if (!time) {
-      console.warn('Invalid time value:', time);
-      return 'Invalid Time'; // Gracefully handle null/undefined
-    }
-    const [hours, minutes] = time.split(':');
-    const h = parseInt(hours, 10);
-    const period = h >= 12 ? 'PM' : 'AM';
-    const adjustedHour = h % 12 || 12;
-    return `${adjustedHour}:${minutes} ${period}`;
   };
 
   const handleDelete = async (eventId) => {
@@ -640,6 +675,69 @@ const EventPage = () => {
   if (loading || !event) return <p>Loading...</p>;
   if (error) return <p>{error}</p>;
 
+  const isPastEvent = new Date() > new Date(`${event.event_date.split('T')[0]}T${event.end_time}Z`);
+
+  const handleSaveSummary = async (newSummary) => {
+    try {
+      const updatedData = {
+        ...event,
+        date: event.event_date.split('T')[0],
+        summary: newSummary
+      };
+
+      const response = await fetch(`/api/events/${event.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedData),
+      });
+
+      if (response.ok) {
+        const updatedEvent = await response.json();
+        setEvent(prev => ({ ...prev, summary: updatedEvent.summary || newSummary }));
+        setIsEditingSummary(false);
+      } else {
+        console.error('Failed to save summary:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error saving summary:', error);
+    }
+  };
+
+  const handleAddToGoogleCalendar = () => {
+    const startObj = new Date(`${event.event_date.split('T')[0]}T${event.start_time}Z`);
+    const endObj = new Date(`${event.event_date.split('T')[0]}T${event.end_time}Z`);
+    
+    const formatICSDate = (date) => date.toISOString().replace(/-|:|\.\d\d\d/g, "");
+    
+    const locationStr = event.is_physical ? 
+        [event.location, event.city, event.state, event.country].filter(Boolean).join(', ') : 
+        event.virtual_link;
+
+    const googleCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title || 'OWL^2 Event')}&dates=${formatICSDate(startObj)}/${formatICSDate(endObj)}&details=${encodeURIComponent(event.description || '')}&location=${encodeURIComponent(locationStr || '')}`;
+    
+    window.open(googleCalUrl, '_blank');
+  };
+
+  const handleDownloadICS = () => {
+    const startObj = new Date(`${event.event_date.split('T')[0]}T${event.start_time}Z`);
+    const endObj = new Date(`${event.event_date.split('T')[0]}T${event.end_time}Z`);
+    const formatICSDate = (date) => date.toISOString().replace(/-|:|\.\d\d\d/g, "");
+    
+    const locationStr = event.is_physical ? 
+        [event.location, event.city, event.state, event.country].filter(Boolean).join(', ') : 
+        event.virtual_link;
+
+    const icsString = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//OWOW Club//Events//EN\r\nBEGIN:VEVENT\r\nUID:${event.id}@owowclub.com\r\nDTSTAMP:${formatICSDate(new Date())}\r\nDTSTART:${formatICSDate(startObj)}\r\nDTEND:${formatICSDate(endObj)}\r\nSUMMARY:${event.title || 'OWL^2 Event'}\r\nDESCRIPTION:${(event.description || '').replace(/\n/g, '\\n')}\r\nLOCATION:${locationStr || ''}\r\nEND:VEVENT\r\nEND:VCALENDAR`;
+
+    const blob = new Blob([icsString], { type: 'text/calendar;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.download = `${event.slug || 'event'}.ics`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="event-page">
       <header className="top-bar-home">
@@ -668,6 +766,9 @@ const EventPage = () => {
 
       {/* Tabs Navigation */}
       <div className="tabs">
+        {isPastEvent && (
+          <button onClick={() => handleTabChange("summary")} className={activeTab === "summary" ? "active" : ""}>Summary</button>
+        )}
         <button onClick={() => handleTabChange("details")} className={activeTab === "details" ? "active" : ""}>Details</button>
         <button onClick={() => handleTabChange("participation")} className={activeTab === "participation" ? "active" : ""}>Participation</button>
         <button onClick={() => handleTabChange("images")} className={activeTab === "images" ? "active" : ""}>Media</button>
@@ -676,11 +777,58 @@ const EventPage = () => {
 
       {/* Tab Content */}
       <div className="tab-content">
+        {activeTab === "summary" && isPastEvent && (
+          <div className="summary-tab">
+            <div className="summary-status-banner">
+              <h2>This event has concluded.</h2>
+              <p>Thank you to everyone who participated!</p>
+            </div>
+
+            <div className="summary-blog-section">
+              <h3>Event Summary</h3>
+              {isEditingSummary ? (
+                <div className="summary-edit-container">
+                  <textarea
+                    className="summary-textarea"
+                    value={summaryDraft}
+                    onChange={(e) => setSummaryDraft(e.target.value)}
+                    placeholder="Write a summary about this event..."
+                  />
+                  <div className="summary-edit-actions">
+                    <button className="event-ghost-button" onClick={() => handleSaveSummary(summaryDraft)}>Save Summary</button>
+                    <button className="event-ghost-button" onClick={() => setIsEditingSummary(false)}>Cancel</button>
+                  </div>
+                </div>
+              ) : (
+                <div className="summary-content">
+                  <p><LinkifyText text={event.summary || "This event was a wonderful gathering filled with exciting moments. Check out the media gallery to see highlights from the occasion!"} /></p>
+                  {(userDetails.admin || userDetails.type?.trim().toLowerCase() === 'founding') && (
+                    <button
+                      className="event-ghost-button edit-summary-btn"
+                      onClick={() => {
+                        setSummaryDraft(event.summary || '');
+                        setIsEditingSummary(true);
+                      }}
+                    >
+                      EDIT SUMMARY
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="summary-media-preview">
+              <h3>Gallery Highlights</h3>
+              <p className="summary-gallery-hint">Venture over to the <a href={`/events/${event.slug}/media`} onClick={(e) => { e.preventDefault(); handleTabChange("images"); }}>Media</a> tab to view all photos and videos!</p>
+            </div>
+          </div>
+        )}
+
         {activeTab === "details" && (
           <div className="details-tab">
-            <p><strong>Date:</strong>{formatDateRead(event.event_date.split('T')[0])}</p>
+            <p><strong>Date:</strong>{formatDateRead(event.event_date, event.start_time)}</p>
             <p>
-              <strong>Time:</strong>{formatTime(event.start_time)} - {formatTime(event.end_time)}
+              <strong>Time:</strong>{formatTimeFromUTC(event.event_date, event.start_time)} - {formatTimeFromUTC(event.event_date, event.end_time)}
             </p>
             <p>
               <strong>Type:</strong>{event.is_physical ? 'Physical' : 'Virtual'}
@@ -714,7 +862,7 @@ const EventPage = () => {
             </p>
             <p><strong>Category:</strong>{EVENT_TYPE_MAP[event.type] || event.type || "Unknown"}</p>
             <p><strong>Exclusivity:</strong>{event.exclusivity === 'invite-only' ? 'Invitation Only' : event.exclusivity}</p>
-            <p><strong>Description:</strong>{event.description}</p>
+            <p><strong>Description:</strong> <LinkifyText text={event.description} /></p>
 
             {!userDetails.user_id && (
               <p style={{ color: '#888', marginTop: '20px' }}>
@@ -723,6 +871,9 @@ const EventPage = () => {
             )}
 
             <div className="details-actions">
+              <button className="event-ghost-button" onClick={handleAddToGoogleCalendar}>ADD TO GOOGLE CALENDAR</button>
+              <button className="event-ghost-button" onClick={handleDownloadICS}>ADD TO APPLE CALENDAR</button>
+
               {(userDetails.admin || userDetails.type?.trim().toLowerCase() === 'founding') && (
                 <>
                   <button className="event-ghost-button" onClick={handleEdit}>EDIT DETAILS</button>

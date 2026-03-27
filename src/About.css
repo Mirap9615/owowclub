@@ -90,12 +90,6 @@
   font-weight: bold;
 }
 
-@media (prefers-color-scheme: dark) {
-  .text-container {
-    margin-top: 80px;
-  }
-}
-
 .text-container {
   margin-top: 0px;
 }

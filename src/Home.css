@@ -250,11 +250,6 @@ body {
   }
 }
 
-
-/* ==========================================================================
-   TOP BAR STYLES (Copied from previous step, assumed correct)
-   ========================================================================== */
-
 .top-bar-home {
   display: grid;
   align-items: center;

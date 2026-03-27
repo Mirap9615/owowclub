@@ -17,7 +17,7 @@ const About = () => {
       <div className="home-about">
         <div className="page-container">
           <div className="text-container">
-            <h1 className="club-name">OWL<sup>2</sup> Club</h1>
+            <h1 className="club-name">OWL<sup>2</sup> CLUB</h1>
             <p className="tagline">{highlightedTagline}</p>
 
             <section className="why-section">

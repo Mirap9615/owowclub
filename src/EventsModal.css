@@ -345,15 +345,40 @@ button:disabled {
 
 @media screen and (max-width: 768px) {
     .event-modal {
-        width: 90%;
+        width: 95%;
     }
 
     .modal-header h2 {
         font-size: 1.2rem;
     }
 
+    .modal-footer {
+        flex-wrap: wrap;
+        padding: 10px;
+        gap: 5px;
+    }
+
     .modal-footer button {
         font-size: 0.8rem;
+        padding: 8px 12px;
+        flex: 1;
+        min-width: 40%;
+    }
+}
+
+.image-color-row {
+    display: flex;
+    gap: 15px;
+    align-items: flex-start;
+}
+
+.image-color-row > div {
+    flex: 1;
+}
+
+@media screen and (max-width: 768px) {
+    .image-color-row {
+        gap: 15px;
     }
 }
 

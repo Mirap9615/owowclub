@@ -23,7 +23,7 @@ const membershipTypes = {
     title: "Executive Member",
     benefits: [
       "Operational committees",
-      "Host weekly and monthly gatherings",
+      "Host monthly gatherings",
       "Administrative duties",
       "6-month minimum",
       "Participation in gatherings"

@@ -89,16 +89,3 @@ html {
     margin: 0 10px 0 10px;
   }
 }
-
-@media (prefers-color-scheme: dark) {
-
-  .activity-column,
-  .activity-subtitle,
-  .activity-title {
-    color: white;
-  }
-
-  .page-two-container {
-    background-color: #242424;
-  }
-}

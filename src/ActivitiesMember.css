@@ -242,29 +242,3 @@ span {
     margin-bottom: 14vh;
   }
 }
-
-@media (prefers-color-scheme: dark) {
-  .react-calendar {
-    background-color: #333;
-    color: white;
-  }
-
-  .react-calendar__tile {
-    background-color: #444;
-    color: white;
-  }
-
-  .react-calendar__tile:enabled:hover,
-  .react-calendar__tile:enabled:focus {
-    background-color: #555;
-  }
-
-  .react-calendar__navigation button {
-    color: white;
-  }
-
-  .table.upcoming-events th {
-    background-color: #333;
-    color: white;
-  }
-}

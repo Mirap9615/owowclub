@@ -1,0 +1,9 @@
+home page revamp inspiration: appweb.apple.com 
+
+application process enhancements, add job title field and company name field 
+
+send emails to executive+ members upon application submission 
+
+evaluation panel: Scroll down on mobile, sideaways on desktop 
+
+membership: standard -> travel -> executive with host as optional addon for each, separate

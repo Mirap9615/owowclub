@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import './EventsModal.css';
 import { HexColorPicker } from 'react-colorful';
 import { EVENT_TYPES } from './constants/eventTypes';
+import { usePlacesWidget } from 'react-google-autocomplete';
 
 const US_STATES = [
     "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado",
@@ -38,29 +39,38 @@ const COUNTRIES = [
     "Yemen", "Zambia", "Zimbabwe"
 ];
 
-const EventModal = ({ onClose, mode, eventData, onEventUpdate }) => {
+const EventModal = ({ onClose, mode, eventData, onEventUpdate, initialDate }) => {
     const isEditMode = mode === 'edit';
 
-    const formatDate = (dateString) => {
-        const date = new Date(dateString);
-        if (isNaN(date)) return '';
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const year = date.getFullYear();
-        return `${year}-${month}-${day}`;
+    const getLocalFormattedDate = (utcDate, utcTime) => {
+        if (!utcDate || !utcTime) return '';
+        const d = new Date(`${utcDate.split('T')[0]}T${utcTime}Z`);
+        if (isNaN(d.getTime())) return '';
+        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
     };
+
+    const getLocalFormattedTime = (utcDate, utcTime) => {
+        if (!utcDate || !utcTime) return '';
+        const d = new Date(`${utcDate.split('T')[0]}T${utcTime}Z`);
+        if (isNaN(d.getTime())) return '';
+        return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    };
+
+    const initialDateString = initialDate ? `${initialDate.getFullYear()}-${String(initialDate.getMonth() + 1).padStart(2, '0')}-${String(initialDate.getDate()).padStart(2, '0')}` : '';
 
     const initialFormData = isEditMode
         ? {
             ...eventData,
-            event_date: eventData.event_date ? formatDate(eventData.event_date) : '',
+            event_date: getLocalFormattedDate(eventData.event_date, eventData.start_time),
+            start_time: getLocalFormattedTime(eventData.event_date, eventData.start_time),
+            end_time: getLocalFormattedTime(eventData.event_date, eventData.end_time),
         }
         : {
             title: '',
             type: '',
             exclusivity: '',
             description: '',
-            event_date: '',
+            event_date: initialDateString,
             start_time: '',
             end_time: '',
             is_physical: true,
@@ -73,6 +83,33 @@ const EventModal = ({ onClose, mode, eventData, onEventUpdate }) => {
             color: '',
             cover_image_url: '',
         };
+
+    const { ref: placesRef } = usePlacesWidget({
+        apiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
+        onPlaceSelected: (place) => {
+            const getComponent = (type) => place.address_components?.find(c => c.types.includes(type))?.long_name || '';
+            const getShortComponent = (type) => place.address_components?.find(c => c.types.includes(type))?.short_name || '';
+            const streetNumber = getComponent('street_number');
+            const route = getComponent('route');
+            const city = getComponent('locality');
+            const state = getComponent('administrative_area_level_1');
+            const zip = getComponent('postal_code');
+            const country = getComponent('country');
+
+            setFormData(prev => ({
+                ...prev,
+                location: `${streetNumber} ${route}`.trim(),
+                city,
+                state,
+                zip_code: zip,
+                country
+            }));
+        },
+        options: {
+            types: ['address'],
+            componentRestrictions: { country: 'us' }
+        }
+    });
 
     const [eventMedia, setEventMedia] = useState([]);
     const [step, setStep] = useState(1);
@@ -151,6 +188,8 @@ const EventModal = ({ onClose, mode, eventData, onEventUpdate }) => {
                             name="location"
                             value={formData.location}
                             onChange={handleInputChange}
+                            ref={placesRef}
+                            placeholder="Start typing an address..."
                         />
                     </label>
                     <label>
@@ -274,77 +313,83 @@ const EventModal = ({ onClose, mode, eventData, onEventUpdate }) => {
                                 onChange={handleInputChange}
                             />
                         </label>
-                        <label>
-                            Cover Image
-                            <div className="file-input-wrapper">
-                                <input
-                                    type="file"
-                                    id="cover-image-upload"
-                                    accept="image/*"
-                                    onChange={handleCoverImageUpload}
-                                    style={{ display: 'none' }}
-                                />
-                                <label htmlFor="cover-image-upload" className="file-input-button">
-                                    CHOOSE FILE
-                                </label>
-                                <span className="file-name">
-                                    {formData.cover_image_url ? 'Image Selected' : 'No file chosen'}
-                                </span>
-                            </div>
-                            {formData.cover_image_url && (
-                                <div className="cover-image-preview">
-                                    <img src={formData.cover_image_url} alt="Cover Preview" style={{ maxWidth: '100%', maxHeight: '200px', marginTop: '10px', borderRadius: '4px' }} />
-                                </div>
-                            )}
-                            {eventMedia.length > 0 && (
-                                <div className="event-media-picker" style={{ marginTop: '10px' }}>
-                                    <p style={{ fontSize: '0.9em', marginBottom: '5px', color: '#666' }}>Or select from event media:</p>
-                                    <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '5px' }}>
-                                        {eventMedia.filter(m => m.media_type === 'image').map(media => (
-                                            <img
-                                                key={media.id}
-                                                src={media.url}
-                                                alt="Event Media"
-                                                style={{
-                                                    width: '60px',
-                                                    height: '60px',
-                                                    objectFit: 'cover',
-                                                    cursor: 'pointer',
-                                                    border: formData.cover_image_url === media.url ? '2px solid #725d29' : '1px solid #ddd',
-                                                    borderRadius: '4px'
-                                                }}
-                                                onClick={() => setFormData(prev => ({ ...prev, cover_image_url: media.url }))}
-                                            />
-                                        ))}
+                        <div className="image-color-row">
+                            <div className="image-picker-section" style={{ flex: 1 }}>
+                                <label>
+                                    Cover Image
+                                    <div className="file-input-wrapper">
+                                        <input
+                                            type="file"
+                                            id="cover-image-upload"
+                                            accept="image/*"
+                                            onChange={handleCoverImageUpload}
+                                            style={{ display: 'none' }}
+                                        />
+                                        <label htmlFor="cover-image-upload" className="file-input-button">
+                                            CHOOSE FILE
+                                        </label>
+                                        {formData.cover_image_url && (
+                                            <span className="file-name" style={{ marginLeft: '10px' }}>
+                                                Selected
+                                            </span>
+                                        )}
                                     </div>
-                                </div>
-                            )}
-                        </label>
-                        <div className="color-picker-section">
-                            <label>Event Color</label>
-                            <div className="color-picker-container">
-                                <div
-                                    className="color-preview"
-                                    style={{ backgroundColor: formData.color || '#d3d3d3' }}
-                                />
-                                <button
-                                    className="pick-color-button"
-                                    onClick={toggleColorPicker}
-                                >
-                                    {formData.color ? "Change Color" : "Pick Color"}
-                                </button>
+                                    {formData.cover_image_url && (
+                                        <div className="cover-image-preview">
+                                            <img src={formData.cover_image_url} alt="Cover Preview" style={{ maxWidth: '100%', maxHeight: '100px', marginTop: '10px', borderRadius: '4px', objectFit: 'cover' }} />
+                                        </div>
+                                    )}
+                                    {eventMedia.length > 0 && (
+                                        <div className="event-media-picker" style={{ marginTop: '10px' }}>
+                                            <p style={{ fontSize: '0.9em', marginBottom: '5px', color: '#666' }}>Or select from event media:</p>
+                                            <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '5px' }}>
+                                                {eventMedia.filter(m => m.media_type === 'image').map(media => (
+                                                    <img
+                                                        key={media.id}
+                                                        src={media.url}
+                                                        alt="Event Media"
+                                                        style={{
+                                                            width: '50px',
+                                                            height: '50px',
+                                                            objectFit: 'cover',
+                                                            cursor: 'pointer',
+                                                            border: formData.cover_image_url === media.url ? '2px solid #725d29' : '1px solid #ddd',
+                                                            borderRadius: '4px'
+                                                        }}
+                                                        onClick={() => setFormData(prev => ({ ...prev, cover_image_url: media.url }))}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </label>
                             </div>
-                            {isColorPickerVisible && (
-                                <div className="color-picker-popover">
-                                    <HexColorPicker
-                                        color={formData.color || '#d3d3d3'}
-                                        onChange={(color) => setFormData((prev) => ({ ...prev, color }))}
+                            <div className="color-picker-section" style={{ flex: 1, marginTop: 0 }}>
+                                <label>Event Color</label>
+                                <div className="color-picker-container">
+                                    <div
+                                        className="color-preview"
+                                        style={{ backgroundColor: formData.color || '#d3d3d3' }}
                                     />
-                                    <button className="close-button" onClick={toggleColorPicker}>
-                                        Close
+                                    <button
+                                        className="pick-color-button"
+                                        onClick={toggleColorPicker}
+                                    >
+                                        Pick Color
                                     </button>
                                 </div>
-                            )}
+                                {isColorPickerVisible && (
+                                    <div className="color-picker-popover">
+                                        <HexColorPicker
+                                            color={formData.color || '#d3d3d3'}
+                                            onChange={(color) => setFormData((prev) => ({ ...prev, color }))}
+                                        />
+                                        <button className="close-button" style={{ marginTop: '10px', width: '100%' }} onClick={toggleColorPicker}>
+                                            Close
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 );

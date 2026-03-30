@@ -571,6 +571,7 @@ app.post('/api/events', async (req, res) => {
     type,
     exclusivity,
     cover_image_url,
+    summary,
   } = req.body;
 
   const userId = req.session?.user?.user_id;
@@ -602,9 +603,10 @@ app.post('/api/events', async (req, res) => {
               type,
               exclusivity,
               slug,
-              cover_image_url
+              cover_image_url,
+              summary
           ) VALUES (
-              $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18
+              $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19
           ) RETURNING id`,
       [
         event_date,
@@ -625,6 +627,7 @@ app.post('/api/events', async (req, res) => {
         exclusivity,
         slug,
         cover_image_url,
+        summary,
       ]
     );
 
@@ -662,6 +665,7 @@ app.put('/api/events/:id', async (req, res) => {
     country,
     virtual_link,
     cover_image_url,
+    summary,
   } = req.body;
 
   try {
@@ -692,7 +696,8 @@ app.put('/api/events/:id', async (req, res) => {
                country = $15,
                virtual_link = $16,
                slug = COALESCE($17, slug),
-               cover_image_url = $19
+               cover_image_url = $19,
+               summary = $20
            WHERE id = $18`,
       [
         date,
@@ -714,6 +719,7 @@ app.put('/api/events/:id', async (req, res) => {
         slug,
         id,
         cover_image_url,
+        summary,
       ]
     );
 
